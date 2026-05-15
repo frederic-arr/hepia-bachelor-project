@@ -1,0 +1,1417 @@
+---
+# yaml-language-server: $schema=https://jassielof.github.io/json-schemas/docs/hayagriva.schema.json
+
+# Mattermost: Buildroot par F. Gluck
+# Mattermost: Solution sécurisée pour infrastructure nexus par G. Pin
+# https://www.linuxfromscratch.org/
+# https://www.debian.org/devel/debian-live/
+# https://wiki.debian.org/Debootstrap
+# https://codeberg.org/Limine/Limine
+# https://gitedu.hesge.ch/flg_courses/embedded_linux/embedded-linux-fall25
+# https://www.kernel.org/doc/html/latest/admin-guide/LSM/Smack.html
+# https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/security_hardening/configuring-automated-unlocking-of-encrypted-volumes-using-policy-based-decryption_security-hardening
+# https://access.redhat.com/articles/6987053
+# https://ostreedev.github.io/ostree/introduction/
+# https://github.com/bootc-dev/bootc
+
+# https://landscape.cncf.io/guide#runtime--container-runtime
+# https://github.com/opencontainers/runtime-spec/blob/main/implementations.md
+# https://sanj.dev/post/docker-vs-podman-comparison
+# https://github.com/moby/moby
+# https://github.com/AliyunContainerService/pouch
+# https://github.com/containers/podman
+# https://github.com/containers/netavark
+# https://github.com/cri-o/cri-o
+# https://www.slideshare.net/slideshow/lets-try-every-cri-runtime-available-for-kubernetes/147283691
+# https://github.com/opencontainers/runc
+# https://github.com/containers/crun
+# https://github.com/youki-dev/youki
+# https://github.com/google/gvisor
+# https://github.com/kata-containers/kata-containers
+# https://noyaml.com/
+# https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-1/
+# https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-2/
+# https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-3/
+# https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-4/
+# https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-5/
+# https://securitylabs.datadoghq.com/articles/container-security-fundamentals-part-6/
+# https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work
+# https://blog.container-solutions.com/linux-capabilities-in-practice
+# https://lwn.net/Kernel/Index
+# https://man7.org/linux/man-pages/man7/capabilities.7.html
+# https://man7.org/linux/man-pages/man7/user_namespaces.7.html
+# https://man7.org/linux/man-pages/man7/namespaces.7.html
+# https://www.procustodibus.com/blog/2022/10/wireguard-in-podman/
+# https://youtu.be/UfoT88iE-TY
+# https://youtu.be/0kJPa-1FuoI
+# https://youtu.be/sK5i-N34im8
+# https://youtu.be/JOsWB50LmwQ
+# https://www.youtube.com/watch?v=x1npPrzyKfs
+# https://www.youtube.com/watch?v=WYC6DHzWzFQ
+# https://www.youtube.com/watch?v=PBlDHlFnzGo
+# https://www.youtube.com/watch?v=jRLjQF_5imw
+# https://www.youtube.com/watch?v=-YnMr1lj4Z8
+# https://www.youtube.com/watch?v=8fi7uSYlOdc
+# https://www.youtube.com/playlist?list=PLbzoR-pLrL6oEe9czYPzKWD5KS3pxdGnZ
+# https://www.youtube.com/watch?v=ql1axx--8sI
+# https://www.youtube.com/playlist?list=PLbzoR-pLrL6ppT8rJgo2GUEEbeQ4iqphB
+# https://www.youtube.com/watch?v=BM3aH-wultc
+# https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html
+# https://rootlesscontaine.rs/
+# https://www.redhat.com/en/blog/behind-scenes-podman
+# https://github.com/containers/conmon
+# https://github.com/rootless-containers/usernetes
+# https://github.com/containers/podman/blob/main/rootless.md
+# https://github.com/containers/podman/discussions/21079
+# https://unix.stackexchange.com/questions/423095/linux-capabilities-with-user-namespaces
+# https://developer.cisco.com/docs/nx-os/linux-network-namespaces-and-nx-os-virtual-routing-and-forwarding-vrf/
+# https://man7.org/linux/man-pages/man8/ip-route.8.html
+# https://gist.github.com/RomaOnyshkiv/432a901c2d02e627953f812511a55fac
+# https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work
+# https://blog.container-solutions.com/linux-capabilities-in-practice
+# https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html
+# https://www.youtube.com/watch?v=WYC6DHzWzFQ
+# https://www.youtube.com/watch?v=lkmEh3WzmII
+# https://www.redhat.com/en/blog/user-flag-rootless-containers
+# https://www.baeldung.com/linux/set-modify-capability-permissions
+# https://lwn.net/Articles/978846/
+# https://github.com/boot2podman/boot2podman
+# https://boot2podman.github.io/
+# https://lists.podman.io/archives/list/podman@lists.podman.io/thread/PBUZLVIYCYY74Y7NTHUD53BCKXUGC62R/
+# https://docs.oracle.com/en/operating-systems/oracle-linux/podman/security.html#security-containers
+# https://git.kernel.org/
+# https://www.youtube.com/watch?v=ZlZDWeVL2LI
+
+bib-container-hardening:
+  type: web
+  title: Container Hardening Process
+  author: Wei
+  date: 2024-10-13
+  url:
+    value: https://hardenedlinux.org/blog/2024-10-13-container-hardening-process/
+    date: 2026-03-17
+  parent:
+    type: web
+    title: HardenedLinux
+
+bib-btrfs-docs:
+  type: web
+  title: BTRFS Documentation
+  author: The BTRFS project
+  date: 2026
+  url:
+    value: https://btrfs.readthedocs.io/en/latest/
+    date: 2026-03-17
+
+bib-lvm-repo:
+  type: web
+  title: LVM2
+  author: The LVM2 project
+  date: 2026
+  url:
+    value: https://gitlab.com/lvmteam/lvm2
+    date: 2026-03-17
+
+bib-zfs-repo:
+  type: web
+  title: "OpenZFS on Linux and FreeBSD"
+  author: OpenZFS
+  date: 2026
+  url:
+    value: https://github.com/openzfs/zfs
+    date: 2026-03-17
+
+bib-zfs-license:
+  type: web
+  title: "Don't Use ZFS on Linux: Linus Torvalds"
+  author: Prakash, Abhishek
+  date: 2023-01-11
+  url:
+    value: https://itsfoss.com/linus-torvalds-zfs/
+    date: 2026-03-17
+  parent:
+    type: web
+    title: It's FOSS
+
+bib-man4-md:
+  type: web
+  title: md - Multiple Device driver aka Linux Software RAID
+  author: Brown, Neil
+  date: 2026
+  url:
+    value: https://man7.org/linux/man-pages/man4/md.4.html
+    date: 2026-03-17
+  parent:
+    type: web
+    title: Linux manual page
+
+bib-man7-caps:
+  type: web
+  title: capabilities - overview of Linux capabilities
+  author: Kerrisk, Michael Timothy
+  date: 2025-10-05
+  url:
+    value: https://man7.org/linux/man-pages/man7/capabilities.7.html
+    date: 2026-03-17
+  parent:
+    type: web
+    title: Linux manual page
+
+bib-introduction-to-lsm:
+  type: web
+  title: Introduction to Linux Security Modules (LSMs)
+  author: Jadhav, Rahul
+  date: 2024-01-20
+  url:
+    value: https://github.com/kubearmor/KubeArmor/wiki/Introduction-to-Linux-Security-Modules-(LSMs)
+    date: 2026-03-17
+
+bib-cncf:
+  type: web
+  title: Cloud Native Computing Foundation
+  date: 2026
+  url:
+    value: https://www.cncf.io/
+    date: 2026-03-26
+
+bib-oci:
+  type: web
+  title: Open Container Initiative
+  date: 2026
+  url:
+    value: https://opencontainers.org/
+    date: 2026-03-26
+
+bib-gvisor-announcement:
+  type: web
+  title: Open-sourcing gVisor, a sandboxed container runtime
+  author: Lacasse, Nicolas
+  organization: Google
+  date: 2018-05-02
+  url:
+    value: https://cloud.google.com/blog/products/identity-security/open-sourcing-gvisor-a-sandboxed-container-runtime
+    date: 2026-03-26
+  parent:
+    type: web
+    title: Google Cloud Blog
+
+bib-lxc-vs-docker:
+  type: web
+  title: "LXC vs. Docker: Which one should you use?"
+  author: Docker
+  date: 2024-06-13
+  url:
+    value: https://www.docker.com/blog/lxc-vs-docker/
+    date: 2026-02-11
+  parent:
+    type: web
+    title: Docker Blog
+
+bib-seccomp-bpf-doc:
+  type: web
+  title: Seccomp BPF (SECure COMPuting with filters)
+  author: The Linux Kernel
+  date: 2026
+  url:
+    value: https://www.kernel.org/doc/html/v5.0/userspace-api/seccomp_filter.html
+    date: 2026-03-21
+
+bib-selinux-repo:
+  type: repository
+  title: "SELinux: A is a flexible Mandatory Access Control (MAC) system"
+  author: The SELinux Project
+  date: 2026
+  url:
+    value: https://github.com/SELinuxProject/selinux
+    date: 2026-03-21
+
+bib-apparmor-repo:
+  type: repository
+  title: "AppArmor Linux kernel security module"
+  author: The AppArmor user space development project
+  date: 2026
+  url:
+    value: https://gitlab.com/apparmor/apparmor
+    date: 2026-03-21
+
+bib-lxc-repo:
+  type: repository
+  title: "LXC - Linux Containers"
+  author: The Linux Foundation
+  date: 2026
+  url:
+    value: https://github.com/lxc/lxc
+    date: 2026-02-11
+
+bib-lxd-repo:
+  type: repository
+  title: "LXD: Powerful system container and virtual machine manager"
+  author: Canonical
+  date: 2026
+  url:
+    value: https://github.com/canonical/lxd
+    date: 2026-02-11
+
+bib-podman-repo:
+  type: repository
+  title: "Podman: A tool for managing OCI containers and pods."
+  author: Red Hat
+  date: 2026
+  url:
+    value: https://github.com/containers/podman
+    date: 2026-02-11
+
+bib-runc-repo:
+  type: repository
+  title: "runc: CLI tool for spawning and running containers according to the OCI specification"
+  author: Open Container Initiative
+  date: 2026
+  url:
+    value: https://github.com/opencontainers/runc
+    date: 2026-02-11
+
+bib-crun-repo:
+  type: repository
+  title: "crun: A fast and lightweight fully featured OCI runtime and C library for running containers"
+  author: Red Hat
+  date: 2026
+  url:
+    value: https://github.com/containers/crun
+    date: 2026-02-11
+
+bib-kata-docs:
+  type: web
+  title: Kata Containers Documentation
+  date: 2026-03-02
+  url:
+    value: https://katacontainers.io/docs/
+    date: 2026-02-24
+
+bib-kata-limitations:
+  type: web
+  title: Limitations
+  date: 2026-03-02
+  url:
+    value: https://github.com/kata-containers/kata-containers/blob/main/docs/Limitations.md
+    date: 2026-02-24
+  parent:
+    type: web
+    title: Kata Containers Documentation
+
+bib-gvisor-docs:
+  type: web
+  title: gVisor Documentation
+  date: 2024-06-24
+  url:
+    value: https://gvisor.dev/docs/
+    date: 2026-02-24
+
+bib-gvisor-compat:
+  type: web
+  title: Compatibility
+  date: 2025-08-14
+  url:
+    value: https://gvisor.dev/docs/user_guide/compatibility/
+    date: 2026-02-24
+  parent:
+    type: web
+    title: gVisor Documentation
+
+bib-cvss:
+  type: web
+  title: Common Vulnerability Scoring System SIG
+  author: Forum of Incident Response and Security Teams
+  url:
+    value: https://www.first.org/cvss/
+    date: 2026-03-24
+
+bib-cncf-glossary-runtime:
+  type: web
+  title: Environnement d'exécution (Runtime)
+  date: 2024-07-24
+  url:
+    value: https://glossary.cncf.io/fr/runtime/
+    date: 2026-03-24
+  parent:
+    type: web
+    title: Glossaire Cloud Native
+
+bib-cncf-glossary-containerization:
+  type: web
+  title: Conteneurisation
+  date: 2024-07-24
+  url:
+    value: https://glossary.cncf.io/fr/containerization/
+    date: 2026-03-24
+  parent:
+    type: web
+    title: Glossaire Cloud Native
+
+bib-cncf-glossary-containers:
+  type: web
+  title: Conteneurs
+  date: 2024-07-24
+  url:
+    value: https://glossary.cncf.io/fr/container/
+    date: 2026-03-24
+  parent:
+    type: web
+    title: Glossaire Cloud Native
+
+bib-terraform-doc:
+  type: web
+  title: Terraform Documentation
+  author: HashiCorp
+  url:
+    value: https://developer.hashicorp.com/terraform
+    date: 2026-03-24
+
+bib-ansible-doc:
+  type: web
+  title: Ansible Documentation
+  organization: Red Hat
+  date: 2026-03-23
+  url:
+    value: https://docs.ansible.com/projects/ansible/latest/index.html
+    date: 2026-03-24
+
+bib-ansible-good-and-bad:
+  type: post
+  title: Good and Bad Parts of Ansible after 2 Years of Usage
+  author: Yurt, Tarik
+  date: 2020-06-18
+  url:
+    value: https://mtyurt.net/post/2020/good-bad-parts-of-ansible-after-two-years.html
+    date: 2026-03-24
+
+bib-carreira-ansible-challenges:
+  type: web
+  title: The Ultimate Configuration Management Tool? Lessons from a Mixed Methods Study of Ansible's Challenges
+  author:
+    - Carreira, Carolina
+    - Saavedra, Nuno
+    - Mendes, Alexandra
+    - Ferreira, João F.
+  date: 2026
+  url:
+    value: https://arxiv.org/abs/2504.08678
+    date: 2026-03-24
+
+bib-hpe-on-premises:
+  type: post
+  title: What is On-Premises Data Centers vs. Cloud Computing?
+  url:
+    value: https://www.hpe.com/emea_europe/en/what-is/on-premises-vs-cloud.html
+    date: 2026-03-22
+  parent:
+    type: blog
+    title: Made of Bugs
+
+bib-declarative-config:
+  type: web
+  title: The architecture of declarative configuration management
+  date: 2019-11-12
+  author: Elhage, Nelson
+  url:
+    value: https://blog.nelhage.com/post/declarative-configuration-management/
+    date: 2026-03-22
+  parent:
+    type: web
+    title: Made of Bugs
+
+bib-lwn-ns-caps:
+  type: web
+  title: A capability set for user namespaces
+  date: 2024-06-20
+  author: Corbet, Jonathan
+  url:
+    value: https://lwn.net/Articles/978846/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-overview:
+  type: web
+  title: Namespaces overview
+  date: 2023-01-04
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/531114/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-api:
+  type: web
+  title: The namespaces API
+  date: 2023-01-08
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/531381/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-pid:
+  type: web
+  title: PID namespaces
+  date: 2023-01-16
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/531419/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-more-pid:
+  type: web
+  title: More on PID namespaces
+  date: 2013-01-23
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/532748/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-user:
+  type: web
+  title: User namespaces
+  date: 2013-02-27
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/532593/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-more-user:
+  type: web
+  title: More on user namespaces
+  date: 2023-03-06
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/540087/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-network:
+  type: web
+  title: Network namespaces
+  date: 2024-01-22
+  author: Edge, Jake
+  url:
+    value: https://lwn.net/Articles/580893/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-mount:
+  type: web
+  title: Mount namespaces and shared subtrees
+  date: 2016-06-08
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/689856/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-lwn-ns-more-mount:
+  type: web
+  title: Mount namespaces, mount propagation, and unbindable mounts
+  date: 2016-06-15
+  author: Kerrisk, Michael
+  url:
+    value: https://lwn.net/Articles/690679/
+    date: 2026-02-19
+  parent:
+    type: web
+    title: Namespaces in operation
+
+bib-userns-internals:
+  type: blog
+  title: User namespace internals
+  author: Terenceli
+  date: 2019-12-17
+  url:
+    value: https://terenceli.github.io/技术/2019/12/17/user-namespace
+    date: 2026-01-24
+
+bib-virtualized-container-escape:
+  type: web
+  title: Escaping Virtualized Containers
+  author: Avrahami, Yuval
+  organization: Black Hat Asia 2020
+  date: 2021-05-13
+  url:
+    value: https://www.youtube.com/watch?v=0hrv0qyOEd0
+    date: 2026-03-18
+
+bib-paloalto-container-escape:
+  type: blog
+  title: "Container Breakouts: Escape Techniques in Cloud Environments"
+  author:
+    - Yaakov, Yosef
+    - Ben-Michael, Bar
+  organization: Unit 42 by Palo Alot Networks
+  date: 2024-06-18
+  url:
+    value: https://unit42.paloaltonetworks.com/container-escape-techniques/
+    date: 2026-03-18
+
+bib-uptrace-docker-vs-podman:
+  type: blog
+  title: "Podman vs Docker Comparison: Performance, Security & Production"
+  author: Bandurchin, Alexandr
+  organization: Uptrace
+  date: 2025-12-17
+  url:
+    value: https://uptrace.dev/comparisons/podman-vs-docker
+    date: 2026-03-17
+
+bib-sanj-docker-vs-podman:
+  type: blog
+  title: "Docker vs. Podman vs. Containerd vs. Nerdctl: 2025 Showdown"
+  author: Sanj
+  date: 2025-06-22
+  url:
+    value: https://sanj.dev/post/docker-vs-podman-comparison
+    date: 2026-03-17
+
+bib-containerd-repo:
+  type: repository
+  title: "containerd/containerd:  An open and reliable container runtime"
+  author: containerd
+  organization: The Linux Foundation
+  date: 2026
+  url:
+    value: https://github.com/containerd/containerd
+    date: 2026-03-17
+
+bib-docker-repo:
+  type: repository
+  title: "The Moby Project - a collaborative project for the container ecosystem to assemble container-based systems"
+  author: The Moby Project
+  date: 2026
+  url:
+    value: https://github.com/moby/moby
+    date: 2026-03-17
+
+bib-cncf-guide:
+  type: web
+  title: CNCF Landscape Guide
+  organization: Cloud Native Computing Foundation
+  url:
+    value: https://landscape.cncf.io/guide
+    date: 2026-03-17
+
+bib-cncf-landscape:
+  type: web
+  title: CNCF Landscape
+  organization: Cloud Native Computing Foundation
+  url:
+    value: https://landscape.cncf.io/
+    date: 2026-03-17
+
+bib-redhat-crun:
+  type: blog
+  title: An introduction to crun, a fast and low-memory footprint container runtime
+  author:
+    - Walsh, Dan
+    - Rothberg, Valentin
+    - Scrivano, Giuseppe
+  organization: Red Hat
+  date: 2020-08-03
+  url:
+    value: https://www.redhat.com/en/blog/introduction-crun
+    date: 2026-02-11
+
+bib-henrik-container-runtimes:
+  type: blog
+  title: The Engines that run our Kubernetes Workloads
+  author: Gerdes, Henrik
+  date: 2020-08-03
+  url:
+    value: https://henrikgerdes.me/blog/2024-07-kubernetes-cri-bench/
+    date: 2024-07-01
+
+bib-youki-repo:
+  type: repository
+  title: "youki: A container runtime in Rust"
+  author: Komatsu, Toru
+  date: 2026
+  url:
+    value: https://github.com/youki-dev/youki
+    date: 2026-02-11
+
+bib-gluck-containers:
+  type: web
+  title: Containers
+  note: cours enseigné à l'HEPIA
+  author: Glück, Florent
+  organization: HEPIA
+  date: 2025-04-07
+  parent:
+    type: web
+    title: '"Systems Virtualization" course'
+
+bib-gluck-buildroot:
+  type: web
+  title: Buildroot
+  note: cours enseigné à l'HEPIA
+  author: Glück, Florent
+  organization: HEPIA
+  date: 2024-02-22
+
+bib-oci-image-spec:
+  type: web
+  title: Open Container Initiative Image Specification v1.1.1
+  author: Open Container Initiative
+  date: 2025
+  url:
+    value: https://specs.opencontainers.org/image-spec/?v=v1.1.1
+    date: 2026-03-17
+
+bib-oci-distribution-spec:
+  type: web
+  title: Open Container Initiative Distribution Specification v1.1.1
+  author: Open Container Initiative
+  date: 2025
+  url:
+    value: https://specs.opencontainers.org/distribution-spec/?v=v1.1.1
+    date: 2026-03-17
+
+bib-oci-runtime-spec:
+  type: web
+  title: Open Container Initiative Runtime Specification v1.3.0
+  author: Open Container Initiative
+  date: 2025
+  url:
+    value: https://specs.opencontainers.org/runtime-spec/?v=v1.3.0
+    date: 2026-03-17
+
+bib-man7-capns-userns:
+  type: web
+  title: User Namespaces
+  author: Kerrisk, Michael
+  organization: man7.org
+  date: 2026
+  url:
+    value: https://man7.org/training/download/capns_userns_slides-mkerrisk-man7.org.pdf
+    date: 2026-02-04
+  parent:
+    type: web
+    title: Linux Capabilities and Namespaces
+
+bib-man7-capns-caps:
+  type: web
+  title: Capabilities
+  author: Kerrisk, Michael
+  organization: man7.org
+  date: 2026
+  url:
+    value: https://man7.org/training/download/capns_caps_slides-mkerrisk-man7.org.pdf
+    date: 2026-02-04
+  parent:
+    type: web
+    title: Linux Capabilities and Namespaces
+
+bib-man7-sisintro-cgroups:
+  type: web
+  title: "Control Groups (cgroups): Introduction"
+  author: Kerrisk, Michael
+  organization: man7.org
+  date: 2026
+  url:
+    value: https://man7.org/training/download/sisintro_cgroups_v2_slides-mkerrisk-man7.org.pdf
+    date: 2026-02-04
+  parent:
+    type: web
+    title: Linux Security and Isolation APIs Fundamentals
+
+bib-man7-sisintro-userns-caps:
+  type: web
+  title: User Namespaces and Capabilities
+  author: Kerrisk, Michael
+  organization: man7.org
+  date: 2026
+  url:
+    value: https://man7.org/training/download/sisintro_userns_and_caps_slides-mkerrisk-man7.org.pdf
+    date: 2026-02-04
+  parent:
+    type: web
+    title: Linux Security and Isolation APIs Fundamentals
+
+bib-brauner-lss-ns-caps:
+  type: article
+  title: Namespaces and Capabilities -- Overview and Recent Developments
+  author: Brauner, Christian
+  date: 2018
+  url:
+    value: https://brauner.io/_img/2018_lss_europe_namespaces_and_capabilities.pdf
+    date: 2026-02-04
+  parent:
+    type: conference
+    title:
+      value: Linux Security Summit Europe 2018
+      short: LSS Europe 2018
+    organization: Linux Foundation
+    location: Edinburgh, UK
+
+bib-debian-security-manual:
+  type: web
+  title: How does Debian handle security?
+  author: Peña, Javier Fernández-Sanguino
+  publisher: The Debian Project
+  date: 2018-06-13
+  # https://web.archive.org/web/20260311192207/https://www.debian.org/doc/manuals/securing-debian-manual/ch02s03.en.html
+  url:
+    value: https://www.debian.org/doc/manuals/securing-debian-manual/ch02s03.en.html
+    date: 2026-03-11
+  parent:
+    type: web
+    title: Securing Debian Manual
+
+bib-sogpf:
+  type: misc
+  title: "Arma 3 Creator DLC: S.O.G. Prairie Fire"
+  author: Savage Game Design
+  publisher: Bohemia Interactive
+  date: 2021-05-06
+  url:
+    value: https://store.steampowered.com/app/1227700/Arma_3_Creator_DLC_SOG_Prairie_Fire/
+    date: 2026-03-09
+
+bib-wiki:emm:
+  type: web
+  title: Enhanced Multiplayer Menu
+  author: Bohemia Interactive Community
+  organization: Bohemia Interactive
+  url:
+    value: https://community.bistudio.com/wiki/Arma_3:_Enhanced_Multiplayer_Menu#Technology
+    date: 2026-03-08
+
+bib-k8s-declarative:
+  type: web
+  date: 2023
+  title: Declarative Management of Kubernetes Objects Using Configuration Files
+  url:
+    value: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/declarative-config/
+    date: 2026-03-15
+  parent:
+    type: web
+    title: Kubernetes Documentation
+
+bib-iso-25010-product-quality-model:
+  type: misc
+  author:
+    - name: International Organization for Standardization (ISO)
+    - name: International Electrotechnical Commission (IEC). ISO/IEC 25010:2023
+  title: Systems and software engineering — Systems and software Quality Requirements and Evaluation (SQuaRE) — Product quality model
+  publisher:
+    name: International Organization for Standardization
+    location: Genève
+  url:
+    value: https://www.iso.org/standard/78176.html
+    date: 2026-03-15
+  date: 2023
+
+bib-redhat-containers-vm:
+  type: web
+  title: "Containers vs. VMs: Similarities, differences, and combined approaches"
+  author: Red Hat
+  organization: Red Hat
+  url:
+    value: https://www.redhat.com/topics/containers/containers-vs-vms
+    date: 2026-03-15
+
+bib-debian-13-release-notes:
+  type: web
+  title: Release Notes for Debian 13 (trixie)
+  author: The Debian Documentation Project
+  date: 2026-03-11
+  url:
+    value: https://www.debian.org/releases/trixie/release-notes.en.txt
+    date: 2026-01-24
+
+bib-osi-license-apache:
+  type: legislation
+  title: Apache License, Version 2.0
+  date: 2004-02-08
+  url:
+    value: https://opensource.org/license/apache-2.0
+    date: 2026-01-24
+
+bib-osi-license-mit:
+  type: legislation
+  title: The MIT License
+  url:
+    value: https://opensource.org/license/mit
+    date: 2026-01-24
+
+bib-osi-license-bsd:
+  type: legislation
+  title: The 3-Clause BSD License
+  url:
+    value: https://opensource.org/license/bsd-3-clause
+    date: 2026-01-24
+
+bib-ibm-workload:
+  type: web
+  title: What is a workload?
+  author: IBM
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/workload
+    date: 2026-03-22
+
+bib-ibm-clustering:
+  type: web
+  title: What is cluster computing?
+  author: IBM
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/cluster-computing
+    date: 2026-03-22
+
+bib-ibm-cloud:
+  type: web
+  title: What is cluster cloud computing?
+  author:
+    - Susnjara, Stephanie
+    - Smalley, Ian
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/cloud-computing
+    date: 2026-03-22
+
+bib-ibm-automation:
+  type: web
+  title: What is automation?
+  author: IBM
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/automation
+    date: 2026-03-14
+
+bib-ibm-cloud-automation:
+  type: web
+  title: What is cloud automation?
+  author: IBM
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/cloud-automation
+    date: 2026-03-14
+
+bib-ibm-devops:
+  type: web
+  title: What is DevOps?
+  author:
+    - Lindemulder, Gregg
+    - Kosinski, Matthew
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/devops
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-devsecops:
+  type: web
+  title: What is DevOps?
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/devsecops
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-it-automation:
+  type: web
+  title: What is IT automation?
+  author: China, Chrystal R.
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/it-automation
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-gitops:
+  type: web
+  title: What is GitOps?
+  author: Iyengar, Ashok
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/gitops
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-iac:
+  type: web
+  title: What is infrastructure as code (IaC)?
+  author:
+    - Holdsworth, Jim
+    - Badman, Annie
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/infrastructure-as-code
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-terraform:
+  type: web
+  title: What is Terraform?
+  author:
+    - Lindemulder, Gregg
+    - Kosinski, Matthew
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/terraform
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-yaml:
+  type: web
+  title: What is YAML?
+  author:
+    - Khan, Tasmiha
+    - Goodwin, Michael
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/yaml
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-provisioning:
+  type: web
+  title: What is provisioning?
+  author: Goodwin, Michael
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/provisioning
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-containers:
+  type: web
+  title: What is containers?
+  author:
+    - Susnjara, Stephanie
+    - Smalley, Ian
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/containers
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-containerization:
+  type: web
+  title: What is containerization?
+  author:
+    - Susnjara, Stephanie
+    - Smalley, Ian
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/containerization
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-container-registry:
+  type: web
+  title: What is a container registry?
+  author:
+    - Powell, Phill
+    - Smalley, Ian
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/container-registry
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-container-image:
+  type: web
+  title: What is a container image?
+  author:
+    - Powell, Phill
+    - Smalley, Ian
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/container-image
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-container-security:
+  type: web
+  title: What is container security?
+  author:
+    - Powell, Phill
+    - Smalley, Ian
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/container-security
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+bib-ibm-docker:
+  type: web
+  title: What is Docker?
+  author:
+    - Susnjara, Stephanie
+    - Smalley, Ian
+  organization: IBM
+  url:
+    value: https://www.ibm.com/think/topics/docker
+    date: 2026-03-14
+  parent:
+    type: web
+    title: The 2026 Guide to DevOps
+    date: 2026
+    author:
+      - Goodwin, Michael
+      - Minhas, Ash
+      - Scapicchio, Mark
+    url: https://www.ibm.com/think/topics/devops-guide
+
+# TODO
+bib-intelTpm:
+  type: web
+  title: What Is a Trusted Platform Module (TPM)?
+  author: Intel
+  url:
+    value: https://www.intel.com/content/www/us/en/learn/what-is-a-trusted-platform-module.html
+    date: 2025-11-16
+  language: en-US
+
+bib-osiLicenses:
+  type: web
+  title: OSI Approved Licenses
+  author: Open Source Initiative
+  url:
+    value: https://opensource.org/licenses/
+    date: 2025-11-23
+  language: en-US
+
+bib-LinuxKernelArchives:
+  type: web
+  title: The {Linux Kernel Archives} - {Releases}
+  author: Linux Kernel Organization
+  url:
+    value: https://www.kernel.org/category/releases.html
+    date: 2025-11-23
+  language: en-US
+
+bib-bottlerocket:
+  type: web
+  title: Bottlerocket
+  author: Amazon
+  url:
+    value: https://aws.amazon.com/bottlerocket/
+    date: 2025-12-07
+  language: en-US
+
+bib-bottlerocketBaremetal:
+  type: web
+  title: Provisioning Bottlerocket on metal
+  author: Amazon
+  url:
+    value: https://github.com/bottlerocket-os/bottlerocket/blob/v1.51.0/PROVISIONING-METAL.md
+    date: 2025-12-07
+  language: en-US
+
+bib-coreosEol:
+  type: web
+  title: What was CoreOS and CoreOS container Linux?
+  author: Red Hat
+  date: 2021-03-23
+  url:
+    value: https://www.redhat.com/en/technologies/cloud-computing/openshift/what-was-coreos
+    date: 2025-12-07
+  language: en-US
+
+bib-fedoraCoreos:
+  type: web
+  title: Fedora CoreOS - The Container Optimized OS
+  author: The Fedora Project Contributors
+  url:
+    value: https://www.fedoraproject.org/coreos/
+    date: 2025-12-07
+  language: en-US
+
+bib-rhelCoreos:
+  type: web
+  title: Red Hat Enterprise Linux CoreOS (RHCOS)
+  author: Red Hat
+  url:
+    value: https://docs.redhat.com/en/documentation/openshift_container_platform/4.12/html/architecture/architecture-rhcos
+    date: 2025-12-07
+  language: en-US
+
+bib-flatcarContainerLinux:
+  type: web
+  title: Flatcar Container Linux
+  author: The Flatcar Project Contributors
+  url:
+    value: https://www.flatcar.org/
+    date: 2025-12-07
+  language: en-US
+
+bib-flatcarConfig:
+  type: web
+  title: Getting Started with Flatcar Container Linux
+  author: The Flatcar Project Contributors
+  url:
+    value: https://www.flatcar.org/docs/latest/installing/
+    date: 2025-12-07
+  language: en-US
+
+bib-flatcarBaremetal:
+  type: web
+  title: Booting Flatcar Container Linux from an ISO
+  author: The Flatcar Project Contributors
+  url:
+    value: https://www.flatcar.org/docs/latest/installing/bare-metal/booting-with-iso/
+    date: 2025-12-07
+  language: en-US
+
+bib-incus-release:
+  type: web
+  title: Introducing IncusOS!
+  author: Graber, Stéphane
+  date: 2025-11-07
+  url:
+    value: https://stgraber.org/2025/11/07/introducing-incusos/
+    date: 2025-12-07
+  language: en-US
+
+bib-incus:
+  type: web
+  title: IncusOS Documentation
+  author: The IncusOS Contributors
+  url:
+    value: https://linuxcontainers.org/incus-os/docs/main/
+    date: 2025-12-07
+  language: en-US
+
+bib-incusHardware:
+  type: web
+  title: System Requirements
+  author: The IncusOS Contributors
+  url:
+    value: https://linuxcontainers.org/incus-os/docs/main/getting-started/requirements/
+    date: 2025-12-07
+  language: en-US
+  parent:
+    type: web
+    title: IncusOS Documentation
+
+bib-kairos:
+  type: web
+  title: Kairos
+  author: Kairos
+  url:
+    value: https://kairos.io/
+    date: 2025-12-11
+  language: en-US
+
+bib-kairosOverview:
+  type: web
+  title: What is Kairos?
+  author: Kairos
+  url:
+    value: https://kairos.io/getting-started/what-is-kairos/
+    date: 2025-12-11
+  language: en-US
+
+bib-kairosAutomation:
+  type: web
+  title: Kairos - Automated Installation
+  author: Kairos
+  url:
+    value: https://kairos.io/docs/installation/automated/
+    date: 2025-12-11
+  language: en-US
+
+bib-alpineHardware:
+  type: web
+  title: Alpine Linux - Requirements
+  author: The Alpine Linux Development Team
+  url:
+    value: https://wiki.alpinelinux.org/wiki/Requirements
+    date: 2025-12-11
+  language: en-US
+
+bib-nix:
+  type: web
+  title: Nix & NixOS
+  author: The NixOS Contributors
+  url:
+    value: https://nixos.org/
+    date: 2025-12-11
+  language: en-US
+
+bib-nixHardwareReddit:
+  type: web
+  title: Hardware Requirements
+  author: Turboflopper
+  url:
+    value: https://www.reddit.com/r/NixOS/comments/15kwak9/hardware_requirements/
+    date: 2025-12-11
+  language: en-US
+  genre: Reddit Post
+
+bib-nixReference:
+  type: web
+  title: The Nix Reference Manual
+  author: The NixOS Contributors
+  url:
+    value: https://nix.dev/manual/nix/2.28/
+    date: 2025-12-11
+  language: en-US
+
+bib-talos:
+  type: web
+  title: Talos Linux
+  author: Sidero Labs
+  url:
+    value: https://www.talos.dev/
+    date: 2025-12-07
+  language: en-US
+
+bib-talosHardware:
+  type: web
+  title: Talos Linux - System Requirements
+  author: The Talos Linux Contributors
+  url:
+    value: https://docs.siderolabs.com/talos/v1.11/getting-started/system-requirements
+    date: 2025-12-07
+  language: en-US
+
+bib-k8sReconciliation:
+  type: web
+  title: Kubernetes and Reconciliation Patterns
+  author: Kassaei, Hossein
+  url:
+    value: https://hkassaei.com/posts/kubernetes-and-reconciliation-patterns/
+    date: 2023-05-15
+  language: en-US
+
+bib-owasp-devguide-secure-by-default:
+  type: web
+  title: Secure by Default
+  author: OWASP Foundation
+  url:
+    value: https://devguide.owasp.org/en/04-design/02-web-app-checklist/01-secure-by-default/
+    date: 2026-03-09
