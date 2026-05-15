@@ -4,7 +4,7 @@ stages:
 
 lint-docs-internal:
   stage: lint
-  script: just docs::lint
+  script: just docs lint
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -14,13 +14,8 @@ lint-docs-internal:
 build-docs-internal:
   stage: build
   script:
-    - just docs::compile
-    - mkdir -p output/slides/
-    - cp docs/internal/slides/out/*.pdf output/slides/
-    - cp docs/internal/subject-statement/*.pdf output/
-    - cp docs/internal/abstract/*.pdf output/
-    - cp docs/internal/poster/*.pdf output/
-    - cp docs/internal/thesis/*.pdf output/
+    - just docs compile
+    - cp -r docs/internal/output/ ./output/
   artifacts:
     when: on_success
     access: all
