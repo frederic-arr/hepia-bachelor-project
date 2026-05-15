@@ -1,0 +1,48 @@
+#!/usr/bin/env -S just --justfile
+
+_docker := "podman"
+_docker-args := "run --rm -v " + module_directory() + ":/work -v typst-cache:/root/.cache/typst --entrypoint '' -w /work "
+_docker-typst-image := "docker.io/pandoc/typst:3.9.0.2@sha256:8b88646589ec8aa05afdca02dbe6849fa38f3235fb23559970ba82088a5d8f75"
+_docker-typstyle-image := "docker.io/fredericarr/typstyle:latest"
+
+_typst-args := "--root . --ignore-system-fonts --font-path ./lib/fonts/alegreya-sans:./lib/fonts/liberation"
+_typst-cc := "typst compile " + _typst-args
+_typst-runner := _docker + " " + _docker-args + " " + _docker-typst-image + " " + _typst-cc
+
+_typstyle-args := "--line-width 80 --indent-width 4 --wrap-text"
+_typstyle-cc := "typstyle " + _typstyle-args
+_typstyle-runner := _docker + " " + _docker-args + " " + _docker-typstyle-image + " " + _typstyle-cc
+
+_output-suffix := "_Arroyo_Gluck_2026.pdf"
+_subject-statement-output := "Enonce_LOG_diplome" + _output-suffix
+_thesis-output := "Rapport_Intermediare" + _output-suffix
+# _thesis-output := "ISC_LOG_memoire_diplome" + _output-suffix
+_poster-output := "ISC_LOG_poster_diplome" + _output-suffix
+_abstract-output := "ISC_LOG_resume_diplome" + _output-suffix
+
+@help:
+  just --list
+
+format:
+    {{_typstyle-runner}} --inplace ./
+
+lint:
+    {{_typstyle-runner}} --diff ./
+
+compile: _compile-slides
+    {{_typst-runner}} subject-statement/main.typ subject-statement/{{_subject-statement-output}}
+    {{_typst-runner}} abstract/main.typ abstract/{{_abstract-output}}
+    {{_typst-runner}} poster/main.typ poster/{{_poster-output}}
+    {{_typst-runner}} thesis/main.typ thesis/{{_thesis-output}}
+
+
+[private]
+_cs slide: _outdir
+    {{_typst-runner}} slides/formats/slides-{{slide}}.typ slides/out/slides-{{slide}}{{_output-suffix}}
+
+[private]
+_outdir:
+    mkdir -p slides/out/
+
+[private]
+_compile-slides: (_cs "handout-16-10") (_cs "handout-16-9") (_cs "handout-4-3") (_cs "presentation-16-10") (_cs "presentation-16-9") (_cs "presentation-4-3") (_cs "pympress-16-10") (_cs "pympress-16-9") (_cs "pympress-4-3")

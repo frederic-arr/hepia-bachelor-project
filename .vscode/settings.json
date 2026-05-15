@@ -1,0 +1,13 @@
+{
+    "tinymist.lint.enabled": true,
+    "tinymist.preview.refresh": "onSave",
+    "tinymist.formatterIndentSize": 4,
+    "tinymist.formatterProseWrap": true,
+    "tinymist.formatterPrintWidth": 80,
+    "tinymist.rootPath": "${workspaceFolder}/docs/internal",
+    "tinymist.systemFonts": false,
+    "tinymist.fontPaths": [
+        "${workspaceFolder}/docs/internal/lib/fonts/alegreya-sans",
+        "${workspaceFolder}/docs/internal/lib/fonts/liberation",
+    ]
+}
