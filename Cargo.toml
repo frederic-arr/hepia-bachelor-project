@@ -1,0 +1,23 @@
+[workspace]
+resolver = "3"
+members = []
+
+[workspace.lints.rust]
+ambiguous_negative_literals = "warn"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+as_conversions = "deny"
+similar_names = "allow"
+missing_panics_doc = "allow"
+missing_errors_doc = "allow"
+result_unit_err = "allow"
+
+[workspace.lints.cargo]
+pedantic = "warn"
+nursery = "warn"
+non_kebab_case_packages = "forbid"
+non_kebab_case_features = "forbid"
+
+[workspace.dependencies]

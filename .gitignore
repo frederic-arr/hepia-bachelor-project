@@ -1,2 +1,5 @@
+/target
 *.pdf
 .env
+.env.*
+!.env.example
