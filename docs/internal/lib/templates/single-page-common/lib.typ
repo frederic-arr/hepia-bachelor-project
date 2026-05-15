@@ -1,47 +1,38 @@
-#let subject-statement(
+#let single-page(
     title: none,
-    program: none,
-    header: none,
+    header: image("/lib/assets/hes-so-ge-logo.svg"),
     author: (
-        statement: none,
-        name: none,
+        statement: [Candidat],
+        name: [ARROYO Frédéric],
     ),
     field-of-study: (
-        statement: none,
-        name: none,
+        statement: [Filière d'études],
+        name: [ISC],
     ),
     supervisors: (
-        statement: none,
-        names: none,
+        statement: [Professeur responsable],
+        names: [GLÜCK Florent],
     ),
-    client: (
-        statement: none,
-        name: none,
-    ),
+    client: none,
     internship: (
-        statement: none,
-        value: none,
+        statement: [Travail de bachelor soumis à une convention de stage en
+            entreprise],
+        value: [non],
     ),
     confidentiality-agreement: (
-        statement: none,
-        value: none,
+        statement: [Travail soumis à un contrat de confidentialité],
+        value: [non],
     ),
-    description: none,
-    assignment: none,
     body,
 ) = {
     import "/lib/_utils.typ"
 
-    set page(margin: 2cm) // TODO: Config
-    set v(weak: true)
-    set text(hyphenate: false)
-    set par(justify: true, first-line-indent: 0em)
+    show: _utils.common-config
 
     _utils.logo-header(content-right: strong(header))
 
     align(center, {
         block(text(size: 1.3em, weight: "bold", smallcaps(title)))
-        block(text(size: 1.15em, weight: "bold", smallcaps(program)))
         v(1.5cm)
     })
 
@@ -56,4 +47,6 @@
         internship: internship,
         confidentiality-agreement: confidentiality-agreement,
     )
+
+    pagebreak(weak: true)
 }

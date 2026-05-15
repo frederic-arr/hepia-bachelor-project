@@ -1,3 +1,13 @@
+#let common-config(body) = {
+    set page(margin: 2cm)
+    set v(weak: true)
+    set text(size: 12pt, lang: "fr", font: "Liberation Serif", hyphenate: false)
+    show smallcaps: set text(font: "Alegreya Sans SC")
+    set par(justify: true, first-line-indent: (amount: 2em, all: true))
+
+    body
+}
+
 #let user-print-meta-title(body) = context {
     let user-print-meta-title = state("user-print-meta-title", it => {
         show heading: set text(16pt)

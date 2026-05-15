@@ -1,38 +1,17 @@
-#import "/lib/templates/subject-statement/lib.typ": *
+#import "/lib/templates/single-page-common/lib.typ"
 
-#set text(size: 12pt, lang: "fr", font: "Liberation Serif")
-#show smallcaps: set text(font: "Alegreya Sans SC")
-
-#subject-statement(
+#lib.single-page(
+    title: [
+        OS pour le déploiement de services conteneurisés \
+        #text(size: 0.86em, [Orientation: Informatique logicielle])
+    ],
     header: text(font: "Liberation Sans")[
         Printemps 2026 \
         Session de bachelor
     ],
-    title: [OS pour le déploiement de services conteneurisés],
-    program: [Orientation: Informatique logicielle],
-    author: (
-        statement: [Candidat],
-        name: [ARROYO Frédéric],
-    ),
-    field-of-study: (
-        statement: [Filière d'études],
-        name: [ISC],
-    ),
-    supervisors: (
-        statement: [Professeur responsable],
-        names: [GLÜCK Florent],
-    ),
-    client: none,
-    internship: (
-        statement: [Travail de bachelor soumis à une convention de stage en
-            entreprise],
-        value: [non],
-    ),
-    confidentiality-agreement: (
-        statement: [Travail soumis à un contrat de confidentialité],
-        value: [non],
-    ),
 )[
+    #set par(first-line-indent: 0em)
+
     *Descriptif:*
     Le déploiement d'applications conteneurisées s'appuie désormais largement
     sur des approches déclaratives, en particulier dans les environnements
