@@ -1,6 +1,6 @@
 #!/usr/bin/env -S just --justfile
 
-_docker := "podman"
+_docker := "docker"
 _docker-args := "run --rm -v " + module_directory() + ":/work -v typst-cache:/root/.cache/typst --entrypoint '' -w /work "
 _docker-typst-image := "docker.io/pandoc/typst:3.9.0.2@sha256:8b88646589ec8aa05afdca02dbe6849fa38f3235fb23559970ba82088a5d8f75"
 _docker-typstyle-image := "docker.io/fredericarr/typstyle:latest"
