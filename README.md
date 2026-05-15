@@ -1,5 +1,7 @@
 # Operating System for the Deployment of Containerized Workloads
 
+This Bachelor project is a continuation of the [Container OS semester project](https://gitedu.hesge.ch/flg_bachelors/ps/2025/container_os).
+
 ## Description
 
 **Title**: Operating System for the Deployment of Containerized Workloads
