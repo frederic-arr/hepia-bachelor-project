@@ -3,7 +3,7 @@
 mod docs 'docs/internal/justfile'
 
 @help:
-  just --list
+    just --list
 
 [doc('Performs linting')]
 [parallel]

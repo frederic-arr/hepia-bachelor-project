@@ -23,26 +23,27 @@ _poster-output := "ISC_LOG_poster_diplome" + _output-suffix
 _abstract-output := "ISC_LOG_resume_diplome" + _output-suffix
 
 @help:
-  just --list
+    just --list
 
 format:
-    {{_typstyle-runner}} --inplace ./
+    {{ _typstyle-runner }} --inplace ./
 
 lint:
-    {{_typstyle-runner}} --diff ./
+    {{ _typstyle-runner }} --diff ./
 
 compile: _compile-slides
-    {{_typst-runner}} subject-statement/main.typ output/{{_subject-statement-output}}
-    {{_typst-runner}} abstract/main.typ output/{{_abstract-output}}
-    {{_typst-runner}} poster/main.typ output/{{_poster-output}}
-    {{_typst-runner}} thesis/main.typ output/{{_thesis-output}}
+    {{ _typst-runner }} subject-statement/main.typ output/{{ _subject-statement-output }}
+    {{ _typst-runner }} abstract/main.typ output/{{ _abstract-output }}
+    {{ _typst-runner }} poster/main.typ output/{{ _poster-output }}
+    {{ _typst-runner }} thesis/main.typ output/{{ _thesis-output }}
 
 clean:
+    rm -rf ./output/
     find . -name "*.pdf" -delete
 
 [private]
 _cs slide: _outdir
-    {{_typst-runner}} slides/formats/slides-{{slide}}.typ output/slides/slides-{{slide}}{{_output-suffix}}
+    {{ _typst-runner }} slides/formats/slides-{{ slide }}.typ output/slides/slides-{{ slide }}{{ _output-suffix }}
 
 [private]
 _outdir:
