@@ -4,21 +4,10 @@
     set text(size: 12pt, lang: "fr", font: "Liberation Serif", hyphenate: false)
     show smallcaps: set text(font: "Alegreya Sans SC")
     set par(justify: true, first-line-indent: (amount: 2em, all: true))
+    set list(marker: [#sym.dash.em], indent: 1.5em)
+    set enum(indent: 1.5em)
 
     body
-}
-
-#let user-print-meta-title(body) = context {
-    let user-print-meta-title = state("user-print-meta-title", it => {
-        show heading: set text(16pt)
-        block(text(size: 16pt, weight: "bold", it))
-    }).get()
-
-    user-print-meta-title(body)
-}
-
-#let meta-heading(body) = {
-    user-print-meta-title(heading(body))
 }
 
 #let hide-in-flow(body) = {
@@ -65,7 +54,7 @@
     ),
 ) = {
     set par(justify: false, first-line-indent: 0em)
-    set text(size: 0.9em)
+    set text(size: 0.85em)
 
     grid(
         columns: (1fr, 1fr),
@@ -73,7 +62,8 @@
         align: (left, left),
         {
             par[
-                #author.statement: \ *#author.name*
+                #author.statement: \
+                #text(size: 1.2em, smallcaps[*#author.name*])
             ]
             v(2em)
 
@@ -81,7 +71,8 @@
         },
         {
             par[
-                #supervisors.statement: \ *#supervisors.names*
+                #supervisors.statement: \
+                #text(size: 1.2em, smallcaps[*#supervisors.names*])
             ]
             v(2em)
 
@@ -89,9 +80,18 @@
                 par[*#client.statement:* #client.name]
             }
 
-            par[#internship.statement: *#internship.value*]
-            par[#confidentiality-agreement.statement:
-                *#confidentiality-agreement.value*]
+            if internship != none {
+                par[#internship.statement: #internship.value]
+            }
+
+            if internship != none and confidentiality-agreement != none {
+                v(3em)
+            }
+
+            if confidentiality-agreement != none {
+                par[#confidentiality-agreement.statement:
+                    #confidentiality-agreement.value]
+            }
         },
     )
 }

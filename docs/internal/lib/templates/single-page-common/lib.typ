@@ -1,6 +1,10 @@
 #let single-page(
     title: none,
     header: image("/lib/assets/hes-so-ge-logo.svg"),
+    fonts: (
+        header: "Liberation Sans",
+        footer: "Liberation Sans",
+    ),
     author: (
         statement: [Candidat],
         name: [ARROYO Frédéric],
@@ -13,7 +17,10 @@
         statement: [Professeur responsable],
         names: [GLÜCK Florent],
     ),
-    client: none,
+    client: (
+        statement: [En collaboration avec],
+        name: [n/a],
+    ),
     internship: (
         statement: [Travail de bachelor soumis à une convention de stage en
             entreprise],
@@ -39,14 +46,17 @@
     body
 
     v(1fr)
-    _utils.meta-footer(
-        author: author,
-        field-of-study: field-of-study,
-        supervisors: supervisors,
-        client: client,
-        internship: internship,
-        confidentiality-agreement: confidentiality-agreement,
-    )
+    {
+        set text(font: fonts.footer)
+        _utils.meta-footer(
+            author: author,
+            field-of-study: field-of-study,
+            supervisors: supervisors,
+            client: client,
+            internship: internship,
+            confidentiality-agreement: confidentiality-agreement,
+        )
+    }
 
     pagebreak(weak: true)
 }
