@@ -12,7 +12,7 @@
 )[
     #set par(first-line-indent: 0em)
 
-    *Descriptif:*
+    #text(font: "Liberation Sans")[*Descriptif:*] \
     Le déploiement d'applications conteneurisées s'appuie désormais largement
     sur des approches déclaratives, en particulier dans les environnements
     clusterisés. En revanche, la configuration du système hôte reste souvent
@@ -25,18 +25,23 @@
     déploiement unitaire, où les solutions conçues pour des environnements
     clusterisés peuvent s'avérer peu adaptées.
 
-    *Travail demandé:*
-    - Sur la base du travail de semestre, implémenter une distribution Linux
-        légère qui permet:
-        - de gérer la configuration du système de manière déclarative à travers
-            des fichiers YAML;
-        - de gérer les ressources nécessaires à la conteneurisation (conteneurs,
-            interfaces réseau Ethernet) via ces fichiers déclaratifs;
-        - d'exécuter des conteneurs de manière rootless avec Podman;
-        - d'administrer le système uniquement au travers d'une API gRPC (sans
-            SSH ou interface procédurale), et
-        - si le temps le permet, packager la solution sous forme d'un installeur
-            ISO;
-    - écrire un processus sommaire de test et de validation de la solution, et
-    - comparer l'implémentation à Talos Linux et NixOS.
+    Le but de ce projet est donc de palier à ce manque, en créant une
+    distribution Linux légère destinée à la mise en place d'infrastructures
+    conteneurisées. Ce système d'exploitation devra être léger en ressources,
+    configurable via une API entièrement déclarative et sécurisé (conteneurs
+    rootless, etc.).
+    #v(3em)
+
+    #text(font: "Liberation Sans")[*Travail demandé:*] \
+    - Système développé ne se basant pas sur une distribution Linux existante.
+    - Gestion de la configuration du système réalisée de manière déclarative.
+    - Gestion des ressources nécessaires à la conteneurisation (conteneurs,
+        interfaces réseau Ethernet) via ces fichiers déclaratifs.
+    - Exécution des conteneurs de manière rootless afin d'augmenter la sécurité.
+    - Administration du système uniquement via une API, sans accès distant (ssh)
+        ou interface procédurale.
+    - Test et validation de la solution réalisée sur des use-cases réels.
+    - Comparaison de la solution développée à Talos Linux et NixOS.
+    - Création d'un système permettant de facilement déployer/installer la
+        solution sur machine physique ou infrastructure Cloud.
 ]
