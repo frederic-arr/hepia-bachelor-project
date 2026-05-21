@@ -1,7 +1,7 @@
 #import "/lib/templates/single-page-common/lib.typ"
 
-#lib.single-page(
+#show: lib.single-page.with(
     title: [Résumé],
-)[
-    #lorem(250)
-]
+)
+
+#lorem(250)
