@@ -1,21 +1,5 @@
 [unstable]
 cargo-lints = true
-# build-std = ["std", "panic_abort"]
-# build-std-features = ["optimize_for_size"]
 
 [env]
 PROTO_ROOT = { value = "proto/", relative = true }
-
-# [build]
-# target = "x86_64-unknown-linux-gnu"
-
-# [target.x86_64-unknown-linux-gnu]
-# rustflags = [
-#     "-Ctarget-feature=+crt-static",
-#     "-Zunstable-options",
-#     "-Cpanic=abort",
-#     # These options do not shave *as much* in our code yet
-#     # "-Cpanic=immediate-abort",
-#     # "-Zlocation-detail=none",
-#     # "-Zfmt-debug=none",
-# ]
