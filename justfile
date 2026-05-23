@@ -5,10 +5,11 @@ mod docs 'docs/internal/justfile'
 @help:
     just --list
 
-[doc('Performs linting')]
-[parallel]
+format: docs::format
+
 lint: docs::lint
 
-[doc('Performs linting')]
-[parallel]
 compile: docs::compile
+
+[private]
+_pre-commit: format lint
