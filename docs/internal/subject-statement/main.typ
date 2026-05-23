@@ -24,7 +24,7 @@ reproductibilité, en particulier dans les contextes de déploiement unitaire, o
 les solutions conçues pour des environnements clusterisés peuvent s'avérer peu
 adaptées.
 
-Le but de ce projet est donc de palier à ce manque, en créant une distribution
+Le but de ce projet est donc de pallier à ce manque, en créant une distribution
 Linux légère destinée à la mise en place d'infrastructures conteneurisées. Ce
 système d'exploitation devra être léger en ressources, configurable via une API
 entièrement déclarative et sécurisé (conteneurs rootless, etc.).
@@ -36,7 +36,7 @@ entièrement déclarative et sécurisé (conteneurs rootless, etc.).
 - Gestion des ressources nécessaires à la conteneurisation (conteneurs,
     interfaces réseau Ethernet) via ces fichiers déclaratifs.
 - Exécution des conteneurs de manière rootless afin d'augmenter la sécurité.
-- Administration du système uniquement via une API, sans accès distant (ssh) ou
+- Administration du système uniquement via une API, sans accès distant (SSH) ou
     interface procédurale.
 - Test et validation de la solution réalisée sur des use-cases réels.
 - Comparaison de la solution développée à Talos Linux et NixOS.
