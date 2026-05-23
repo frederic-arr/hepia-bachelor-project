@@ -2,5 +2,7 @@
     "recommendations": [
         "myriad-dreamin.tinymist",
         "editorconfig.editorconfig",
+        "bufbuild.vscode-buf",
+        "redhat.vscode-yaml",
     ]
 }

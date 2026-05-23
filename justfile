@@ -1,15 +1,22 @@
 #!/usr/bin/env -S just --justfile
 
 mod docs 'docs/internal/justfile'
+mod proto 'proto/justfile'
 
 @help:
     just --list
 
-format: docs::format
+[parallel]
+check: docs::check proto::check
 
-lint: docs::lint
+[parallel]
+fix: docs::fix proto::fix
 
-compile: docs::compile
+[parallel]
+build: docs::build
+
+[parallel]
+clean: docs::clean
 
 [private]
-_pre-commit: format lint
+_pre-commit: fix check

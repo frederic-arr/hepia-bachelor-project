@@ -1,0 +1,17 @@
+[package]
+name = "cos-api-internal-server"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+cos-api-shared.workspace = true
+tonic.workspace = true
+tonic-prost.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+
+[build-dependencies]
+tonic-prost-build.workspace = true

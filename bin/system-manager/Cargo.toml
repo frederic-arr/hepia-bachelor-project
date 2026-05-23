@@ -1,0 +1,23 @@
+cargo-features = ["panic-immediate-abort"]
+
+[package]
+name = "system-manager"
+version = "0.1.0"
+edition = "2024"
+
+# [profile.release]
+# strip = true
+# opt-level = "z"
+# lto = true
+# codegen-units = 1
+# panic = "immediate-abort"
+
+[lints]
+workspace = true
+
+[dependencies]
+cos-api-shared.workspace = true
+cos-api-internal-server.workspace = true
+invariant-macros.workspace = true
+tokio.workspace = true
+tonic.workspace = true

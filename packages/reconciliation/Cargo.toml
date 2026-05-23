@@ -1,0 +1,17 @@
+[package]
+name = "reconciliation"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+futures-lite.workspace = true
+rtnetlink.workspace = true
+rustix.workspace = true
+smol.workspace = true
+smol-macros.workspace = true
+
+# bon = "3.9.1"
+derive_builder = "0.20.2"

@@ -9,5 +9,8 @@
     "tinymist.fontPaths": [
         "${workspaceFolder}/docs/internal/lib/fonts/alegreya-sans",
         "${workspaceFolder}/docs/internal/lib/fonts/liberation",
-    ]
+    ],
+    "files.associations": {
+        "buf.yaml": "yaml"
+    }
 }

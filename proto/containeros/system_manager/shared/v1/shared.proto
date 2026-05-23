@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package containeros.system_manager.shared.v1;
+
+message Identity {
+  string schema = 1;
+  string name = 2;
+}
+
+message ResourceMeta {
+  Identity id = 1;
+  repeated Identity children = 2;
+  bytes spec = 3;
+  bytes status = 4;
+}
+
+message UserConfigResource {
+  ResourceMeta meta = 1;
+}
+
+message DynamicResource {
+  ResourceMeta meta = 1;
+  Identity owner = 2;
+
+  repeated Identity dependencies = 3;
+  repeated Identity dependents = 4;
+}
+
+message MetaResource {
+  oneof resource_type {
+    UserConfigResource user_config = 1;
+    DynamicResource dynamic = 2;
+  }
+}

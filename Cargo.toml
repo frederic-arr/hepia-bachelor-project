@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = []
+members = ["bin/system-manager", "packages/cos-api-shared", "packages/cos-api-internal-server", "packages/invariant-macros"]
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
@@ -21,3 +21,20 @@ non_kebab_case_packages = "forbid"
 non_kebab_case_features = "forbid"
 
 [workspace.dependencies]
+cos-api-shared = { path = "packages/cos-api-shared" }
+cos-api-internal-server = { path = "packages/cos-api-internal-server" }
+invariant-macros = { path = "packages/invariant-macros" }
+
+# futures-lite = { version = "2.6.1", default-features = false }
+prost = { version = "0.14.3", default-features = false }
+prost-types = { version = "0.14.3", default-features = false }
+# rtnetlink = { version = "0.21.0", default-features = false, features = ["smol_socket"] }
+# rustix = {version = "1.1.4", default-features = false }
+# serde = { version = "1.0.228", default-features = false, features = ["std", "derive"] }
+# serde_json = { version = "1.0.149", default-features = false, features = ["std"] }
+# smol = { version = "2.0.2", default-features = false }
+# smol-macros = { version = "0.1.1", default-features = false }
+tokio = { version = "1.52.3", default-features = false, features = ["macros", "rt-multi-thread"] }
+tonic = { version = "0.14.6", default-features = false, features = ["codegen", "router", "transport"] }
+tonic-prost = { version = "0.14.6", default-features = false }
+tonic-prost-build = { version = "0.14.6", default-features = false }

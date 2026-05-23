@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package containeros.system_manager.internal.server.v1;
+
+import "containeros/system_manager/shared/v1/shared.proto";
+
+service SystemManagerInternalService {
+  rpc ResourceCreateDynamic(ResourceCreateDynamicRequest) returns (ResourceCreateDynamicResponse) {}
+  rpc ResourceRead(ResourceReadRequest) returns (ResourceReadResponse) {}
+}
+
+message ResourceCreateDynamicRequest {
+  containeros.system_manager.shared.v1.Identity id = 1;
+  containeros.system_manager.shared.v1.Identity owner = 2;
+  bytes spec = 3;
+}
+
+message ResourceCreateDynamicResponse {}
+
+message ResourceReadRequest {
+  containeros.system_manager.shared.v1.Identity id = 1;
+}
+
+message ResourceReadResponse {
+  containeros.system_manager.shared.v1.MetaResource resource = 1;
+}
