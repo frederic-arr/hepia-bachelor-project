@@ -11,7 +11,7 @@ stages:
   - build
 
 check-docs-internal:
-  stage: lint
+  stage: check
   script: just docs check
 
 build-docs-internal:
