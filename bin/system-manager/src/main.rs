@@ -4,8 +4,9 @@ mod model;
 
 use std::collections::HashMap;
 
-use cos_api_internal_server::proto::v1;
 use cos_api_shared::*;
+use cos_api_sysmgr::proto::v1;
+use cos_api_sysmgr_server::proto::v1 as v1_svc;
 use invariant_macros::invariant;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tonic::transport::Server;
@@ -104,7 +105,7 @@ impl SystemManagerService {
 }
 
 #[tonic::async_trait]
-impl v1::svc::SystemManagerInternalService for SystemManagerService {
+impl v1_svc::SystemManagerService for SystemManagerService {
     async fn resource_create_dynamic(
         &self,
         request: Request<v1::ResourceCreateDynamicRequest>,
@@ -139,18 +140,39 @@ impl v1::svc::SystemManagerInternalService for SystemManagerService {
             })
             .map(Response::new)
     }
+
+    async fn resource_update_dynamic_spec(
+        &self,
+        request: Request<v1::ResourceUpdateDynamicSpecRequest>,
+    ) -> Result<Response<v1::ResourceUpdateDynamicSpecResponse>, Status> {
+        todo!()
+    }
+
+    async fn resource_update_status(
+        &self,
+        request: Request<v1::ResourceUpdateStatusRequest>,
+    ) -> Result<Response<v1::ResourceUpdateStatusResponse>, Status> {
+        todo!()
+    }
+
+    async fn resource_delete_dynamic(
+        &self,
+        request: Request<v1::ResourceDeleteDynamicRequest>,
+    ) -> Result<Response<v1::ResourceDeleteDynamicResponse>, Status> {
+        todo!()
+    }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse().unwrap();
-    let greeter = SystemManagerService::default();
+    let system_manager = SystemManagerService::default();
 
     println!("GreeterServer listening on {addr}");
 
     Server::builder()
-        .add_service(v1::svc::SystemManagerInternalServiceServer::new(
-            greeter,
+        .add_service(v1_svc::SystemManagerServiceServer::new(
+            system_manager,
         ))
         .serve(addr)
         .await?;

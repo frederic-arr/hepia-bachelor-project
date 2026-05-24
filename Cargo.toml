@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["bin/system-manager", "packages/cos-api-shared", "packages/cos-api-internal-server", "packages/invariant-macros"]
+members = ["bin/system-manager", "packages/cos-api-shared", "packages/cos-api-sysmgr", "packages/cos-api-sysmgr-server", "packages/invariant-macros"]
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
@@ -22,7 +22,8 @@ non_kebab_case_features = "forbid"
 
 [workspace.dependencies]
 cos-api-shared = { path = "packages/cos-api-shared" }
-cos-api-internal-server = { path = "packages/cos-api-internal-server" }
+cos-api-sysmgr = { path = "packages/cos-api-sysmgr" }
+cos-api-sysmgr-server = { path = "packages/cos-api-sysmgr-server" }
 invariant-macros = { path = "packages/invariant-macros" }
 
 # futures-lite = { version = "2.6.1", default-features = false }

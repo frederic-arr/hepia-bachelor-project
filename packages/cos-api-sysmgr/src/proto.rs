@@ -8,5 +8,5 @@ pub mod v1 {
         unknown_lints
     )]
 
-    tonic::include_proto!("containeros.system_manager.shared.v1");
+    tonic::include_proto!("containeros.system_manager.v1");
 }

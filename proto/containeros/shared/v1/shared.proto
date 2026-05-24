@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package containeros.system_manager.shared.v1;
+package containeros.shared.v1;
 
 message Identity {
   string schema = 1;

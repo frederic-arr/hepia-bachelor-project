@@ -1,4 +1,4 @@
-use cos_api_internal_server::proto::v1;
+use cos_api_sysmgr::proto::v1;
 use cos_api_shared::Identity;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]

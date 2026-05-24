@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package containeros.system_manager.v1;
+
+import "containeros/shared/v1/shared.proto";
+
+service SystemManagerService {
+  rpc ResourceCreateDynamic(ResourceCreateDynamicRequest) returns (ResourceCreateDynamicResponse) {}
+  rpc ResourceRead(ResourceReadRequest) returns (ResourceReadResponse) {}
+  rpc ResourceUpdateDynamicSpec(ResourceUpdateDynamicSpecRequest) returns (ResourceUpdateDynamicSpecResponse) {}
+  rpc ResourceUpdateStatus(ResourceUpdateStatusRequest) returns (ResourceUpdateStatusResponse) {}
+  rpc ResourceDeleteDynamic(ResourceDeleteDynamicRequest) returns (ResourceDeleteDynamicResponse) {}
+}
+
+message ResourceCreateDynamicRequest {
+  containeros.shared.v1.Identity id = 1;
+  containeros.shared.v1.Identity owner = 2;
+  bytes spec = 3;
+}
+
+message ResourceCreateDynamicResponse {}
+
+message ResourceReadRequest {
+  containeros.shared.v1.Identity id = 1;
+}
+
+message ResourceReadResponse {
+  containeros.shared.v1.MetaResource resource = 1;
+}
+
+message ResourceUpdateDynamicSpecRequest {
+  containeros.shared.v1.Identity id = 1;
+  bytes spec = 2;
+}
+
+message ResourceUpdateDynamicSpecResponse {}
+
+message ResourceUpdateStatusRequest {
+  containeros.shared.v1.Identity id = 1;
+  bytes status = 2;
+}
+
+message ResourceUpdateStatusResponse {}
+
+message ResourceDeleteDynamicRequest {
+  containeros.shared.v1.Identity id = 1;
+}
+
+message ResourceDeleteDynamicResponse {}

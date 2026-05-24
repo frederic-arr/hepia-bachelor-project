@@ -102,7 +102,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
-name = "cos-api-internal-server"
+name = "cos-api-shared"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "prost-types",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
+name = "cos-api-sysmgr"
 version = "0.1.0"
 dependencies = [
  "cos-api-shared",
@@ -114,9 +125,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "cos-api-shared"
+name = "cos-api-sysmgr-server"
 version = "0.1.0"
 dependencies = [
+ "cos-api-shared",
+ "cos-api-sysmgr",
  "prost",
  "prost-types",
  "tonic",
@@ -725,8 +738,9 @@ checksum = "0bf256ce5efdfa370213c1dabab5935a12e49f2c58d15e9eac2870d3b4f27263"
 name = "system-manager"
 version = "0.1.0"
 dependencies = [
- "cos-api-internal-server",
  "cos-api-shared",
+ "cos-api-sysmgr",
+ "cos-api-sysmgr-server",
  "invariant-macros",
  "tokio",
  "tonic",
