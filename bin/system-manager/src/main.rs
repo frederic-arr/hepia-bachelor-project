@@ -3,7 +3,6 @@
 mod model;
 
 use std::collections::HashMap;
-use std::net::IpAddr;
 
 use cos_api_internal_server::proto::v1;
 use cos_api_shared::*;
@@ -110,17 +109,16 @@ impl v1::svc::SystemManagerInternalService for SystemManagerService {
         &self,
         request: Request<v1::ResourceCreateDynamicRequest>,
     ) -> Result<Response<v1::ResourceCreateDynamicResponse>, Status> {
-        // let resource: CreateResource = request.into_inner().into();
-        // let id: Identity = resource.id.clone();
+        let resource = request.into_inner();
+        let id: Identity = resource.id.clone();
 
-        // let mut inner = self.write().await;
-        // inner.resource_create(resource).map_err(|()| {
-        //     Status::already_exists(format!("Resource {id} already exists"))
-        // })?;
-        // drop(inner);
+        let mut inner = self.write().await;
+        inner.resource_create(resource).map_err(Status::internal)?;
+        drop(inner);
 
-        // Ok(Response::new(ResourceCreateResponse {}))
-        todo!()
+        Ok(Response::new(
+            v1::ResourceCreateDynamicResponse {},
+        ))
     }
 
     async fn resource_read(

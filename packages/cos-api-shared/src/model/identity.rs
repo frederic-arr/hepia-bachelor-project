@@ -43,6 +43,14 @@ impl TryFrom<v1::Identity> for Identity {
     }
 }
 
+impl TryFrom<Option<v1::Identity>> for Identity {
+    type Error = ();
+
+    fn try_from(value: Option<v1::Identity>) -> Result<Self, Self::Error> {
+        value.ok_or(())?.try_into()
+    }
+}
+
 impl From<Identity> for v1::Identity {
     fn from(value: Identity) -> Self {
         Self {

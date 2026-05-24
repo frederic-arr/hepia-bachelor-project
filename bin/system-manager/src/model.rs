@@ -1,6 +1,4 @@
-use std::collections::HashSet;
-use std::fmt::{Display, Write};
-
+use cos_api_internal_server::proto::v1;
 use cos_api_shared::Identity;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -95,27 +93,19 @@ pub struct CreateResource {
 //     }
 // }
 
-// impl From<api_internal_server::ResourceCreateRequest> for CreateResource {
-//     fn from(value: api_internal_server::ResourceCreateRequest) -> Self {
-//         let owner = match value.owner_type() {
-//             api_internal_server::OwnerType::Unspecified => {
-//                 Owner::Config(value.owner.unwrap_or_default().into())
-//             }
-//             api_internal_server::OwnerType::Resource => {
-//                 Owner::Resource(value.owner.unwrap_or_default().into())
-//             }
-//             api_internal_server::OwnerType::Config => {
-//                 Owner::Config(value.owner.unwrap_or_default().into())
-//             }
-//         };
+impl TryFrom<v1::ResourceCreateDynamicRequest> for CreateResource {
+    type Error = ();
 
-//         Self {
-//             id: value.id.unwrap_or_default().into(),
-//             owner,
-//             spec: value.spec,
-//         }
-//     }
-// }
+    fn try_from(
+        value: v1::ResourceCreateDynamicRequest,
+    ) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: value.id.try_into()?,
+            owner: value.owner.try_into()?,
+            spec: value.spec,
+        })
+    }
+}
 
 // impl From<CreateResource> for StoredResource {
 //     fn from(value: CreateResource) -> Self {
