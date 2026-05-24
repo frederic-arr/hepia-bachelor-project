@@ -1,16 +1,18 @@
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
 stages:
-  - lint
+  - check
   - build
 
-lint-docs-internal:
+check-docs-internal:
   stage: lint
   script: just docs check
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_BRANCH =~ /^ci\/.*$/'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_TAG'
-    - when: manual
 
 build-docs-internal:
   stage: build
@@ -23,10 +25,4 @@ build-docs-internal:
     name: documents
     expire_in: 7 days
     paths: [output/**/*.pdf]
-  needs: [lint-docs-internal]
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-    - if: '$CI_COMMIT_BRANCH =~ /^ci\/.*$/'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_TAG'
-    - when: manual
+  needs: [check-docs-internal]
