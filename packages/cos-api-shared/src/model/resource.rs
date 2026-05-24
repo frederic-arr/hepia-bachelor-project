@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use crate::Identity;
+use crate::proto::v1;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Resource {
@@ -170,5 +171,56 @@ impl From<DynamicResource> for Resource {
 impl From<ResourceMeta> for UserConfigResource {
     fn from(value: ResourceMeta) -> Self {
         Self::new(value)
+    }
+}
+
+impl From<ResourceMeta> for v1::ResourceMeta {
+    fn from(value: ResourceMeta) -> Self {
+        Self {
+            id: Some(value.id.into()),
+            children: value.children.into_iter().map(From::from).collect(),
+            spec: value.spec,
+            status: value.status,
+        }
+    }
+}
+
+impl From<Resource> for v1::MetaResource {
+    fn from(value: Resource) -> Self {
+        Self {
+            resource_type: Some(value.into()),
+        }
+    }
+}
+
+impl From<Resource> for v1::meta_resource::ResourceType {
+    fn from(value: Resource) -> Self {
+        match value {
+            Resource::UserConfig(res) => Self::UserConfig(res.into()),
+            Resource::Dynamic(res) => Self::Dynamic(res.into()),
+        }
+    }
+}
+
+impl From<UserConfigResource> for v1::UserConfigResource {
+    fn from(value: UserConfigResource) -> Self {
+        Self {
+            meta: Some(value.meta.into()),
+        }
+    }
+}
+
+impl From<DynamicResource> for v1::DynamicResource {
+    fn from(value: DynamicResource) -> Self {
+        Self {
+            meta: Some(value.meta.into()),
+            owner: Some(value.owner.into()),
+            dependencies: value
+                .dependencies
+                .into_iter()
+                .map(From::from)
+                .collect(),
+            dependents: vec![],
+        }
     }
 }
