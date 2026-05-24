@@ -109,8 +109,7 @@ impl v1::svc::SystemManagerInternalService for SystemManagerService {
         &self,
         request: Request<v1::ResourceCreateDynamicRequest>,
     ) -> Result<Response<v1::ResourceCreateDynamicResponse>, Status> {
-        let resource = request.into_inner();
-        let id: Identity = resource.id.clone();
+        let resource: CreateResource = request.into_inner().try_into().unwrap();
 
         let mut inner = self.write().await;
         inner.resource_create(resource).map_err(Status::internal)?;
@@ -125,46 +124,20 @@ impl v1::svc::SystemManagerInternalService for SystemManagerService {
         &self,
         request: Request<v1::ResourceReadRequest>,
     ) -> Result<Response<v1::ResourceReadResponse>, Status> {
-        // let resource = request.into_inner();
-        // let id: Identity = resource.id.as_ref().into();
+        let id: Identity = request.into_inner().id.try_into().unwrap();
 
-        // let inner = self.read().await;
-        // let resource = inner.resource_read(&id).cloned();
-        // drop(inner);
+        let inner = self.read().await;
+        let resource = inner.resource_read(&id).cloned();
+        drop(inner);
 
-        // resource
-        //     .ok_or_else(|| {
-        //         Status::not_found(format!("Resource {id} was not found"))
-        //     })
-        //     .map(|res| {
-        //         let (owner_type, owner) = res.owner.into();
-
-        //         ResourceReadResponse {
-        //             id: Some(res.id.into()),
-        //             owner_type: owner_type.into(),
-        //             owner: Some(owner.into()),
-        //             children: res
-        //                 .children
-        //                 .into_iter()
-        //                 .map(Into::into)
-        //                 .collect(),
-        //             dependencies: res
-        //                 .dependencies
-        //                 .into_iter()
-        //                 .map(Into::into)
-        //                 .collect(),
-        //             dependents: res
-        //                 .dependents
-        //                 .into_iter()
-        //                 .map(Into::into)
-        //                 .collect(),
-        //             spec: res.spec,
-        //             status: res.status,
-        //         }
-        //     })
-        //     .map(Response::new)
-
-        todo!()
+        resource
+            .ok_or_else(|| {
+                Status::not_found(format!("resource {id} was not found"))
+            })
+            .map(|res| v1::ResourceReadResponse {
+                resource: Some(res.into()),
+            })
+            .map(Response::new)
     }
 }
 
