@@ -64,14 +64,14 @@ impl<T> Resource<T>
 where
     T: Specification,
 {
-    pub fn meta(&self) -> &ResourceMeta<T> {
+    pub const fn meta(&self) -> &ResourceMeta<T> {
         match self {
             Self::UserConfig(res) => res.meta(),
             Self::Dynamic(res) => res.meta(),
         }
     }
 
-    pub fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
+    pub const fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         match self {
             Self::UserConfig(res) => res.meta_mut(),
             Self::Dynamic(res) => res.meta_mut(),
@@ -81,7 +81,7 @@ where
     pub const fn maybe_user_config(&self) -> Option<&UserConfigResource<T>> {
         match self {
             Self::UserConfig(res) => Some(res),
-            _ => None,
+            Self::Dynamic(_) => None,
         }
     }
 
@@ -90,60 +90,60 @@ where
     ) -> Option<&mut UserConfigResource<T>> {
         match self {
             Self::UserConfig(res) => Some(res),
-            _ => None,
+            Self::Dynamic(_) => None,
         }
     }
 
     pub const fn maybe_dynamic(&self) -> Option<&DynamicResource<T>> {
         match self {
             Self::Dynamic(res) => Some(res),
-            _ => None,
+            Self::UserConfig(_) => None,
         }
     }
 
     pub const fn maybe_dynamic_mut(&mut self) -> Option<&mut DynamicResource<T>> {
         match self {
             Self::Dynamic(res) => Some(res),
-            _ => None,
+            Self::UserConfig(_) => None,
         }
     }
 
-    pub fn id(&self) -> &Identity {
+    pub const fn id(&self) -> &Identity {
         self.meta().id()
     }
 
-    pub fn children(&self) -> &HashSet<Identity> {
+    pub const fn children(&self) -> &HashSet<Identity> {
         self.meta().children()
     }
 
-    pub fn children_mut(&mut self) -> &mut HashSet<Identity> {
+    pub const fn children_mut(&mut self) -> &mut HashSet<Identity> {
         let meta = self.meta_mut();
         meta.children_mut()
     }
 
-    pub fn spec(&self) -> &T {
+    pub const fn spec(&self) -> &T {
         self.meta().spec()
     }
 
-    pub fn spec_mut(&mut self) -> &mut T {
+    pub const fn spec_mut(&mut self) -> &mut T {
         let meta = self.meta_mut();
         meta.spec_mut()
     }
 
-    pub fn state(&self) -> Option<&T::State> {
+    pub const fn state(&self) -> Option<&T::State> {
         self.meta().state()
     }
 
-    pub fn state_mut(&mut self) -> Option<&mut T::State> {
+    pub const fn state_mut(&mut self) -> Option<&mut T::State> {
         let meta = self.meta_mut();
         meta.state_mut()
     }
 
-    pub fn state_opt(&self) -> &Option<T::State> {
+    pub const fn state_opt(&self) -> &Option<T::State> {
         self.meta().state_opt()
     }
 
-    pub fn state_opt_mut(&mut self) -> &mut Option<T::State> {
+    pub const fn state_opt_mut(&mut self) -> &mut Option<T::State> {
         self.meta_mut().state_opt_mut()
     }
 }
@@ -398,7 +398,7 @@ where
 
     fn try_from(value: Option<v1::ResourceMeta>) -> Result<Self, Self::Error> {
         value
-            .ok_or("ResourceMeta is required".to_string())?
+            .ok_or_else(|| "ResourceMeta is required".to_string())?
             .try_into()
     }
 }
@@ -412,7 +412,7 @@ where
     fn try_from(value: v1::MetaResource) -> Result<Self, Self::Error> {
         match value
             .resource_type
-            .ok_or("ResourceType is required".to_string())?
+            .ok_or_else(|| "ResourceType is required".to_string())?
         {
             v1::meta_resource::ResourceType::UserConfig(res) => {
                 res.try_into().map(Self::UserConfig)
@@ -432,7 +432,7 @@ where
 
     fn try_from(value: Option<v1::MetaResource>) -> Result<Self, Self::Error> {
         value
-            .ok_or("MetaResource is required".to_string())?
+            .ok_or_else(|| "MetaResource is required".to_string())?
             .try_into()
     }
 }
@@ -460,7 +460,7 @@ where
         value: Option<v1::UserConfigResource>,
     ) -> Result<Self, Self::Error> {
         value
-            .ok_or("UserConfigResource is required".to_string())?
+            .ok_or_else(|| "UserConfigResource is required".to_string())?
             .try_into()
     }
 }
@@ -494,7 +494,7 @@ where
         value: Option<v1::DynamicResource>,
     ) -> Result<Self, Self::Error> {
         value
-            .ok_or("DynamicResource is required".to_string())?
+            .ok_or_else(|| "DynamicResource is required".to_string())?
             .try_into()
     }
 }

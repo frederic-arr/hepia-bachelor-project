@@ -63,6 +63,6 @@ impl TryFrom<Option<v1::Identity>> for Identity {
     type Error = String;
 
     fn try_from(value: Option<v1::Identity>) -> Result<Self, Self::Error> {
-        value.ok_or("Identity is required".to_string())?.try_into()
+        value.ok_or_else(|| "Identity is required".to_string())?.try_into()
     }
 }

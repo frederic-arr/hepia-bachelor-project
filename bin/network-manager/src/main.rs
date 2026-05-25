@@ -40,7 +40,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
         tokio::spawn(conn);
 
         link::refresh(handle.clone(), &mut res).await;
-        let plan = link::plan(&mut res).await;
+        let plan = link::plan(&res).await;
         // dbg!(&plan);
 
         link::apply(handle, &mut res, plan).await;
@@ -323,7 +323,7 @@ mod link {
         res.state_opt_mut().replace(state);
     }
 
-    pub async fn plan(res: &mut Res) -> LinkPlan {
+    pub async fn plan(res: &Res) -> LinkPlan {
         let mut msg = LinkDummy::new(&res.spec().name);
         let empty = LinkDummy::new(&res.spec().name).build();
         let cur = res.state();

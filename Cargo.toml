@@ -15,6 +15,7 @@ members = [
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
+unused = { level = "allow", priority = -1 } # TODO: remove
 
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }
@@ -24,12 +25,14 @@ similar_names = "allow"
 missing_panics_doc = "allow"
 missing_errors_doc = "allow"
 result_unit_err = "allow"
+unused_async = "allow" # TODO: remove
 
 [workspace.lints.cargo]
 pedantic = "warn"
 nursery = "warn"
 non_kebab_case_packages = "forbid"
 non_kebab_case_features = "forbid"
+unused_dependencies = "allow" # TODO: remove
 
 [workspace.dependencies]
 cos-api-shared = { path = "packages/cos-api-shared" }
