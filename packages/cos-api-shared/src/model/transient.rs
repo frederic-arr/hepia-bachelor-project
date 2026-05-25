@@ -1,5 +1,5 @@
+use serde::Serialize;
 use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
 
 pub trait Specification:
     Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq

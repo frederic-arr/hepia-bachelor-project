@@ -7,6 +7,12 @@ use rtnetlink::new_connection;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, async_trait};
 
+use crate::link::spec;
+
+enum Resources {
+    LinkConfig(spec::Link)
+}
+
 struct NetworkManagerReconcilerService;
 
 impl NetworkManagerReconcilerService {

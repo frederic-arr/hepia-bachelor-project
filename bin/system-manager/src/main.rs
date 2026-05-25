@@ -6,11 +6,17 @@ use cos_api_shared::*;
 use cos_api_sysmgr::proto::v1;
 use cos_api_sysmgr_server::proto::v1 as v1_svc;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
-use crate::state_manager::{CreateConfig, CreateResource, StateManager};
+use crate::state_manager::{
+    CreateConfig,
+    CreateResource,
+    Payload,
+    StateManager,
+};
 
 struct SystemManagerInner {
     state_manager: StateManager,
@@ -109,41 +115,43 @@ impl v1_svc::SystemManagerService for SystemManagerService {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-pub struct Link {
-    pub name: String,
-    pub state: LinkState,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-pub enum LinkState {
-    Up,
-    Down,
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let addr = "[::1]:50051".parse().unwrap();
     let system_manager = SystemManagerService::new();
     let mut sm = system_manager.0.write().await;
 
-    let spec = Link {
-        name: "dummy0".to_string(),
-        state: LinkState::Down,
-    };
+    let spec = json!({
+        "state": "down",
+    });
 
     let spec = rmp_serde::to_vec(&spec).unwrap();
-    dbg!(&spec);
-    // let spec2: rmpv::Value = rmp_serde::from_slice(&spec).unwrap();
-    // dbg!(&spec2);
+    let cfg = CreateConfig {
+        id: Identity::new(
+            "contaienros/LinkConfig".to_string(),
+            "dummy0".to_string(),
+        ),
+        spec: spec.into(),
+    };
 
-    sm.state_manager
-        .config_create(CreateConfig {
-            id: Identity::new("my-id".to_string(), "my-name".to_string()),
-            spec: spec,
-        })
-        .unwrap();
-    sm.state_manager.reconciliation_loop().await;
+    sm.state_manager.config_create(cfg.clone()).unwrap();
+
+    let se = serde_json::to_string_pretty(
+        &sm.state_manager.resources.values().collect::<Vec<_>>(),
+    )
+    .unwrap();
+
+    let de: Vec<Resource<Payload>> = serde_json::from_str(&se).unwrap();
+    let se2 = serde_json::to_string_pretty(&de).unwrap();
+
+    let se = serde_json::to_string_pretty(&cfg).unwrap();
+    let de: CreateConfig = serde_json::from_str(&se).unwrap();
+    let se2 = serde_json::to_string_pretty(&de).unwrap();
+
+    println!("{se2}");
+    assert_eq!(se, se2);
+
+    // sm.state_manager.reconciliation_loop().await;
 
     // println!("GreeterServer listening on {addr}");
 

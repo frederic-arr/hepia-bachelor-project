@@ -14,11 +14,12 @@ impl StateManager {
     }
 
     async fn reconciliation_tick(&mut self, id: Identity) {
-        // TODO: Use the correct reconciler
+        // TODO: Handle sub-resource creation, deletion, and update
+        // TODO:    - Probably add a phase or status?
 
-        dbg!(&id);
+        let mut client = self.get_client_for_id(&id).unwrap();
         let resource = self.resources.get_mut(&id).unwrap();
-        let mut client = self.reconcilers.get(&"".to_string()).unwrap().clone();
+
         let res = client
             .reconcile_resource(ReconcileResourceRequest {
                 resource: Some(resource.clone().try_into().unwrap()),

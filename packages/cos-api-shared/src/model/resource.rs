@@ -1,9 +1,16 @@
 use std::collections::HashSet;
 
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+
 use crate::proto::v1;
 use crate::{Identity, Specification, State};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(
+    serialize = "T: Serialize",
+    deserialize = "T: DeserializeOwned"
+))]
 pub enum Resource<T>
 where
     T: Specification,
@@ -12,7 +19,11 @@ where
     Dynamic(DynamicResource<T>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(bound(
+    serialize = "T: Serialize",
+    deserialize = "T: DeserializeOwned"
+))]
 pub struct ResourceMeta<T>
 where
     T: Specification,
@@ -23,7 +34,11 @@ where
     state: Option<T::State>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(
+    serialize = "T: Serialize",
+    deserialize = "T: DeserializeOwned"
+))]
 pub struct UserConfigResource<T>
 where
     T: Specification,
@@ -31,7 +46,11 @@ where
     meta: ResourceMeta<T>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(
+    serialize = "T: Serialize",
+    deserialize = "T: DeserializeOwned"
+))]
 pub struct DynamicResource<T>
 where
     T: Specification,

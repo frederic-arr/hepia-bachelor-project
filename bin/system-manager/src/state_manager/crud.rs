@@ -104,7 +104,13 @@ mod tests {
             use super::*;
 
             fn setup() -> (StateManager, CreateConfig) {
-                (StateManager::new(), CreateConfig::default())
+                (
+                    StateManager::new(),
+                    CreateConfig {
+                        id: Identity::default(),
+                        spec: vec![].into(),
+                    },
+                )
             }
 
             #[test]
@@ -149,7 +155,7 @@ mod tests {
                         "my-schema".to_string(),
                         "my-id".to_string(),
                     ),
-                    spec: vec![],
+                    spec: vec![].into(),
                 };
                 svc.config_create(cfg.clone()).unwrap();
                 (

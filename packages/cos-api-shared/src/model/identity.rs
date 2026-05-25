@@ -1,8 +1,12 @@
 use std::fmt::{Display, Write};
 
+use serde::{Deserialize, Serialize};
+
 use crate::proto::v1;
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[derive(
+    Debug, Clone, Default, PartialEq, Eq, Hash, Serialize, Deserialize,
+)]
 pub struct Identity {
     schema: String,
     name: String,

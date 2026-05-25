@@ -2,15 +2,40 @@ use cos_api_shared::{Identity, Specification, State};
 use cos_api_sysmgr::proto::v1;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Payload {
     bytes: Vec<u8>,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+impl Serialize for Payload {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        rmp_serde::from_slice::<rmpv::Value>(&self.bytes)
+            .map_err(serde::ser::Error::custom)?
+            .serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Payload {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        rmp_serde::to_vec(&rmpv::Value::deserialize(deserializer)?)
+            .map_err(serde::de::Error::custom)
+            .map(|bytes| Self { bytes })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CreateConfig {
+    #[serde(flatten)]
     pub id: Identity,
-    pub spec: Vec<u8>,
+
+    #[serde(flatten)]
+    pub spec: Payload,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
