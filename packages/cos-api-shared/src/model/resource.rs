@@ -6,50 +6,77 @@ use serde::de::DeserializeOwned;
 use crate::Identity;
 use crate::proto::v1;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Resource<Spec = rmpv::Value, Status = rmpv::Value> {
-    UserConfig(UserConfigResource<Spec, Status>),
-    Dynamic(DynamicResource<Spec, Status>),
+#[derive(Debug, Clone, PartialEq)]
+pub enum Resource<T>
+where
+    T: Specification,
+{
+    UserConfig(UserConfigResource<T>),
+    Dynamic(DynamicResource<T>),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ResourceMeta<Spec = rmpv::Value, Status = rmpv::Value> {
+pub struct ResourceMeta<T>
+where
+    T: Specification,
+{
     id: Identity,
     children: HashSet<Identity>,
-    spec: Spec,
-    status: Option<Status>,
+    spec: T,
+    state: Option<T::State>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct UserConfigResource<Spec = rmpv::Value, Status = rmpv::Value> {
-    meta: ResourceMeta<Spec, Status>,
+#[derive(Debug, Clone, PartialEq)]
+pub struct UserConfigResource<T>
+where
+    T: Specification,
+{
+    meta: ResourceMeta<T>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DynamicResource<Spec = rmpv::Value, Status = rmpv::Value> {
-    meta: ResourceMeta<Spec, Status>,
+#[derive(Debug, Clone, PartialEq)]
+pub struct DynamicResource<T>
+where
+    T: Specification,
+{
+    meta: ResourceMeta<T>,
     owner: Identity,
     dependencies: HashSet<Identity>,
 }
 
-impl<Spec, Status> Resource<Spec, Status> {
-    pub fn meta(&self) -> &ResourceMeta<Spec, Status> {
+pub trait Specification:
+    Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq
+{
+    type State: Serialize
+        + DeserializeOwned
+        + std::fmt::Debug
+        + Clone
+        + PartialEq;
+}
+
+impl Specification for rmpv::Value {
+    type State = rmpv::Value;
+}
+
+impl<T> Resource<T>
+where
+    T: Specification,
+{
+    pub fn meta(&self) -> &ResourceMeta<T> {
         match self {
             Resource::UserConfig(res) => res.meta(),
             Resource::Dynamic(res) => res.meta(),
         }
     }
 
-    pub fn meta_mut(&mut self) -> &mut ResourceMeta<Spec, Status> {
+    pub fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         match self {
             Resource::UserConfig(res) => res.meta_mut(),
             Resource::Dynamic(res) => res.meta_mut(),
         }
     }
 
-    pub fn maybe_user_config(
-        &self,
-    ) -> Option<&UserConfigResource<Spec, Status>> {
+    pub fn maybe_user_config(&self) -> Option<&UserConfigResource<T>> {
         match self {
             Resource::UserConfig(res) => Some(res),
             _ => None,
@@ -58,23 +85,21 @@ impl<Spec, Status> Resource<Spec, Status> {
 
     pub fn maybe_user_config_mut(
         &mut self,
-    ) -> Option<&mut UserConfigResource<Spec, Status>> {
+    ) -> Option<&mut UserConfigResource<T>> {
         match self {
             Resource::UserConfig(res) => Some(res),
             _ => None,
         }
     }
 
-    pub fn maybe_dynamic(&self) -> Option<&DynamicResource<Spec, Status>> {
+    pub fn maybe_dynamic(&self) -> Option<&DynamicResource<T>> {
         match self {
             Resource::Dynamic(res) => Some(res),
             _ => None,
         }
     }
 
-    pub fn maybe_dynamic_mut(
-        &mut self,
-    ) -> Option<&mut DynamicResource<Spec, Status>> {
+    pub fn maybe_dynamic_mut(&mut self) -> Option<&mut DynamicResource<T>> {
         match self {
             Resource::Dynamic(res) => Some(res),
             _ => None,
@@ -94,40 +119,43 @@ impl<Spec, Status> Resource<Spec, Status> {
         meta.children_mut()
     }
 
-    pub fn spec(&self) -> &Spec {
+    pub fn spec(&self) -> &T {
         &self.meta().spec()
     }
 
-    pub fn spec_mut(&mut self) -> &mut Spec {
+    pub fn spec_mut(&mut self) -> &mut T {
         let meta = self.meta_mut();
         meta.spec_mut()
     }
 
-    pub fn status(&self) -> Option<&Status> {
-        self.meta().status()
+    pub fn state(&self) -> Option<&T::State> {
+        self.meta().state()
     }
 
-    pub fn status_mut(&mut self) -> Option<&mut Status> {
+    pub fn state_mut(&mut self) -> Option<&mut T::State> {
         let meta = self.meta_mut();
-        meta.status_mut()
+        meta.state_mut()
     }
 
-    pub fn status_opt(&self) -> &Option<Status> {
-        self.meta().status_opt()
+    pub fn state_opt(&self) -> &Option<T::State> {
+        self.meta().state_opt()
     }
 
-    pub fn status_opt_mut(&mut self) -> &mut Option<Status> {
-        self.meta_mut().status_opt_mut()
+    pub fn state_opt_mut(&mut self) -> &mut Option<T::State> {
+        self.meta_mut().state_opt_mut()
     }
 }
 
-impl<Spec, Status> ResourceMeta<Spec, Status> {
-    pub fn new(id: Identity, spec: Spec) -> Self {
+impl<T> ResourceMeta<T>
+where
+    T: Specification,
+{
+    pub fn new(id: Identity, spec: T) -> Self {
         Self {
             id,
             children: HashSet::default(),
             spec,
-            status: None,
+            state: None,
         }
     }
 
@@ -143,47 +171,53 @@ impl<Spec, Status> ResourceMeta<Spec, Status> {
         &mut self.children
     }
 
-    pub fn spec(&self) -> &Spec {
+    pub fn spec(&self) -> &T {
         &self.spec
     }
 
-    pub fn spec_mut(&mut self) -> &mut Spec {
+    pub fn spec_mut(&mut self) -> &mut T {
         &mut self.spec
     }
 
-    pub fn status(&self) -> Option<&Status> {
-        self.status.as_ref()
+    pub fn state(&self) -> Option<&T::State> {
+        self.state.as_ref()
     }
 
-    pub fn status_mut(&mut self) -> Option<&mut Status> {
-        self.status.as_mut()
+    pub fn state_mut(&mut self) -> Option<&mut T::State> {
+        self.state.as_mut()
     }
 
-    pub fn status_opt(&self) -> &Option<Status> {
-        &self.status
+    pub fn state_opt(&self) -> &Option<T::State> {
+        &self.state
     }
 
-    pub fn status_opt_mut(&mut self) -> &mut Option<Status> {
-        &mut self.status
+    pub fn state_opt_mut(&mut self) -> &mut Option<T::State> {
+        &mut self.state
     }
 }
 
-impl<Spec, Status> UserConfigResource<Spec, Status> {
-    pub fn new(meta: ResourceMeta<Spec, Status>) -> Self {
+impl<T> UserConfigResource<T>
+where
+    T: Specification,
+{
+    pub fn new(meta: ResourceMeta<T>) -> Self {
         Self { meta }
     }
 
-    pub fn meta(&self) -> &ResourceMeta<Spec, Status> {
+    pub fn meta(&self) -> &ResourceMeta<T> {
         &self.meta
     }
 
-    pub fn meta_mut(&mut self) -> &mut ResourceMeta<Spec, Status> {
+    pub fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         &mut self.meta
     }
 }
 
-impl<Spec, Status> DynamicResource<Spec, Status> {
-    pub fn new(meta: ResourceMeta<Spec, Status>, owner: Identity) -> Self {
+impl<T> DynamicResource<T>
+where
+    T: Specification,
+{
+    pub fn new(meta: ResourceMeta<T>, owner: Identity) -> Self {
         Self {
             meta,
             owner,
@@ -191,11 +225,11 @@ impl<Spec, Status> DynamicResource<Spec, Status> {
         }
     }
 
-    pub fn meta(&self) -> &ResourceMeta<Spec, Status> {
+    pub fn meta(&self) -> &ResourceMeta<T> {
         &self.meta
     }
 
-    pub fn meta_mut(&mut self) -> &mut ResourceMeta<Spec, Status> {
+    pub fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         &mut self.meta
     }
 
@@ -212,68 +246,71 @@ impl<Spec, Status> DynamicResource<Spec, Status> {
     }
 }
 
-impl From<UserConfigResource> for Resource {
-    fn from(value: UserConfigResource) -> Self {
+impl<T> From<UserConfigResource<T>> for Resource<T>
+where
+    T: Specification,
+{
+    fn from(value: UserConfigResource<T>) -> Self {
         Self::UserConfig(value)
     }
 }
 
-impl From<DynamicResource> for Resource {
-    fn from(value: DynamicResource) -> Self {
+impl<T> From<DynamicResource<T>> for Resource<T>
+where
+    T: Specification,
+{
+    fn from(value: DynamicResource<T>) -> Self {
         Self::Dynamic(value)
     }
 }
 
-impl From<ResourceMeta> for UserConfigResource {
-    fn from(value: ResourceMeta) -> Self {
+impl<T> From<ResourceMeta<T>> for UserConfigResource<T>
+where
+    T: Specification,
+{
+    fn from(value: ResourceMeta<T>) -> Self {
         Self::new(value)
     }
 }
 
-impl<Spec, Status> TryFrom<ResourceMeta<Spec, Status>> for v1::ResourceMeta
+impl<T> TryFrom<ResourceMeta<T>> for v1::ResourceMeta
 where
-    Spec: Serialize,
-    Status: Serialize,
+    T: Specification,
 {
     type Error = String;
 
-    fn try_from(
-        value: ResourceMeta<Spec, Status>,
-    ) -> Result<Self, Self::Error> {
+    fn try_from(value: ResourceMeta<T>) -> Result<Self, Self::Error> {
         Ok(Self {
             id: Some(value.id.into()),
             children: value.children.into_iter().map(From::from).collect(),
             spec: rmp_serde::to_vec(&value.spec)
                 .map_err(|_| "invalid spec".to_string())?,
-            status: rmp_serde::to_vec(&value.status)
-                .map_err(|_| "invalid status".to_string())?,
+            state: rmp_serde::to_vec(&value.state)
+                .map_err(|_| "invalid state".to_string())?,
         })
     }
 }
 
-impl<Spec, Status> TryFrom<Resource<Spec, Status>> for v1::MetaResource
+impl<T> TryFrom<Resource<T>> for v1::MetaResource
 where
-    Spec: Serialize,
-    Status: Serialize,
+    T: Specification,
 {
     type Error = String;
 
-    fn try_from(value: Resource<Spec, Status>) -> Result<Self, Self::Error> {
+    fn try_from(value: Resource<T>) -> Result<Self, Self::Error> {
         Ok(Self {
             resource_type: Some(value.try_into()?),
         })
     }
 }
 
-impl<Spec, Status> TryFrom<Resource<Spec, Status>>
-    for v1::meta_resource::ResourceType
+impl<T> TryFrom<Resource<T>> for v1::meta_resource::ResourceType
 where
-    Spec: Serialize,
-    Status: Serialize,
+    T: Specification,
 {
     type Error = String;
 
-    fn try_from(value: Resource<Spec, Status>) -> Result<Self, Self::Error> {
+    fn try_from(value: Resource<T>) -> Result<Self, Self::Error> {
         Ok(match value {
             Resource::UserConfig(res) => Self::UserConfig(res.try_into()?),
             Resource::Dynamic(res) => Self::Dynamic(res.try_into()?),
@@ -281,34 +318,26 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<UserConfigResource<Spec, Status>>
-    for v1::UserConfigResource
+impl<T> TryFrom<UserConfigResource<T>> for v1::UserConfigResource
 where
-    Spec: Serialize,
-    Status: Serialize,
+    T: Specification,
 {
     type Error = String;
 
-    fn try_from(
-        value: UserConfigResource<Spec, Status>,
-    ) -> Result<Self, Self::Error> {
+    fn try_from(value: UserConfigResource<T>) -> Result<Self, Self::Error> {
         Ok(Self {
             meta: Some(value.meta.try_into()?),
         })
     }
 }
 
-impl<Spec, Status> TryFrom<DynamicResource<Spec, Status>>
-    for v1::DynamicResource
+impl<T> TryFrom<DynamicResource<T>> for v1::DynamicResource
 where
-    Spec: Serialize,
-    Status: Serialize,
+    T: Specification,
 {
     type Error = String;
 
-    fn try_from(
-        value: DynamicResource<Spec, Status>,
-    ) -> Result<Self, Self::Error> {
+    fn try_from(value: DynamicResource<T>) -> Result<Self, Self::Error> {
         Ok(Self {
             meta: Some(value.meta.try_into()?),
             owner: Some(value.owner.into()),
@@ -322,10 +351,9 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<v1::ResourceMeta> for ResourceMeta<Spec, Status>
+impl<T> TryFrom<v1::ResourceMeta> for ResourceMeta<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 
@@ -339,22 +367,20 @@ where
                 .try_collect()?,
             spec: rmp_serde::from_slice(&value.spec)
                 .map_err(|_| "invalid spec".to_string())?,
-            status: if value.status.is_empty() {
+            state: if value.state.is_empty() {
                 None
             } else {
-                rmp_serde::from_slice::<Status>(&value.status)
+                rmp_serde::from_slice::<T::State>(&value.state)
                     .map(Some)
-                    .map_err(|_| "invalid status".to_string())?
+                    .map_err(|_| "invalid state".to_string())?
             },
         })
     }
 }
 
-impl<Spec, Status> TryFrom<Option<v1::ResourceMeta>>
-    for ResourceMeta<Spec, Status>
+impl<T> TryFrom<Option<v1::ResourceMeta>> for ResourceMeta<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 
@@ -365,10 +391,9 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<v1::MetaResource> for Resource<Spec, Status>
+impl<T> TryFrom<v1::MetaResource> for Resource<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 
@@ -387,10 +412,9 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<Option<v1::MetaResource>> for Resource<Spec, Status>
+impl<T> TryFrom<Option<v1::MetaResource>> for Resource<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 
@@ -401,11 +425,9 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<v1::UserConfigResource>
-    for UserConfigResource<Spec, Status>
+impl<T> TryFrom<v1::UserConfigResource> for UserConfigResource<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 
@@ -416,11 +438,9 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<Option<v1::UserConfigResource>>
-    for UserConfigResource<Spec, Status>
+impl<T> TryFrom<Option<v1::UserConfigResource>> for UserConfigResource<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 
@@ -433,11 +453,9 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<v1::DynamicResource>
-    for DynamicResource<Spec, Status>
+impl<T> TryFrom<v1::DynamicResource> for DynamicResource<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 
@@ -454,11 +472,9 @@ where
     }
 }
 
-impl<Spec, Status> TryFrom<Option<v1::DynamicResource>>
-    for DynamicResource<Spec, Status>
+impl<T> TryFrom<Option<v1::DynamicResource>> for DynamicResource<T>
 where
-    Spec: DeserializeOwned,
-    Status: DeserializeOwned,
+    T: Specification,
 {
     type Error = String;
 

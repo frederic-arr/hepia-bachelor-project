@@ -1,5 +1,5 @@
-use cos_api_sysmgr::proto::v1;
 use cos_api_shared::Identity;
+use cos_api_sysmgr::proto::v1;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CreateConfig {
@@ -15,7 +15,7 @@ pub struct CreateResource {
 }
 
 impl TryFrom<v1::ResourceCreateDynamicRequest> for CreateResource {
-    type Error = ();
+    type Error = String;
 
     fn try_from(
         value: v1::ResourceCreateDynamicRequest,

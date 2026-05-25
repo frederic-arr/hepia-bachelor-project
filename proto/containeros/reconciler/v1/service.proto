@@ -23,5 +23,5 @@ message ReconcileResourceResponse {
   repeated containeros.shared.v1.Identity deleted = 1;
   repeated DynamicResource created = 2;
   repeated DynamicResource updated = 3;
-  bytes status = 4;
+  bytes state = 4;
 }

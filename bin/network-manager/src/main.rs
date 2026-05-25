@@ -72,7 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             id: Some(Default::default()),
                             children: vec![],
                             spec: rmp_serde::to_vec(&spec).unwrap(),
-                            status: vec![],
+                            state: vec![],
                         }),
                         owner: Some(Default::default()),
                         dependencies: vec![],
@@ -215,6 +215,7 @@ mod link {
     // use super::reconcilable::*;
 
     pub mod spec {
+        use cos_api_shared::Specification;
         use serde::{Deserialize, Serialize};
 
         #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -227,6 +228,10 @@ mod link {
         pub enum LinkState {
             Up,
             Down,
+        }
+
+        impl Specification for Link {
+            type State = super::status::Link;
         }
     }
 
@@ -267,7 +272,7 @@ mod link {
         Nop,
     }
 
-    pub type Res = Resource<spec::Link, status::Link>;
+    pub type Res = Resource<spec::Link>;
     pub async fn refresh(rtnl: Handle, res: &mut Res) {
         let spec = res.spec();
         let mut state = status::LinkBuilder::default();
@@ -311,13 +316,13 @@ mod link {
         }
 
         let state = state.build().unwrap();
-        res.status_opt_mut().replace(state);
+        res.state_opt_mut().replace(state);
     }
 
     pub async fn plan(res: &mut Res) -> LinkPlan {
         let mut msg = LinkDummy::new(&res.spec().name);
         let empty = LinkDummy::new(&res.spec().name).build();
-        let cur = res.status();
+        let cur = res.state();
 
         if res.spec().state == spec::LinkState::Up
             && cur.as_ref().map_or(status::LinkState::Unknown, |c| c.state)

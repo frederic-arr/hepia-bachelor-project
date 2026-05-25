@@ -11,7 +11,7 @@ message ResourceMeta {
   Identity id = 1;
   repeated Identity children = 2;
   bytes spec = 3;
-  bytes status = 4;
+  bytes state = 4;
 }
 
 message UserConfigResource {

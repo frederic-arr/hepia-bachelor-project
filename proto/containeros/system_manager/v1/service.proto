@@ -9,7 +9,7 @@ service SystemManagerService {
   rpc ResourceList(ResourceListRequest) returns (ResourceListResponse) {}
   rpc ResourceRead(ResourceReadRequest) returns (ResourceReadResponse) {}
   rpc ResourceUpdateDynamicSpec(ResourceUpdateDynamicSpecRequest) returns (ResourceUpdateDynamicSpecResponse) {}
-  rpc ResourceUpdateStatus(ResourceUpdateStatusRequest) returns (ResourceUpdateStatusResponse) {}
+  rpc ResourceUpdateState(ResourceUpdateStateRequest) returns (ResourceUpdateStateResponse) {}
   rpc ResourceDeleteDynamic(ResourceDeleteDynamicRequest) returns (ResourceDeleteDynamicResponse) {}
 }
 
@@ -44,12 +44,12 @@ message ResourceUpdateDynamicSpecRequest {
 
 message ResourceUpdateDynamicSpecResponse {}
 
-message ResourceUpdateStatusRequest {
+message ResourceUpdateStateRequest {
   containeros.shared.v1.Identity id = 1;
-  bytes status = 2;
+  bytes state = 2;
 }
 
-message ResourceUpdateStatusResponse {}
+message ResourceUpdateStateResponse {}
 
 message ResourceDeleteDynamicRequest {
   containeros.shared.v1.Identity id = 1;

@@ -16,7 +16,7 @@ pub use crate::model::*;
 
 #[derive(Default)]
 pub struct SystemManagerInner {
-    resources: HashMap<Identity, Resource>,
+    resources: HashMap<Identity, Resource<rmpv::Value>>,
 }
 
 #[derive(Default)]
@@ -87,18 +87,21 @@ impl SystemManagerInner {
         Ok(())
     }
 
-    fn resource_read(&self, id: &Identity) -> Option<&Resource> {
+    fn resource_read(&self, id: &Identity) -> Option<&Resource<rmpv::Value>> {
         self.resources.get(id)
     }
 
     fn resource_read_user_config(
         &self,
         id: &Identity,
-    ) -> Option<&UserConfigResource> {
+    ) -> Option<&UserConfigResource<rmpv::Value>> {
         self.resource_read(id)?.maybe_user_config()
     }
 
-    fn resource_read_dynamic(&self, id: &Identity) -> Option<&DynamicResource> {
+    fn resource_read_dynamic(
+        &self,
+        id: &Identity,
+    ) -> Option<&DynamicResource<rmpv::Value>> {
         self.resource_read(id)?.maybe_dynamic()
     }
 }
