@@ -30,8 +30,17 @@ impl Display for Identity {
     }
 }
 
+impl From<Identity> for v1::Identity {
+    fn from(value: Identity) -> Self {
+        Self {
+            name: value.name,
+            schema: value.schema,
+        }
+    }
+}
+
 impl TryFrom<v1::Identity> for Identity {
-    type Error = ();
+    type Error = String;
 
     fn try_from(value: v1::Identity) -> Result<Self, Self::Error> {
         let id = Self {
@@ -44,18 +53,9 @@ impl TryFrom<v1::Identity> for Identity {
 }
 
 impl TryFrom<Option<v1::Identity>> for Identity {
-    type Error = ();
+    type Error = String;
 
     fn try_from(value: Option<v1::Identity>) -> Result<Self, Self::Error> {
-        value.ok_or(())?.try_into()
-    }
-}
-
-impl From<Identity> for v1::Identity {
-    fn from(value: Identity) -> Self {
-        Self {
-            name: value.name,
-            schema: value.schema,
-        }
+        value.ok_or("Identity is required".to_string())?.try_into()
     }
 }

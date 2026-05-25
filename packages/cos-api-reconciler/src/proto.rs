@@ -8,5 +8,5 @@ pub mod v1 {
         unknown_lints
     )]
 
-    tonic::include_proto!("containeros.shared.v1");
+    tonic::include_proto!("containeros.reconciler.v1");
 }

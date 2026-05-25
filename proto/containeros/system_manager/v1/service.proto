@@ -6,6 +6,7 @@ import "containeros/shared/v1/shared.proto";
 
 service SystemManagerService {
   rpc ResourceCreateDynamic(ResourceCreateDynamicRequest) returns (ResourceCreateDynamicResponse) {}
+  rpc ResourceList(ResourceListRequest) returns (ResourceListResponse) {}
   rpc ResourceRead(ResourceReadRequest) returns (ResourceReadResponse) {}
   rpc ResourceUpdateDynamicSpec(ResourceUpdateDynamicSpecRequest) returns (ResourceUpdateDynamicSpecResponse) {}
   rpc ResourceUpdateStatus(ResourceUpdateStatusRequest) returns (ResourceUpdateStatusResponse) {}
@@ -19,6 +20,14 @@ message ResourceCreateDynamicRequest {
 }
 
 message ResourceCreateDynamicResponse {}
+
+message ResourceListRequest {
+  string schema = 1;
+}
+
+message ResourceListResponse {
+  repeated containeros.shared.v1.MetaResource resource = 1;
+}
 
 message ResourceReadRequest {
   containeros.shared.v1.Identity id = 1;

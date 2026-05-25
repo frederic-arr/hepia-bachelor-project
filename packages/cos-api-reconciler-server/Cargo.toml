@@ -1,5 +1,5 @@
 [package]
-name = "cos-api-shared"
+name = "cos-api-reconciler-server"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,13 +7,12 @@ edition = "2024"
 workspace = true
 
 [dependencies]
+cos-api-shared.workspace = true
+cos-api-reconciler.workspace = true
 tonic.workspace = true
 tonic-prost.workspace = true
 prost.workspace = true
 prost-types.workspace = true
-serde.workspace = true
-rmp-serde.workspace = true
-rmpv.workspace = true
 
 [build-dependencies]
 tonic-prost-build.workspace = true

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package containeros.reconciler.v1;
+
+import "containeros/shared/v1/shared.proto";
+
+service ReconcilerService {
+  // rpc ValidateResource
+  rpc ReconcileResource(ReconcileResourceRequest) returns (ReconcileResourceResponse) {}
+}
+
+message ReconcileResourceRequest {
+  containeros.shared.v1.MetaResource resource = 1;
+  repeated containeros.shared.v1.MetaResource additional_resources = 2;
+}
+
+message ReconcileResourceResponse {
+  message DynamicResource {
+    containeros.shared.v1.Identity id = 1;
+    bytes spec = 3;
+  }
+
+  repeated containeros.shared.v1.Identity deleted = 1;
+  repeated DynamicResource created = 2;
+  repeated DynamicResource updated = 3;
+  bytes status = 4;
+}

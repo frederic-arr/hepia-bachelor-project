@@ -29,18 +29,24 @@ impl SystemManagerInner {
 
     fn config_create(&mut self, req: CreateConfig) -> Result<(), String> {
         let id = req.id.clone();
-        let meta = ResourceMeta::new(req.id, req.spec);
+        let meta = ResourceMeta::<rmpv::Value>::new(
+            req.id,
+            req.spec.try_into().unwrap(),
+        );
         let resource = UserConfigResource::new(meta);
 
         self.resources
-            .try_insert(id, resource.into())
+            .try_insert(id, resource.try_into().unwrap())
             .map(|_| ())
             .map_err(|_| "cannot create a duplicate resource".to_string())
     }
 
     fn resource_create(&mut self, req: CreateResource) -> Result<(), String> {
         let id = req.id.clone();
-        let meta = ResourceMeta::new(req.id, req.spec);
+        let meta = ResourceMeta::<rmpv::Value>::new(
+            req.id,
+            req.spec.try_into().unwrap(),
+        );
         let resource = DynamicResource::new(meta, req.owner);
 
         if self.resources.contains_key(resource.meta().id()) {
@@ -66,7 +72,10 @@ impl SystemManagerInner {
 
         let exists_in_store = self
             .resources
-            .insert(resource.meta().id().clone(), resource.into())
+            .insert(
+                resource.meta().id().clone(),
+                resource.try_into().unwrap(),
+            )
             .is_some();
 
         invariant!(
@@ -136,7 +145,7 @@ impl v1_svc::SystemManagerService for SystemManagerService {
                 Status::not_found(format!("resource {id} was not found"))
             })
             .map(|res| v1::ResourceReadResponse {
-                resource: Some(res.into()),
+                resource: Some(res.try_into().unwrap()),
             })
             .map(Response::new)
     }

@@ -8,5 +8,11 @@ pub mod v1 {
         unknown_lints
     )]
 
-    tonic::include_proto!("containeros.shared.v1");
+    mod _proto {
+        tonic::include_proto!(
+            "containeros.system_manager.v1"
+        );
+    }
+
+    pub use self::_proto::system_manager_service_client::*;
 }

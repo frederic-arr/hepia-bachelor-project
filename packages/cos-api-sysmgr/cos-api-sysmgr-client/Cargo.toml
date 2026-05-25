@@ -1,5 +1,5 @@
 [package]
-name = "system-manager"
+name = "cos-api-sysmgr-client"
 version = "0.1.0"
 edition = "2024"
 
@@ -9,8 +9,10 @@ workspace = true
 [dependencies]
 cos-api-shared.workspace = true
 cos-api-sysmgr.workspace = true
-cos-api-sysmgr-server.workspace = true
-invariant-macros.workspace = true
-tokio.workspace = true
 tonic.workspace = true
-rmpv.workspace = true
+tonic-prost.workspace = true
+prost.workspace = true
+prost-types.workspace = true
+
+[build-dependencies]
+tonic-prost-build.workspace = true

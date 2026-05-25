@@ -1,0 +1,23 @@
+[package]
+name = "network-manager"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+cos-api-shared.workspace = true
+cos-api-reconciler.workspace = true
+cos-api-reconciler-server.workspace = true
+cos-api-sysmgr.workspace = true
+cos-api-sysmgr-client.workspace = true
+invariant-macros.workspace = true
+tokio.workspace = true
+tonic.workspace = true
+rtnetlink.workspace = true
+futures.workspace = true
+rustix.workspace = true
+derive_builder.workspace = true
+serde.workspace = true
+rmp-serde.workspace = true
