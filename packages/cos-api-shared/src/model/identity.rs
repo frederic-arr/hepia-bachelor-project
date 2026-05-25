@@ -13,15 +13,18 @@ pub struct Identity {
 }
 
 impl Identity {
-    pub fn new(schema: String, name: String) -> Self {
+    #[must_use]
+    pub const fn new(schema: String, name: String) -> Self {
         Self { schema, name }
     }
 
-    pub fn schema(&self) -> &String {
+    #[must_use]
+    pub const fn schema(&self) -> &String {
         &self.schema
     }
 
-    pub fn name(&self) -> &String {
+    #[must_use]
+    pub const fn name(&self) -> &String {
         &self.name
     }
 }

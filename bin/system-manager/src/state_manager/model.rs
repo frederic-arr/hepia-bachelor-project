@@ -3,7 +3,7 @@ use cos_api_sysmgr::proto::v1;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Payload {
+pub struct Payload {
     bytes: Vec<u8>,
 }
 
@@ -52,7 +52,7 @@ impl From<Vec<u8>> for Payload {
 }
 
 impl Specification for Payload {
-    type State = Payload;
+    type State = Self;
 
     fn into_bytes(self) -> Result<Vec<u8>, rmp_serde::encode::Error> {
         Ok(self.bytes)

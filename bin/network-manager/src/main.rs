@@ -2,7 +2,7 @@
 
 use cos_api_reconciler::proto::v1;
 use cos_api_reconciler_server::proto::v1::{self as v1_svc};
-use cos_api_shared::*;
+use cos_api_shared::{Specification, State};
 use rtnetlink::new_connection;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, async_trait};
@@ -16,7 +16,7 @@ enum Resources {
 struct NetworkManagerReconcilerService;
 
 impl NetworkManagerReconcilerService {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self
     }
 }
@@ -32,7 +32,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
             .into_inner()
             .resource
             .try_into()
-            .map_err(|e| Status::internal(e))?;
+            .map_err(Status::internal)?;
 
         dbg!(&res);
 
@@ -389,17 +389,17 @@ mod link {
     pub async fn apply(rtnl: Handle, res: &mut Res, plan: LinkPlan) {
         match plan {
             LinkPlan::Create(msg) => {
-                rtnl.link().add(msg).execute().await.unwrap()
+                rtnl.link().add(msg).execute().await.unwrap();
             }
             LinkPlan::Modify(msg) => {
-                rtnl.link().change(msg).execute().await.unwrap()
+                rtnl.link().change(msg).execute().await.unwrap();
             }
             LinkPlan::Delete(index) => {
-                rtnl.link().del(index).execute().await.unwrap()
+                rtnl.link().del(index).execute().await.unwrap();
             }
             LinkPlan::Nop => return,
-        };
+        }
 
-        refresh(rtnl, res).await
+        refresh(rtnl, res).await;
     }
 }

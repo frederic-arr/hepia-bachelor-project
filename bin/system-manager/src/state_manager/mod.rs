@@ -36,7 +36,7 @@ impl StateManager {
                 ),
                 (
                     "contaienros/RouteSpec".to_string(),
-                    client.clone(),
+                    client,
                 ),
             ]),
             reconciliation_queue: DelayQueue::default(),

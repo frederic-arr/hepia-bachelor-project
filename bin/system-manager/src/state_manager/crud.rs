@@ -8,16 +8,16 @@ use cos_api_shared::{
 use invariant_macros::invariant;
 use tokio::time::Instant;
 
-use super::*;
+use super::{StateManager, CreateConfig, Payload, CreateResource};
 
 impl StateManager {
     pub fn config_create(&mut self, req: CreateConfig) -> Result<(), String> {
         let id = req.id.clone();
-        let meta = ResourceMeta::<Payload>::new(req.id, req.spec.into());
+        let meta = ResourceMeta::<Payload>::new(req.id, req.spec);
         let resource = UserConfigResource::new(meta);
 
         self.resources
-            .try_insert(id.clone(), resource.try_into().unwrap())
+            .try_insert(id.clone(), resource.into())
             .map(|_| ())
             .map_err(|_| "cannot create a duplicate resource".to_string())?;
 
@@ -58,7 +58,7 @@ impl StateManager {
             .resources
             .insert(
                 resource.meta().id().clone(),
-                resource.try_into().unwrap(),
+                resource.into(),
             )
             .is_some();
 

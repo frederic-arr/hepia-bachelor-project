@@ -20,7 +20,7 @@ pub trait State:
 }
 
 impl Specification for rmpv::Value {
-    type State = rmpv::Value;
+    type State = Self;
 }
 
 impl State for rmpv::Value {}

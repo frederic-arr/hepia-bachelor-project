@@ -2,13 +2,11 @@
 
 mod state_manager;
 
-use cos_api_shared::*;
+use cos_api_shared::{Identity, Resource};
 use cos_api_sysmgr::proto::v1;
 use cos_api_sysmgr_server::proto::v1 as v1_svc;
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
-use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
 use crate::state_manager::{
@@ -88,28 +86,28 @@ impl v1_svc::SystemManagerService for SystemManagerService {
 
     async fn resource_list(
         &self,
-        request: Request<v1::ResourceListRequest>,
+        _request: Request<v1::ResourceListRequest>,
     ) -> Result<Response<v1::ResourceListResponse>, Status> {
         todo!()
     }
 
     async fn resource_update_dynamic_spec(
         &self,
-        request: Request<v1::ResourceUpdateDynamicSpecRequest>,
+        _request: Request<v1::ResourceUpdateDynamicSpecRequest>,
     ) -> Result<Response<v1::ResourceUpdateDynamicSpecResponse>, Status> {
         todo!()
     }
 
     async fn resource_update_state(
         &self,
-        request: Request<v1::ResourceUpdateStateRequest>,
+        _request: Request<v1::ResourceUpdateStateRequest>,
     ) -> Result<Response<v1::ResourceUpdateStateResponse>, Status> {
         todo!()
     }
 
     async fn resource_delete_dynamic(
         &self,
-        request: Request<v1::ResourceDeleteDynamicRequest>,
+        _request: Request<v1::ResourceDeleteDynamicRequest>,
     ) -> Result<Response<v1::ResourceDeleteDynamicResponse>, Status> {
         todo!()
     }
@@ -142,7 +140,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .unwrap();
 
     let de: Vec<Resource<Payload>> = serde_json::from_str(&se).unwrap();
-    let se2 = serde_json::to_string_pretty(&de).unwrap();
+    let _se2 = serde_json::to_string_pretty(&de).unwrap();
 
     let se = serde_json::to_string_pretty(&cfg).unwrap();
     let de: CreateConfig = serde_json::from_str(&se).unwrap();

@@ -66,54 +66,54 @@ where
 {
     pub fn meta(&self) -> &ResourceMeta<T> {
         match self {
-            Resource::UserConfig(res) => res.meta(),
-            Resource::Dynamic(res) => res.meta(),
+            Self::UserConfig(res) => res.meta(),
+            Self::Dynamic(res) => res.meta(),
         }
     }
 
     pub fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         match self {
-            Resource::UserConfig(res) => res.meta_mut(),
-            Resource::Dynamic(res) => res.meta_mut(),
+            Self::UserConfig(res) => res.meta_mut(),
+            Self::Dynamic(res) => res.meta_mut(),
         }
     }
 
-    pub fn maybe_user_config(&self) -> Option<&UserConfigResource<T>> {
+    pub const fn maybe_user_config(&self) -> Option<&UserConfigResource<T>> {
         match self {
-            Resource::UserConfig(res) => Some(res),
+            Self::UserConfig(res) => Some(res),
             _ => None,
         }
     }
 
-    pub fn maybe_user_config_mut(
+    pub const fn maybe_user_config_mut(
         &mut self,
     ) -> Option<&mut UserConfigResource<T>> {
         match self {
-            Resource::UserConfig(res) => Some(res),
+            Self::UserConfig(res) => Some(res),
             _ => None,
         }
     }
 
-    pub fn maybe_dynamic(&self) -> Option<&DynamicResource<T>> {
+    pub const fn maybe_dynamic(&self) -> Option<&DynamicResource<T>> {
         match self {
-            Resource::Dynamic(res) => Some(res),
+            Self::Dynamic(res) => Some(res),
             _ => None,
         }
     }
 
-    pub fn maybe_dynamic_mut(&mut self) -> Option<&mut DynamicResource<T>> {
+    pub const fn maybe_dynamic_mut(&mut self) -> Option<&mut DynamicResource<T>> {
         match self {
-            Resource::Dynamic(res) => Some(res),
+            Self::Dynamic(res) => Some(res),
             _ => None,
         }
     }
 
     pub fn id(&self) -> &Identity {
-        &self.meta().id()
+        self.meta().id()
     }
 
     pub fn children(&self) -> &HashSet<Identity> {
-        &self.meta().children()
+        self.meta().children()
     }
 
     pub fn children_mut(&mut self) -> &mut HashSet<Identity> {
@@ -122,7 +122,7 @@ where
     }
 
     pub fn spec(&self) -> &T {
-        &self.meta().spec()
+        self.meta().spec()
     }
 
     pub fn spec_mut(&mut self) -> &mut T {
@@ -161,39 +161,39 @@ where
         }
     }
 
-    pub fn id(&self) -> &Identity {
+    pub const fn id(&self) -> &Identity {
         &self.id
     }
 
-    pub fn children(&self) -> &HashSet<Identity> {
+    pub const fn children(&self) -> &HashSet<Identity> {
         &self.children
     }
 
-    pub fn children_mut(&mut self) -> &mut HashSet<Identity> {
+    pub const fn children_mut(&mut self) -> &mut HashSet<Identity> {
         &mut self.children
     }
 
-    pub fn spec(&self) -> &T {
+    pub const fn spec(&self) -> &T {
         &self.spec
     }
 
-    pub fn spec_mut(&mut self) -> &mut T {
+    pub const fn spec_mut(&mut self) -> &mut T {
         &mut self.spec
     }
 
-    pub fn state(&self) -> Option<&T::State> {
+    pub const fn state(&self) -> Option<&T::State> {
         self.state.as_ref()
     }
 
-    pub fn state_mut(&mut self) -> Option<&mut T::State> {
+    pub const fn state_mut(&mut self) -> Option<&mut T::State> {
         self.state.as_mut()
     }
 
-    pub fn state_opt(&self) -> &Option<T::State> {
+    pub const fn state_opt(&self) -> &Option<T::State> {
         &self.state
     }
 
-    pub fn state_opt_mut(&mut self) -> &mut Option<T::State> {
+    pub const fn state_opt_mut(&mut self) -> &mut Option<T::State> {
         &mut self.state
     }
 }
@@ -202,15 +202,15 @@ impl<T> UserConfigResource<T>
 where
     T: Specification,
 {
-    pub fn new(meta: ResourceMeta<T>) -> Self {
+    pub const fn new(meta: ResourceMeta<T>) -> Self {
         Self { meta }
     }
 
-    pub fn meta(&self) -> &ResourceMeta<T> {
+    pub const fn meta(&self) -> &ResourceMeta<T> {
         &self.meta
     }
 
-    pub fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
+    pub const fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         &mut self.meta
     }
 }
@@ -227,23 +227,23 @@ where
         }
     }
 
-    pub fn meta(&self) -> &ResourceMeta<T> {
+    pub const fn meta(&self) -> &ResourceMeta<T> {
         &self.meta
     }
 
-    pub fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
+    pub const fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         &mut self.meta
     }
 
-    pub fn owner(&self) -> &Identity {
+    pub const fn owner(&self) -> &Identity {
         &self.owner
     }
 
-    pub fn dependencies(&self) -> &HashSet<Identity> {
+    pub const fn dependencies(&self) -> &HashSet<Identity> {
         &self.dependencies
     }
 
-    pub fn dependencies_mut(&mut self) -> &mut HashSet<Identity> {
+    pub const fn dependencies_mut(&mut self) -> &mut HashSet<Identity> {
         &mut self.dependencies
     }
 }
