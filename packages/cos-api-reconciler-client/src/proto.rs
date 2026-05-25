@@ -9,9 +9,7 @@ pub mod v1 {
     )]
 
     mod _proto {
-        tonic::include_proto!(
-            "containeros.reconciler.v1"
-        );
+        tonic::include_proto!("containeros.reconciler.v1");
     }
 
     pub use self::_proto::reconciler_service_client::*;

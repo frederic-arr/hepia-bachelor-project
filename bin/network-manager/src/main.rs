@@ -10,7 +10,7 @@ use tonic::{Request, Response, Status, async_trait};
 use crate::link::spec;
 
 enum Resources {
-    LinkConfig(spec::Link)
+    LinkConfig(spec::Link),
 }
 
 struct NetworkManagerReconcilerService;

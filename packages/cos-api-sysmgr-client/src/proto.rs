@@ -9,9 +9,7 @@ pub mod v1 {
     )]
 
     mod _proto {
-        tonic::include_proto!(
-            "containeros.system_manager.v1"
-        );
+        tonic::include_proto!("containeros.system_manager.v1");
     }
 
     pub use self::_proto::system_manager_service_client::*;
