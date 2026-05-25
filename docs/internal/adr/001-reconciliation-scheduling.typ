@@ -3,8 +3,19 @@
 #set par(first-line-indent: 0em)
 #set text(font: "Liberation Sans", lang: "en")
 
+#let row-label(body) = {
+    set par(justify: false)
+
+    body
+}
+
 #let row(criterion: [], relevance: "", favors: [], rationale: []) = {
-    (criterion, relevance, favors, rationale)
+    (
+        row-label(criterion),
+        row-label(relevance),
+        row-label(favors),
+        rationale,
+    )
 }
 
 = Reconciliation Scheduling
@@ -59,13 +70,16 @@ any pending mutations (create / update / delete).
 Each reconciler owns its loop and implements it as it sees fit, independently
 fetching desired and current state on every tick.
 
+#pagebreak(weak: true)
+#set page(flipped: true)
+
 == Analysis
 
 #show table.cell.where(x: 0): strong
 #show table.cell.where(y: 0): strong
 
 #table(
-    columns: (0.25fr, auto, auto, 1fr),
+    columns: (12em, auto, auto, 1fr),
     row-gutter: (2.2pt, auto),
     table.header[Criterion][Relevance][Favors][Rationale],
     ..row(
@@ -111,6 +125,13 @@ fetching desired and current state on every tick.
             small resource count.],
     ),
     ..row(
+        criterion: [Automated sub-resource ownership],
+        relevance: [LOW],
+        favors: [Centralized],
+        rationale: [Because the `reconcile()` call also returns the creation
+            requests, it is trivial to associate a parent/child relationship.],
+    ),
+    ..row(
         criterion: [API call overhead],
         relevance: [N/A],
         favors: [Centralized],
@@ -128,6 +149,9 @@ fetching desired and current state on every tick.
             are required to work for the system to work too.],
     ),
 )
+
+#pagebreak(weak: false)
+#set page(flipped: false)
 
 == Argument
 
