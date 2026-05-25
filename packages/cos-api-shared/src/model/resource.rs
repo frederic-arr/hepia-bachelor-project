@@ -1,10 +1,7 @@
 use std::collections::HashSet;
 
-use serde::Serialize;
-use serde::de::DeserializeOwned;
-
-use crate::Identity;
 use crate::proto::v1;
+use crate::{Identity, Specification, State};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Resource<T>
@@ -42,20 +39,6 @@ where
     meta: ResourceMeta<T>,
     owner: Identity,
     dependencies: HashSet<Identity>,
-}
-
-pub trait Specification:
-    Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq
-{
-    type State: Serialize
-        + DeserializeOwned
-        + std::fmt::Debug
-        + Clone
-        + PartialEq;
-}
-
-impl Specification for rmpv::Value {
-    type State = rmpv::Value;
 }
 
 impl<T> Resource<T>
@@ -283,10 +266,17 @@ where
         Ok(Self {
             id: Some(value.id.into()),
             children: value.children.into_iter().map(From::from).collect(),
-            spec: rmp_serde::to_vec(&value.spec)
+            spec: value
+                .spec
+                .into_bytes()
                 .map_err(|_| "invalid spec".to_string())?,
-            state: rmp_serde::to_vec(&value.state)
-                .map_err(|_| "invalid state".to_string())?,
+            state: value
+                .state
+                .map(|v| {
+                    v.into_bytes().map_err(|_| "invalid state".to_string())
+                })
+                .transpose()?
+                .unwrap_or_default(),
         })
     }
 }
@@ -358,6 +348,9 @@ where
     type Error = String;
 
     fn try_from(value: v1::ResourceMeta) -> Result<Self, Self::Error> {
+        dbg!(&value.spec);
+        let raw: rmpv::Value = rmp_serde::from_slice(&value.spec).unwrap();
+        dbg!(raw);
         Ok(Self {
             id: value.id.try_into()?,
             children: value

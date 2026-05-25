@@ -1,16 +1,11 @@
-// mod model;
+#![feature(result_option_map_or_default)]
 
 use cos_api_reconciler::proto::v1;
-use cos_api_reconciler_server::proto::v1::{self as v1_svc, ReconcilerService};
-use cos_api_shared::proto::v1::{DynamicResource, MetaResource};
+use cos_api_reconciler_server::proto::v1::{self as v1_svc};
 use cos_api_shared::*;
 use rtnetlink::new_connection;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, async_trait};
-
-enum Specs {
-    LinkConfig,
-}
 
 struct NetworkManagerReconcilerService;
 
@@ -36,18 +31,20 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
         dbg!(&res);
 
         let (conn, handle, _) = new_connection().unwrap();
-        let task = tokio::spawn(conn);
+        tokio::spawn(conn);
 
         link::refresh(handle.clone(), &mut res).await;
-        dbg!(&res);
-
         let plan = link::plan(&mut res).await;
-        dbg!(&plan);
+        // dbg!(&plan);
 
         link::apply(handle, &mut res, plan).await;
-        dbg!(res);
+        // dbg!(res);
 
         Ok(Response::new(v1::ReconcileResourceResponse {
+            state: res
+                .state()
+                .cloned()
+                .map_or_default(|s| s.into_bytes().unwrap()),
             ..Default::default()
         }))
     }
@@ -55,43 +52,43 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let addr = "[::1]:50052".parse().unwrap();
+    let addr = "[::1]:50052".parse().unwrap();
     let svc = NetworkManagerReconcilerService::new();
 
-    let mut spec = link::spec::Link {
-        name: "dummy0".to_string(),
-        state: link::spec::LinkState::Down,
-    };
+    // let mut spec = link::spec::Link {
+    //     name: "dummy0".to_string(),
+    //     state: link::spec::LinkState::Down,
+    // };
 
-    svc.reconcile_resource(Request::new(v1::ReconcileResourceRequest {
-        resource: Some(MetaResource {
-            resource_type: Some(
-                proto::v1::meta_resource::ResourceType::Dynamic(
-                    DynamicResource {
-                        meta: Some(proto::v1::ResourceMeta {
-                            id: Some(Default::default()),
-                            children: vec![],
-                            spec: rmp_serde::to_vec(&spec).unwrap(),
-                            state: vec![],
-                        }),
-                        owner: Some(Default::default()),
-                        dependencies: vec![],
-                        dependents: vec![],
-                    },
-                ),
-            ),
-        }),
-        additional_resources: vec![],
-    }))
-    .await
-    .unwrap();
+    // svc.reconcile_resource(Request::new(v1::ReconcileResourceRequest {
+    //     resource: Some(MetaResource {
+    //         resource_type: Some(
+    //             proto::v1::meta_resource::ResourceType::Dynamic(
+    //                 DynamicResource {
+    //                     meta: Some(proto::v1::ResourceMeta {
+    //                         id: Some(Default::default()),
+    //                         children: vec![],
+    //                         spec: rmp_serde::to_vec(&spec).unwrap(),
+    //                         state: vec![],
+    //                     }),
+    //                     owner: Some(Default::default()),
+    //                     dependencies: vec![],
+    //                     dependents: vec![],
+    //                 },
+    //             ),
+    //         ),
+    //     }),
+    //     additional_resources: vec![],
+    // }))
+    // .await
+    // .unwrap();
 
-    // println!("NetworkReconcilerServer listening on {addr}");
+    println!("NetworkReconcilerServer listening on {addr}");
 
-    // Server::builder()
-    //     .add_service(v1_svc::ReconcilerServiceServer::new(svc))
-    //     .serve(addr)
-    //     .await?;
+    Server::builder()
+        .add_service(v1_svc::ReconcilerServiceServer::new(svc))
+        .serve(addr)
+        .await?;
 
     Ok(())
 }
@@ -204,8 +201,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 // }
 
 mod link {
-    use std::sync::Arc;
-
     use cos_api_shared::Resource;
     use futures::StreamExt;
     use rtnetlink::packet_route::link::{LinkAttribute, LinkMessage, State};
@@ -236,6 +231,7 @@ mod link {
     }
 
     pub mod status {
+        use cos_api_shared::State;
         use derive_builder::Builder;
         use serde::{Deserialize, Serialize};
 
@@ -262,6 +258,8 @@ mod link {
             #[default]
             Unknown,
         }
+
+        impl State for Link {}
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]

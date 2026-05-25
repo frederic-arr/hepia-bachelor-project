@@ -1025,9 +1025,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.149"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
+checksum = "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9"
 dependencies = [
  "itoa",
  "memchr",
@@ -1085,12 +1085,19 @@ checksum = "0bf256ce5efdfa370213c1dabab5935a12e49f2c58d15e9eac2870d3b4f27263"
 name = "system-manager"
 version = "0.1.0"
 dependencies = [
+ "cos-api-reconciler",
+ "cos-api-reconciler-client",
  "cos-api-shared",
  "cos-api-sysmgr",
  "cos-api-sysmgr-server",
  "invariant-macros",
+ "rmp-serde",
  "rmpv",
+ "serde",
+ "serde_json",
  "tokio",
+ "tokio-stream",
+ "tokio-util",
  "tonic",
 ]
 
@@ -1194,6 +1201,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "pin-project-lite",
+ "slab",
  "tokio",
 ]
 
