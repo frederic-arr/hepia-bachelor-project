@@ -1,4 +1,5 @@
 mod identity;
+mod macros;
 mod resource;
 mod transient;
 

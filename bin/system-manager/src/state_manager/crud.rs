@@ -69,13 +69,13 @@ impl StateManager {
 
                     match (
                         self.resources.contains_key(resource.owner()),
-                        self.resources.contains_key(resource.meta().id()),
+                        self.resources.contains_key(resource.id()),
                     ) {
                         (true, false) => acc.push(resource),
                         (_, true) => {
                             return Err(format!(
                                 "resource {} already exists",
-                                resource.meta().id()
+                                resource.id()
                             ));
                         }
                         (false, false) => {
@@ -105,7 +105,7 @@ impl StateManager {
         // INVARIANT: At this point, all insert should succeed because they have
         // been validated
         for resource in validated {
-            let id = resource.meta().id().clone();
+            let id = resource.id().clone();
             let Some(owner) = self.resources.get_mut(resource.owner()) else {
                 invariant_violation!(
                     "existence of owner {} should have been checked during \
@@ -115,7 +115,7 @@ impl StateManager {
             };
 
             let inserted_in_owner =
-                owner.children_mut().insert(resource.meta().id().clone());
+                owner.children_mut().insert(resource.id().clone());
 
             invariant!(
                 inserted_in_owner,
@@ -125,7 +125,7 @@ impl StateManager {
 
             let exists_in_store = self
                 .resources
-                .insert(resource.meta().id().clone(), resource.into())
+                .insert(resource.id().clone(), resource.into())
                 .is_some();
 
             invariant!(
@@ -288,7 +288,6 @@ impl StateManager {
 //                         let mut svc = StateManager::new();
 //                         let res = CreateDynamicResource::default();
 
-//
 // svc.resource_dynamic_create(res.clone()).unwrap_err();
 
 //                         assert_eq!(svc.resources.len(), 0);
@@ -308,7 +307,6 @@ impl StateManager {
 //                             svc.resource_read_dynamic(&res.id).cloned();
 //                         let existing_when = svc.get_scheduled_when(&res.id);
 
-//
 // svc.resource_dynamic_create(res.clone()).unwrap_err();
 
 //                         assert_eq!(svc.resources.len(), 2);

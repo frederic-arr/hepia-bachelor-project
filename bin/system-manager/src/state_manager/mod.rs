@@ -31,15 +31,21 @@ impl StateManager {
             resources: HashMap::default(),
             clients: HashMap::from([
                 (
-                    "contaienros/LinkConfig".to_string(),
+                    ".containeros.net.link-config".to_string(),
                     client.clone(),
                 ),
-                ("contaienros/LinkSpec".to_string(), client.clone()),
                 (
-                    "contaienros/AddressSpec".to_string(),
+                    ".containeros.net.link-spec".to_string(),
                     client.clone(),
                 ),
-                ("contaienros/RouteSpec".to_string(), client),
+                (
+                    ".containeros.net.address-spec".to_string(),
+                    client.clone(),
+                ),
+                (
+                    ".containeros.net.route-spec".to_string(),
+                    client.clone(),
+                ),
             ]),
             scheduled_identities: HashMap::default(),
             reconciliation_queue: DelayQueue::default(),
@@ -212,14 +218,23 @@ impl StateManager {
             });
     }
 
-
-    /// Like [`Self::schedule_reconcile_at_earliest`] but executes offset by [`Instant::now`]
-    fn schedule_reconcile_at_earliest_in(&mut self, id: Identity, when: Duration) {
+    /// Like [`Self::schedule_reconcile_at_earliest`] but executes offset by
+    /// [`Instant::now`]
+    fn schedule_reconcile_at_earliest_in(
+        &mut self,
+        id: Identity,
+        when: Duration,
+    ) {
         self.schedule_reconcile_at_earliest(id, Instant::now() + when)
     }
 
-    /// Like [`Self::schedule_reconcile_at_latest`] but executes offset by [`Instant::now`]
-    fn schedule_reconcile_at_latest_in(&mut self, id: Identity, when: Duration) {
+    /// Like [`Self::schedule_reconcile_at_latest`] but executes offset by
+    /// [`Instant::now`]
+    fn schedule_reconcile_at_latest_in(
+        &mut self,
+        id: Identity,
+        when: Duration,
+    ) {
         self.schedule_reconcile_at_latest(id, Instant::now() + when)
     }
 }

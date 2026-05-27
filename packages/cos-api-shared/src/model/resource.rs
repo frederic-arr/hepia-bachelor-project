@@ -3,8 +3,16 @@ use std::collections::HashSet;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+use super::macros::*;
 use crate::proto::v1;
-use crate::{Identity, Specification, State};
+use crate::{
+    Identity,
+    Specification,
+    State,
+    delegate_to_meta,
+    impl_try_from_opt,
+    impl_try_from_opt_bounds,
+};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(bound(
@@ -71,17 +79,19 @@ impl<T> Resource<T>
 where
     T: Specification,
 {
+    delegate_to_meta!(@rw-, T);
+
     pub const fn meta(&self) -> &ResourceMeta<T> {
         match self {
-            Self::UserConfig(res) => res.meta(),
-            Self::Dynamic(res) => res.meta(),
+            Self::UserConfig(res) => &res.meta,
+            Self::Dynamic(res) => &res.meta,
         }
     }
 
     pub const fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
         match self {
-            Self::UserConfig(res) => res.meta_mut(),
-            Self::Dynamic(res) => res.meta_mut(),
+            Self::UserConfig(res) => &mut res.meta,
+            Self::Dynamic(res) => &mut res.meta,
         }
     }
 
@@ -115,54 +125,6 @@ where
             Self::Dynamic(res) => Some(res),
             Self::UserConfig(_) => None,
         }
-    }
-
-    pub const fn id(&self) -> &Identity {
-        self.meta().id()
-    }
-
-    pub const fn children(&self) -> &HashSet<Identity> {
-        self.meta().children()
-    }
-
-    pub const fn children_mut(&mut self) -> &mut HashSet<Identity> {
-        let meta = self.meta_mut();
-        meta.children_mut()
-    }
-
-    pub const fn status(&self) -> &ResourceStatus {
-        self.meta().status()
-    }
-
-    pub const fn status_mut(&mut self) -> &mut ResourceStatus {
-        let meta = self.meta_mut();
-        meta.status_mut()
-    }
-
-    pub const fn spec(&self) -> &T {
-        self.meta().spec()
-    }
-
-    pub const fn spec_mut(&mut self) -> &mut T {
-        let meta = self.meta_mut();
-        meta.spec_mut()
-    }
-
-    pub const fn state(&self) -> Option<&T::State> {
-        self.meta().state()
-    }
-
-    pub const fn state_mut(&mut self) -> Option<&mut T::State> {
-        let meta = self.meta_mut();
-        meta.state_mut()
-    }
-
-    pub const fn state_opt(&self) -> &Option<T::State> {
-        self.meta().state_opt()
-    }
-
-    pub const fn state_opt_mut(&mut self) -> &mut Option<T::State> {
-        self.meta_mut().state_opt_mut()
     }
 }
 
@@ -229,16 +191,10 @@ impl<T> UserConfigResource<T>
 where
     T: Specification,
 {
+    delegate_to_meta!(@rw, T);
+
     pub const fn new(meta: ResourceMeta<T>) -> Self {
         Self { meta }
-    }
-
-    pub const fn meta(&self) -> &ResourceMeta<T> {
-        &self.meta
-    }
-
-    pub const fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
-        &mut self.meta
     }
 }
 
@@ -246,6 +202,8 @@ impl<T> DynamicResource<T>
 where
     T: Specification,
 {
+    delegate_to_meta!(@rw, T);
+
     pub fn try_new(
         meta: ResourceMeta<T>,
         owner: Identity,
@@ -259,14 +217,6 @@ where
             owner,
             dependencies: HashSet::default(),
         })
-    }
-
-    pub const fn meta(&self) -> &ResourceMeta<T> {
-        &self.meta
-    }
-
-    pub const fn meta_mut(&mut self) -> &mut ResourceMeta<T> {
-        &mut self.meta
     }
 
     pub const fn owner(&self) -> &Identity {
@@ -511,31 +461,3 @@ impl_try_from_opt_bounds!(v1::MetaResource => Resource);
 impl_try_from_opt_bounds!(v1::UserConfigResource => UserConfigResource);
 impl_try_from_opt_bounds!(v1::DynamicResource => DynamicResource);
 impl_try_from_opt!(v1::ResourceStatus => ResourceStatus);
-
-pub macro impl_try_from_opt {
-    ($src:ty => $dst:ty) => {
-        impl TryFrom<Option<$src>> for $dst {
-            type Error = String;
-
-            fn try_from(value: Option<$src>) -> Result<Self, Self::Error> {
-                value
-                    .ok_or_else(|| format!("{} is required", stringify!($src)))?
-                    .try_into()
-            }
-        }
-    },
-}
-
-pub macro impl_try_from_opt_bounds {
-    ($src:ty => $dst:ident) => {
-        impl<T> TryFrom<Option<$src>> for $dst<T> where T: Specification {
-            type Error = String;
-
-            fn try_from(value: Option<$src>) -> Result<Self, Self::Error> {
-                value
-                    .ok_or_else(|| format!("{} is required", stringify!($src)))?
-                    .try_into()
-            }
-        }
-    },
-}

@@ -14,7 +14,6 @@ prost-types.workspace = true
 serde.workspace = true
 rmp-serde.workspace = true
 rmpv.workspace = true
-paste.workspace = true
 
 [build-dependencies]
 tonic-prost-build.workspace = true

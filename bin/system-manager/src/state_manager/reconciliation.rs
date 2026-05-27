@@ -64,12 +64,12 @@ impl StateManager {
             let Some(owner) = self.resources.get_mut(res.owner()) else {
                 invariant_violation!(
                     "dynamic resource {} owner's {} does not exist",
-                    res.meta().id(),
+                    res.id(),
                     res.owner(),
                 );
             };
 
-            owner.children_mut().remove(res.meta().id());
+            owner.children_mut().remove(res.id());
             if owner.children().is_empty() {
                 self.schedule_reconcile_at_earliest_in(
                     res.owner().clone(),

@@ -155,7 +155,6 @@ dependencies = [
 name = "cos-api-shared"
 version = "0.1.0"
 dependencies = [
- "paste",
  "prost",
  "prost-types",
  "rmp-serde",

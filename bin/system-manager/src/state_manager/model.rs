@@ -54,6 +54,8 @@ impl From<Vec<u8>> for Payload {
 impl Specification for Payload {
     type State = Self;
 
+    const SCHEMA: &str = ".containeros.internal.payload";
+
     fn into_bytes(self) -> Result<Vec<u8>, rmp_serde::encode::Error> {
         Ok(self.bytes)
     }

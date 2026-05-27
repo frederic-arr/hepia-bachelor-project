@@ -3,6 +3,47 @@
 #![feature(bool_to_result)]
 #![feature(iterator_try_collect)]
 
+use std::alloc::{GlobalAlloc, Layout, System};
+use std::hint::black_box;
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering::Relaxed;
+
+struct Counter;
+
+static ALLOCATED: AtomicUsize = AtomicUsize::new(0);
+static PEAK: AtomicUsize = AtomicUsize::new(0);
+
+unsafe impl GlobalAlloc for Counter {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let ret = unsafe { System.alloc(layout) };
+        if !ret.is_null() {
+            let current =
+                ALLOCATED.fetch_add(layout.size(), Relaxed) + layout.size();
+
+            let mut peak = PEAK.load(Relaxed);
+            while current > peak {
+                match PEAK
+                    .compare_exchange_weak(peak, current, Relaxed, Relaxed)
+                {
+                    Ok(_) => break,
+                    Err(v) => peak = v,
+                }
+            }
+        }
+        ret
+    }
+
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        unsafe {
+            System.dealloc(ptr, layout);
+        }
+        ALLOCATED.fetch_sub(layout.size(), Relaxed);
+    }
+}
+
+#[global_allocator]
+static A: Counter = Counter;
+
 mod state_manager;
 
 use cos_api_shared::{Identity, Resource};
@@ -119,8 +160,32 @@ impl v1_svc::SystemManagerService for SystemManagerService {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let before = ALLOCATED.load(Relaxed);
+    println!("allocated bytes before main: {before}");
+
+    std::panic::set_hook(Box::new(move |info| {
+        eprintln!("panic occurred: {info}");
+
+        let after = ALLOCATED.load(Relaxed);
+        println!("allocated bytes after main: {after}");
+        println!("delta: {}", (after - before).max(0));
+        println!("peak: {} [KiB]", PEAK.load(Relaxed).div_ceil(1024));
+        println!("peak: {} [MiB]", PEAK.load(Relaxed).div_ceil(1024*1024));
+    }));
+
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let res = rt.block_on(async { async_main().await });
+
+    let after = ALLOCATED.load(Relaxed);
+    println!("allocated bytes after main: {after}");
+    println!("delta: {}", (after - before).max(0));
+    println!("peak: {} [KiB]", PEAK.load(Relaxed).div_ceil(1024));
+    println!("peak: {} [MiB]", PEAK.load(Relaxed).div_ceil(1024*1024));
+    Ok(())
+}
+
+async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
@@ -136,7 +201,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spec = rmp_serde::to_vec(&spec).unwrap();
     let cfg = CreateUserConfigResource {
         id: Identity::new(
-            "contaienros/LinkConfig".to_string(),
+            ".containeros.net.link-config".to_string(),
             "dummy0".to_string(),
         ),
         spec: spec.into(),
