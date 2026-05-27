@@ -7,7 +7,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::Duration;
 
 use cos_api_reconciler_client::proto::v1::ReconcilerServiceClient;
-use cos_api_shared::{Identity, Resource, ResourceStatus};
+use cos_api_shared::{Identity, Resource};
 pub use model::*;
 use tokio::time::Instant;
 use tokio_util::time::{DelayQueue, delay_queue};
@@ -98,35 +98,37 @@ impl StateManager {
     }
 
     fn mark_for_deletion(&mut self, id: &Identity) {
-        let Some(res) = self.resource_read_mut(&id) else {
-            return;
-        };
+        todo!()
+        // let Some(res) = self.resource_read_mut(&id) else {
+        //     return;
+        // };
 
-        *res.status_mut() = ResourceStatus::Deleting;
-        for child in res.children().clone() {
-            self.mark_for_deletion(&child);
-        }
+        // *res.status_mut() = ResourceStatus::Deleting;
+        // for child in res.children().clone() {
+        //     self.mark_for_deletion(&child);
+        // }
     }
 
     fn try_delete(&mut self, id: &Identity) -> Result<(), ()> {
-        let Entry::Occupied(mut e) = self.resources.entry(id.clone()) else {
-            return Ok(());
-        };
+        todo!()
+        // let Entry::Occupied(mut e) = self.resources.entry(id.clone()) else {
+        //     return Ok(());
+        // };
 
-        if e.get().status() != &ResourceStatus::Deleting {
-            return Err(());
-        }
+        // if e.get().status() != &ResourceStatus::Deleting {
+        //     return Err(());
+        // }
 
-        if e.get().children().is_empty() {
-            let v = e.remove();
-            if let Some(parent) = self.resource_read_mut(v.id()) {
-                parent.children_mut().remove(v.id());
-            }
+        // if e.get().children().is_empty() {
+        //     let v = e.remove();
+        //     if let Some(parent) = self.resource_read_mut(v.id()) {
+        //         parent.children_mut().remove(v.id());
+        //     }
 
-            return Ok(());
-        }
+        //     return Ok(());
+        // }
 
-        return Err(());
+        // return Err(());
     }
 
     // fn collect_deletion(&mut self, id: &Identity) -> bool {

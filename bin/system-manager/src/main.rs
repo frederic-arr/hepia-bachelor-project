@@ -195,13 +195,13 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     let mut sm = system_manager.0.write().await;
 
     let spec = json!({
-        "state": "down",
+        "admin_up": true,
     });
 
     let spec = rmp_serde::to_vec(&spec).unwrap();
     let cfg = CreateUserConfigResource {
         id: Identity::new(
-            ".containeros.net.link-config".to_string(),
+            ".containeros.net.link-spec".to_string(),
             "dummy0".to_string(),
         ),
         spec: spec.into(),
@@ -216,8 +216,12 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .unwrap();
 
+
     let de: Vec<Resource<Payload>> = serde_json::from_str(&se).unwrap();
-    let _se2 = serde_json::to_string_pretty(&de).unwrap();
+    let se2 = serde_json::to_string_pretty(&de).unwrap();
+
+    println!("{se2}");
+    assert_eq!(se, se2);
 
     let se = serde_json::to_string_pretty(&cfg).unwrap();
     let de: CreateUserConfigResource = serde_json::from_str(&se).unwrap();

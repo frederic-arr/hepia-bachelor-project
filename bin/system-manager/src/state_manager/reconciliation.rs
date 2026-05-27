@@ -1,11 +1,11 @@
 use std::collections::hash_map::Entry;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use cos_api_reconciler::proto::v1::{
     ReconcileDeleteRequest,
     ReconcileResourceRequest,
 };
-use cos_api_shared::{Identity, Resource, ResourceStatus};
+use cos_api_shared::{Identity, Resource, ResourceSpec, ResourceState};
 use invariant_macros::invariant_violation;
 use tokio::time::Instant;
 use tokio_stream::StreamExt;
@@ -39,7 +39,10 @@ impl StateManager {
         let current = e.get_mut();
 
         // TODO: Should be refactored as it is quite ugly right now
-        if current.status() == &ResourceStatus::Deleting {
+        if matches!(
+            current.spec(),
+            ResourceSpec::Draining(_) | ResourceSpec::Deleting(_)
+        ) {
             if !current.children().is_empty() {
                 return;
             }
@@ -96,7 +99,12 @@ impl StateManager {
                 spec: res.spec,
             });
 
-        current.state_opt_mut().replace(res.state.into());
+        *current.state_mut() = ResourceState::Ready {
+            state: res.state.into(),
+            state_at: SystemTime::now(),
+        };
+
+        dbg!(&current);
 
         self.resource_dynamic_create_bulk(creations.collect(), None)
             .unwrap();

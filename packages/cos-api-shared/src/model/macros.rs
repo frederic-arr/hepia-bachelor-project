@@ -31,6 +31,23 @@ macro_rules! impl_try_from_opt_bounds {
     };
 }
 
+/*
+pub fn spec_inner(&self) -> &T {
+    self.spec.inner()
+}
+
+pub fn state_inner(&self) -> Option<&T::State> {
+    self.state.inner()
+}
+pub fn spec_inner_mut(&mut self) -> &mut T {
+    self.spec.inner_mut()
+}
+
+pub fn state_inner_mut(&mut self) -> Option<&mut T::State> {
+    self.state.inner_mut()
+}
+*/
+
 #[macro_export]
 macro_rules! delegate_to_meta {
     (@ro-, $t:path) => {
@@ -42,20 +59,20 @@ macro_rules! delegate_to_meta {
             self.meta().children()
         }
 
-        pub const fn status(&self) -> &ResourceStatus {
-            self.meta().status()
-        }
-
-        pub const fn spec(&self) -> &$t {
+        pub const fn spec(&self) -> &ResourceSpec<$t> {
             self.meta().spec()
         }
 
-        pub const fn state(&self) -> Option<&<$t>::State> {
+        pub const fn state(&self) -> &ResourceState<$t> {
             self.meta().state()
         }
 
-        pub const fn state_opt(&self) -> &Option<<$t>::State> {
-            self.meta().state_opt()
+        pub fn spec_inner(&self) -> &T {
+            self.meta().spec_inner()
+        }
+
+        pub fn state_inner(&self) -> Option<&T::State> {
+            self.meta().state_inner()
         }
     };
 
@@ -74,20 +91,20 @@ macro_rules! delegate_to_meta {
             self.meta_mut().children_mut()
         }
 
-        pub const fn status_mut(&mut self) -> &mut ResourceStatus {
-            self.meta_mut().status_mut()
-        }
-
-        pub const fn spec_mut(&mut self) -> &mut $t {
+        pub const fn spec_mut(&mut self) -> &mut ResourceSpec<$t> {
             self.meta_mut().spec_mut()
         }
 
-        pub const fn state_mut(&mut self) -> Option<&mut <$t>::State> {
+        pub const fn state_mut(&mut self) -> &mut ResourceState<$t> {
             self.meta_mut().state_mut()
         }
 
-        pub const fn state_opt_mut(&mut self) -> &mut Option<<$t>::State> {
-            self.meta_mut().state_opt_mut()
+        pub fn spec_inner_mut(&mut self) -> &mut T {
+            self.meta_mut().spec_inner_mut()
+        }
+
+        pub fn state_inner_mut(&mut self) -> Option<&mut T::State> {
+            self.meta_mut().state_inner_mut()
         }
     };
 

@@ -1,5 +1,7 @@
 #![feature(decl_macro)]
 
+use std::assert_matches;
+
 /// Like [`panic!`], but panics with `"INVARIANT VIOLATION: ..."`
 /// prefix.
 ///
@@ -11,7 +13,7 @@
 /// ```
 pub macro invariant_violation {
     ($($arg:tt)+) => {
-        ::core::panic!("INVARIANT VIOLATION: {}", ::core::format_args!($($arg)+))
+        panic!("INVARIANT VIOLATION: {}", format_args!($($arg)+))
     }
 }
 
@@ -45,11 +47,11 @@ pub macro invariant_violation {
 /// ```
 pub macro invariant {
     ($cond:expr $(,)?) => {
-        ::core::assert!($cond, "INVARIANT VIOLATION")
+        assert!($cond, "INVARIANT VIOLATION")
     },
 
     ($cond:expr, $($arg:tt)+) => {
-        ::core::assert!($cond, "INVARIANT VIOLATION: {}", ::core::format_args!($($arg)+))
+        assert!($cond, "INVARIANT VIOLATION: {}", format_args!($($arg)+))
     }
 }
 
@@ -82,11 +84,11 @@ pub macro invariant {
 /// ```
 pub macro invariant_not {
     ($cond:expr $(,)?) => {
-        ::core::assert!(!($cond), "INVARIANT VIOLATION")
+        assert!(!($cond), "INVARIANT VIOLATION")
     },
 
     ($cond:expr, $($arg:tt)+) => {
-        ::core::assert!(!($cond), "INVARIANT VIOLATION: {}", ::core::format_args!($($arg)+))
+        assert!(!($cond), "INVARIANT VIOLATION: {}", format_args!($($arg)+))
     }
 }
 
@@ -114,11 +116,11 @@ pub macro invariant_not {
 /// ```
 pub macro invariant_eq {
     ($left:expr, $right:expr $(,)?) => {
-        ::core::assert_eq!($left, $right, "INVARIANT VIOLATION")
+        assert_eq!($left, $right, "INVARIANT VIOLATION")
     },
 
     ($left:expr, $right:expr, $($arg:tt)+) => {
-        ::core::assert_eq!($left, $right, "INVARIANT VIOLATION: {}", ::core::format_args!($($arg)+))
+        assert_eq!($left, $right, "INVARIANT VIOLATION: {}", format_args!($($arg)+))
     }
 }
 
@@ -146,11 +148,11 @@ pub macro invariant_eq {
 /// ```
 pub macro invariant_ne {
     ($left:expr, $right:expr $(,)?) => {
-        ::core::assert_ne!($left, $right, "INVARIANT VIOLATION")
+        assert_ne!($left, $right, "INVARIANT VIOLATION")
     },
 
     ($left:expr, $right:expr, $($arg:tt)+) => {
-        ::core::assert_ne!($left, $right, "INVARIANT VIOLATION: {}", ::core::format_args!($($arg)+))
+        assert_ne!($left, $right, "INVARIANT VIOLATION: {}", format_args!($($arg)+))
     }
 }
 
@@ -186,7 +188,7 @@ pub macro invariant_ne {
 /// ```
 pub macro invariant_matches {
     ($left:expr, $(|)? $($pattern:pat_param)|+ $(if $guard:expr)? $(,)?) => {
-        ::core::assert_matches!(
+        assert_matches!(
             $left,
             $($pattern)|+ $(if $guard)?,
             "INVARIANT VIOLATION"
@@ -194,11 +196,11 @@ pub macro invariant_matches {
     },
 
     ($left:expr, $(|)? $($pattern:pat_param)|+ $(if $guard:expr)?, $($arg:tt)+) => {
-        ::core::assert_matches!(
+        assert_matches!(
             $left,
             $($pattern)|+ $(if $guard)?,
             "INVARIANT VIOLATION: {}",
-            ::core::format_args!($($arg)+)
+            format_args!($($arg)+)
         )
     }
 }

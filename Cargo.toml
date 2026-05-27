@@ -45,7 +45,7 @@ cos-api-sysmgr-server = { path = "packages/cos-api-sysmgr-server" }
 invariant-macros = { path = "packages/invariant-macros" }
 
 prost = { version = "0.14.3", default-features = false }
-prost-types = { version = "0.14.3", default-features = false }
+prost-types = { version = "0.14.3", default-features = false, features = ["std"] }
 rtnetlink = { version = "0.21.0", default-features = false, features = ["tokio_socket"] }
 rustix = {version = "1.1.4", default-features = false }
 tokio = { version = "1.52.3", default-features = false, features = ["macros", "rt-multi-thread"] }
@@ -62,3 +62,5 @@ tokio-stream = { version = "0.1.18", default-features = false }
 serde_json = { version = "1.0.150", default-features = false, features = ["std"] }
 tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["ansi", "fmt", "std", "env-filter"] }
+thiserror = { version = "2.0.18", default-features = false, features = ["std"] }
+chrono = { version = "0.4.44", default-features = false }

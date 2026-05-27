@@ -8,7 +8,7 @@ use cos_api_shared::{
     Identity,
     Resource,
     ResourceMeta,
-    ResourceStatus,
+    ResourceSpec,
     UserConfigResource,
 };
 use invariant_macros::{invariant, invariant_violation};
@@ -27,7 +27,10 @@ impl StateManager {
         req: CreateUserConfigResource,
     ) -> Result<(), String> {
         let id = req.id.clone();
-        let meta = ResourceMeta::<Payload>::new(req.id, req.spec);
+        let meta = ResourceMeta::<Payload>::new(
+            req.id,
+            ResourceSpec::Running(req.spec),
+        );
         let resource = UserConfigResource::new(meta);
 
         self.resources
@@ -63,7 +66,7 @@ impl StateManager {
 
                     let meta = ResourceMeta::<Payload>::new(
                         req.id.clone(),
-                        req.spec.into(),
+                        ResourceSpec::Running(req.spec.into()),
                     );
                     let resource = DynamicResource::try_new(meta, req.owner)?;
 

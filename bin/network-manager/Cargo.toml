@@ -21,3 +21,4 @@ rustix.workspace = true
 derive_builder.workspace = true
 serde.workspace = true
 rmp-serde.workspace = true
+thiserror.workspace = true

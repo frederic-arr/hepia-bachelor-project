@@ -2,7 +2,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 pub trait Specification:
-    Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq
+    Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq + Send + Sync
 {
     type State: State;
 
@@ -14,7 +14,7 @@ pub trait Specification:
 }
 
 pub trait State:
-    Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq
+    Serialize + DeserializeOwned + std::fmt::Debug + Clone + PartialEq + Send + Sync
 {
     fn into_bytes(self) -> Result<Vec<u8>, rmp_serde::encode::Error> {
         rmp_serde::to_vec(&self)

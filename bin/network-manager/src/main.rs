@@ -5,14 +5,15 @@
 mod resources;
 
 use cos_api_reconciler::proto::v1;
+use cos_api_reconciler_server::ReconcilableDriver;
 use cos_api_reconciler_server::proto::v1 as v1_svc;
 use cos_api_shared::proto::v1 as v1_shared;
-use cos_api_shared::{ReconcilableDriver, Resource, Specification, State};
+use cos_api_shared::{Resource, Specification, State};
 use rtnetlink::new_connection;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, async_trait};
 
-use crate::resources::{LinkConfigSpec, NetworkResources};
+use crate::resources::NetworkResources;
 
 struct NetworkManagerReconcilerService;
 
@@ -28,26 +29,20 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
         &self,
         request: Request<v1::ReconcileResourceRequest>,
     ) -> Result<Response<v1::ReconcileResourceResponse>, Status> {
-        let mut res: NetworkResources = request
+        let mut resource: NetworkResources = request
             .into_inner()
             .resource
             .try_into()
             .map_err(Status::internal)?;
 
-        let (conn, mut handle, _) = new_connection().unwrap();
+        let (conn, mut rtnl, _) = new_connection().unwrap();
         tokio::spawn(conn);
 
-        res.reconcile(handle).await;
+        let response = match resource {
+            NetworkResources::LinkSpec(r) => r.reconcile(&mut rtnl).await,
+        };
 
-        todo!()
-
-        // Ok(Response::new(v1::ReconcileResourceResponse {
-        //     state: res
-        //         .state()
-        //         .cloned()
-        //         .map_or_default(|s| s.into_bytes().unwrap()),
-        //     ..Default::default()
-        // }))
+        response.map(Response::new)
     }
 
     async fn reconcile_delete(

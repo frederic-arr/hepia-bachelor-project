@@ -2,23 +2,65 @@ syntax = "proto3";
 
 package containeros.shared.v1;
 
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
 message Identity {
   string schema = 1;
   string name = 2;
 }
 
-enum ResourceStatus {
-  RESOURCE_STATUS_UNSPECIFIED = 0;
-  RESOURCE_STATUS_RUNNING = 1;
-  RESOURCE_STATUS_DELETING = 2;
+message ResourceState {
+  bytes state = 1;
+  google.protobuf.Timestamp state_at = 2;
+}
+
+message ResourceStateError {
+  string error = 1;
+  bytes state = 2;
+  google.protobuf.Timestamp state_at = 3;
 }
 
 message ResourceMeta {
   Identity id = 1;
   repeated Identity children = 2;
-  ResourceStatus status = 3;
-  bytes spec = 4;
-  bytes state = 5;
+
+  oneof spec {
+    bytes spec_running = 3;
+    bytes spec_draining = 4;
+    bytes spec_deleting = 5;
+  }
+
+  /*
+     Allow transitions are:
+     Unset -> {* \ {Unset, Expired}}
+     Pending -> {* \ {Unset}}
+     Completed -> {}
+     {* \ {Unset, Pending, Completed}} -> {* \ {Unset, Pending, Completed}}
+  */
+  oneof state {
+    /// When a resource requests the creation of a sub-resorce, but it hasn't been reconciled yet
+    google.protobuf.Empty state_unset = 6;
+
+    /// The resource is waiting for something else
+    ResourceState state_pending = 7;
+
+    /// The resource is in an error state
+    ResourceStateError state_error = 8;
+
+    /// The resource is running as expected
+    ResourceState state_ready = 9;
+
+    /// The resource has run successfully and will now not be reconciled
+    ResourceState state_completed = 10;
+
+    /// A reconciliation was attempted but resulted in an unexpected error (usually during the refresh or plan phase)
+    ResourceStateError state_refresh_error = 11;
+  }
+
+  // google.protobuf.Timestamp created_at = 12;
+  // google.protobuf.Timestamp last_spec_updated_at = 13;
+  // google.protobuf.Timestamp last_state_update_at = 14;
 }
 
 message UserConfigResource {
@@ -39,3 +81,20 @@ message MetaResource {
     DynamicResource dynamic = 2;
   }
 }
+
+// message ResourceFieldsInit {
+//   Identity id = 1;
+// }
+
+// message ResourceFieldsReadonly {
+//   google.protobuf.Timestamp created_at = 1;
+// }
+
+// message ResourceFieldsReadWrite {
+//   bytes data = 1;
+// }
+
+// message ResourceFieldsCreate {
+//   ResourceFieldsInit init = 1;
+//   ResourceFieldsReadWrite rw = 2;
+// }
