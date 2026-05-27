@@ -1,4 +1,7 @@
 #![feature(map_try_insert)]
+#![feature(iterator_try_reduce)]
+#![feature(bool_to_result)]
+#![feature(iterator_try_collect)]
 
 mod state_manager;
 
@@ -8,10 +11,11 @@ use cos_api_sysmgr_server::proto::v1 as v1_svc;
 use serde_json::json;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tonic::{Request, Response, Status};
+use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::state_manager::{
-    CreateConfig,
-    CreateResource,
+    CreateDynamicResource,
+    CreateUserConfigResource,
     Payload,
     StateManager,
 };
@@ -50,18 +54,20 @@ impl v1_svc::SystemManagerService for SystemManagerService {
         &self,
         request: Request<v1::ResourceCreateDynamicRequest>,
     ) -> Result<Response<v1::ResourceCreateDynamicResponse>, Status> {
-        let resource: CreateResource = request.into_inner().try_into().unwrap();
+        todo!()
+        // let resource: CreateDynamicResource =
+        // request.into_inner().try_into().unwrap();
 
-        let mut inner = self.write().await;
-        inner
-            .state_manager
-            .resource_create(resource)
-            .map_err(Status::internal)?;
-        drop(inner);
+        // let mut inner = self.write().await;
+        // inner
+        //     .state_manager
+        //     .resource_dynamic_create(resource)
+        //     .map_err(Status::internal)?;
+        // drop(inner);
 
-        Ok(Response::new(
-            v1::ResourceCreateDynamicResponse {},
-        ))
+        // Ok(Response::new(
+        //     v1::ResourceCreateDynamicResponse {},
+        // ))
     }
 
     async fn resource_read(
@@ -115,6 +121,10 @@ impl v1_svc::SystemManagerService for SystemManagerService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
+
     // let addr = "[::1]:50051".parse().unwrap();
     let system_manager = SystemManagerService::new();
     let mut sm = system_manager.0.write().await;
@@ -124,7 +134,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let spec = rmp_serde::to_vec(&spec).unwrap();
-    let cfg = CreateConfig {
+    let cfg = CreateUserConfigResource {
         id: Identity::new(
             "contaienros/LinkConfig".to_string(),
             "dummy0".to_string(),
@@ -132,7 +142,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         spec: spec.into(),
     };
 
-    sm.state_manager.config_create(cfg.clone()).unwrap();
+    sm.state_manager
+        .resource_user_config_create(cfg.clone())
+        .unwrap();
 
     let se = serde_json::to_string_pretty(
         &sm.state_manager.resources.values().collect::<Vec<_>>(),
@@ -143,13 +155,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _se2 = serde_json::to_string_pretty(&de).unwrap();
 
     let se = serde_json::to_string_pretty(&cfg).unwrap();
-    let de: CreateConfig = serde_json::from_str(&se).unwrap();
+    let de: CreateUserConfigResource = serde_json::from_str(&se).unwrap();
     let se2 = serde_json::to_string_pretty(&de).unwrap();
 
     println!("{se2}");
     assert_eq!(se, se2);
 
-    // sm.state_manager.reconciliation_loop().await;
+    sm.state_manager.reconciliation_loop().await;
 
     // println!("GreeterServer listening on {addr}");
 

@@ -30,7 +30,7 @@ impl<'de> Deserialize<'de> for Payload {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct CreateConfig {
+pub struct CreateUserConfigResource {
     #[serde(flatten)]
     pub id: Identity,
 
@@ -39,7 +39,7 @@ pub struct CreateConfig {
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct CreateResource {
+pub struct CreateDynamicResource {
     pub id: Identity,
     pub owner: Identity,
     pub spec: Vec<u8>,
@@ -65,7 +65,7 @@ impl State for Payload {
     }
 }
 
-impl TryFrom<v1::ResourceCreateDynamicRequest> for CreateResource {
+impl TryFrom<v1::ResourceCreateDynamicRequest> for CreateDynamicResource {
     type Error = String;
 
     fn try_from(

@@ -54,6 +54,13 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
             ..Default::default()
         }))
     }
+
+    async fn reconcile_delete(
+        &self,
+        request: Request<v1::ReconcileDeleteRequest>,
+    ) -> Result<Response<v1::ReconcileDeleteResponse>, Status> {
+        todo!()
+    }
 }
 
 #[tokio::main]
@@ -221,11 +228,13 @@ mod link {
 
         #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
         pub struct Link {
+            #[serde(skip)]
             pub name: String,
             pub state: LinkState,
         }
 
         #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+        #[serde(rename_all = "lowercase")]
         pub enum LinkState {
             Up,
             Down,

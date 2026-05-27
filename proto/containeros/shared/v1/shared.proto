@@ -7,11 +7,18 @@ message Identity {
   string name = 2;
 }
 
+enum ResourceStatus {
+  RESOURCE_STATUS_UNSPECIFIED = 0;
+  RESOURCE_STATUS_RUNNING = 1;
+  RESOURCE_STATUS_DELETING = 2;
+}
+
 message ResourceMeta {
   Identity id = 1;
   repeated Identity children = 2;
-  bytes spec = 3;
-  bytes state = 4;
+  ResourceStatus status = 3;
+  bytes spec = 4;
+  bytes state = 5;
 }
 
 message UserConfigResource {

@@ -1,5 +1,20 @@
 #![feature(decl_macro)]
 
+/// Like [`panic!`], but panics with `"INVARIANT VIOLATION: ..."`
+/// prefix.
+///
+/// # Examples
+///
+/// ```should_panic
+/// # use invariant_macros::invariant_violation;
+/// invariant_violation!("computation failed");
+/// ```
+pub macro invariant_violation {
+    ($($arg:tt)+) => {
+        ::core::panic!("INVARIANT VIOLATION: {}", ::core::format_args!($($arg)+))
+    }
+}
+
 /// Like [`assert!`], but panics with `"INVARIANT VIOLATION: ..."`
 /// prefix.
 ///

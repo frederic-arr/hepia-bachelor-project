@@ -31,7 +31,14 @@ where
     id: Identity,
     children: HashSet<Identity>,
     spec: T,
+    status: ResourceStatus,
     state: Option<T::State>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ResourceStatus {
+    Running,
+    Deleting,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -101,7 +108,9 @@ where
         }
     }
 
-    pub const fn maybe_dynamic_mut(&mut self) -> Option<&mut DynamicResource<T>> {
+    pub const fn maybe_dynamic_mut(
+        &mut self,
+    ) -> Option<&mut DynamicResource<T>> {
         match self {
             Self::Dynamic(res) => Some(res),
             Self::UserConfig(_) => None,
@@ -119,6 +128,15 @@ where
     pub const fn children_mut(&mut self) -> &mut HashSet<Identity> {
         let meta = self.meta_mut();
         meta.children_mut()
+    }
+
+    pub const fn status(&self) -> &ResourceStatus {
+        self.meta().status()
+    }
+
+    pub const fn status_mut(&mut self) -> &mut ResourceStatus {
+        let meta = self.meta_mut();
+        meta.status_mut()
     }
 
     pub const fn spec(&self) -> &T {
@@ -157,6 +175,7 @@ where
             id,
             children: HashSet::default(),
             spec,
+            status: ResourceStatus::Running,
             state: None,
         }
     }
@@ -171,6 +190,14 @@ where
 
     pub const fn children_mut(&mut self) -> &mut HashSet<Identity> {
         &mut self.children
+    }
+
+    pub const fn status(&self) -> &ResourceStatus {
+        &self.status
+    }
+
+    pub const fn status_mut(&mut self) -> &mut ResourceStatus {
+        &mut self.status
     }
 
     pub const fn spec(&self) -> &T {
@@ -219,12 +246,19 @@ impl<T> DynamicResource<T>
 where
     T: Specification,
 {
-    pub fn new(meta: ResourceMeta<T>, owner: Identity) -> Self {
-        Self {
+    pub fn try_new(
+        meta: ResourceMeta<T>,
+        owner: Identity,
+    ) -> Result<Self, String> {
+        if meta.id == owner {
+            return Err(format!("self-referenced owner {owner}"));
+        }
+
+        Ok(Self {
             meta,
             owner,
             dependencies: HashSet::default(),
-        }
+        })
     }
 
     pub const fn meta(&self) -> &ResourceMeta<T> {
@@ -282,13 +316,14 @@ where
     type Error = String;
 
     fn try_from(value: ResourceMeta<T>) -> Result<Self, Self::Error> {
-        Ok(Self {
+        let mut meta = Self {
             id: Some(value.id.into()),
             children: value.children.into_iter().map(From::from).collect(),
             spec: value
                 .spec
                 .into_bytes()
                 .map_err(|_| "invalid spec".to_string())?,
+            status: v1::ResourceStatus::Unspecified.into(),
             state: value
                 .state
                 .map(|v| {
@@ -296,7 +331,10 @@ where
                 })
                 .transpose()?
                 .unwrap_or_default(),
-        })
+        };
+
+        meta.set_status(value.status.try_into()?);
+        Ok(meta)
     }
 }
 
@@ -320,10 +358,10 @@ where
     type Error = String;
 
     fn try_from(value: Resource<T>) -> Result<Self, Self::Error> {
-        Ok(match value {
-            Resource::UserConfig(res) => Self::UserConfig(res.try_into()?),
-            Resource::Dynamic(res) => Self::Dynamic(res.try_into()?),
-        })
+        match value {
+            Resource::UserConfig(res) => Ok(Self::UserConfig(res.try_into()?)),
+            Resource::Dynamic(res) => Ok(Self::Dynamic(res.try_into()?)),
+        }
     }
 }
 
@@ -360,6 +398,17 @@ where
     }
 }
 
+impl TryFrom<ResourceStatus> for v1::ResourceStatus {
+    type Error = String;
+
+    fn try_from(value: ResourceStatus) -> Result<Self, Self::Error> {
+        match value {
+            ResourceStatus::Running => Ok(Self::Running),
+            ResourceStatus::Deleting => Ok(Self::Deleting),
+        }
+    }
+}
+
 impl<T> TryFrom<v1::ResourceMeta> for ResourceMeta<T>
 where
     T: Specification,
@@ -367,9 +416,8 @@ where
     type Error = String;
 
     fn try_from(value: v1::ResourceMeta) -> Result<Self, Self::Error> {
-        dbg!(&value.spec);
         let raw: rmpv::Value = rmp_serde::from_slice(&value.spec).unwrap();
-        dbg!(raw);
+        let status = value.status().try_into()?;
         Ok(Self {
             id: value.id.try_into()?,
             children: value
@@ -377,6 +425,7 @@ where
                 .into_iter()
                 .map(Identity::try_from)
                 .try_collect()?,
+            status,
             spec: rmp_serde::from_slice(&value.spec)
                 .map_err(|_| "invalid spec".to_string())?,
             state: if value.state.is_empty() {
@@ -387,19 +436,6 @@ where
                     .map_err(|_| "invalid state".to_string())?
             },
         })
-    }
-}
-
-impl<T> TryFrom<Option<v1::ResourceMeta>> for ResourceMeta<T>
-where
-    T: Specification,
-{
-    type Error = String;
-
-    fn try_from(value: Option<v1::ResourceMeta>) -> Result<Self, Self::Error> {
-        value
-            .ok_or_else(|| "ResourceMeta is required".to_string())?
-            .try_into()
     }
 }
 
@@ -424,19 +460,6 @@ where
     }
 }
 
-impl<T> TryFrom<Option<v1::MetaResource>> for Resource<T>
-where
-    T: Specification,
-{
-    type Error = String;
-
-    fn try_from(value: Option<v1::MetaResource>) -> Result<Self, Self::Error> {
-        value
-            .ok_or_else(|| "MetaResource is required".to_string())?
-            .try_into()
-    }
-}
-
 impl<T> TryFrom<v1::UserConfigResource> for UserConfigResource<T>
 where
     T: Specification,
@@ -447,21 +470,6 @@ where
         Ok(Self {
             meta: value.meta.try_into()?,
         })
-    }
-}
-
-impl<T> TryFrom<Option<v1::UserConfigResource>> for UserConfigResource<T>
-where
-    T: Specification,
-{
-    type Error = String;
-
-    fn try_from(
-        value: Option<v1::UserConfigResource>,
-    ) -> Result<Self, Self::Error> {
-        value
-            .ok_or_else(|| "UserConfigResource is required".to_string())?
-            .try_into()
     }
 }
 
@@ -484,17 +492,50 @@ where
     }
 }
 
-impl<T> TryFrom<Option<v1::DynamicResource>> for DynamicResource<T>
-where
-    T: Specification,
-{
+impl TryFrom<v1::ResourceStatus> for ResourceStatus {
     type Error = String;
 
-    fn try_from(
-        value: Option<v1::DynamicResource>,
-    ) -> Result<Self, Self::Error> {
-        value
-            .ok_or_else(|| "DynamicResource is required".to_string())?
-            .try_into()
+    fn try_from(value: v1::ResourceStatus) -> Result<Self, Self::Error> {
+        match value {
+            v1::ResourceStatus::Unspecified => {
+                Err("unspecified resource status".to_string())
+            }
+            v1::ResourceStatus::Running => Ok(Self::Running),
+            v1::ResourceStatus::Deleting => Ok(Self::Deleting),
+        }
     }
+}
+
+impl_try_from_opt_bounds!(v1::ResourceMeta => ResourceMeta);
+impl_try_from_opt_bounds!(v1::MetaResource => Resource);
+impl_try_from_opt_bounds!(v1::UserConfigResource => UserConfigResource);
+impl_try_from_opt_bounds!(v1::DynamicResource => DynamicResource);
+impl_try_from_opt!(v1::ResourceStatus => ResourceStatus);
+
+pub macro impl_try_from_opt {
+    ($src:ty => $dst:ty) => {
+        impl TryFrom<Option<$src>> for $dst {
+            type Error = String;
+
+            fn try_from(value: Option<$src>) -> Result<Self, Self::Error> {
+                value
+                    .ok_or_else(|| format!("{} is required", stringify!($src)))?
+                    .try_into()
+            }
+        }
+    },
+}
+
+pub macro impl_try_from_opt_bounds {
+    ($src:ty => $dst:ident) => {
+        impl<T> TryFrom<Option<$src>> for $dst<T> where T: Specification {
+            type Error = String;
+
+            fn try_from(value: Option<$src>) -> Result<Self, Self::Error> {
+                value
+                    .ok_or_else(|| format!("{} is required", stringify!($src)))?
+                    .try_into()
+            }
+        }
+    },
 }

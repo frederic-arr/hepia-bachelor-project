@@ -7,7 +7,12 @@ import "containeros/shared/v1/shared.proto";
 service ReconcilerService {
   // rpc ValidateResource
   rpc ReconcileResource(ReconcileResourceRequest) returns (ReconcileResourceResponse) {}
+  rpc ReconcileDelete(ReconcileDeleteRequest) returns (ReconcileDeleteResponse) {}
 }
+
+message ReconcileCreationRequest {}
+
+message ReconcileCreationResponse {}
 
 message ReconcileResourceRequest {
   containeros.shared.v1.MetaResource resource = 1;
@@ -24,4 +29,12 @@ message ReconcileResourceResponse {
   repeated DynamicResource created = 2;
   repeated DynamicResource updated = 3;
   bytes state = 4;
+}
+
+message ReconcileDeleteRequest {
+  containeros.shared.v1.MetaResource resource = 1;
+}
+
+message ReconcileDeleteResponse {
+  bool deleted = 1;
 }
