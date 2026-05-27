@@ -5,36 +5,68 @@ package containeros.reconciler.v1;
 import "containeros/shared/v1/shared.proto";
 
 service ReconcilerService {
-  // rpc ValidateResource
-  rpc ReconcileResource(ReconcileResourceRequest) returns (ReconcileResourceResponse) {}
-  rpc ReconcileDelete(ReconcileDeleteRequest) returns (ReconcileDeleteResponse) {}
+  // rpc ValidateResource, DeleteResource, Plan
+  rpc CreateDynamicResource(CreateDynamicResourceRequest) returns (CreateDynamicResourceResponse) {}
+  rpc ReconcileDynamicResource(ReconcileDynamicResourceRequest) returns (ReconcileDynamicResourceResponse) {}
 }
 
-message ReconcileCreationRequest {}
+// message StatePending {
+//   bytes state = 1;
+// }
 
-message ReconcileCreationResponse {}
-
-message ReconcileResourceRequest {
-  containeros.shared.v1.MetaResource resource = 1;
-  repeated containeros.shared.v1.MetaResource additional_resources = 2;
+message StateReady {
+  bytes state = 1;
 }
 
-message ReconcileResourceResponse {
-  message DynamicResource {
-    containeros.shared.v1.Identity id = 1;
-    bytes spec = 3;
+// message StateCompleted {
+//   bytes state = 1;
+// }
+
+// message StateSuspended {
+//   bytes state = 1;
+//   string reason = 2;
+// }
+
+message StateError {
+  bytes state = 1;
+  string reason = 2;
+}
+
+message CreateDynamicResourceRequest {
+  containeros.shared.v1.Identity id = 1;
+  // containeros.shared.v1.Identity owner = 2;
+  bytes spec = 3;
+}
+
+message CreateDynamicResourceResponse {
+  oneof state {
+    // StatePending pending = 1;
+    StateReady ready = 2;
+    // StateCompleted completed = 3;
+    // StateSuspended suspended = 4;
+    StateError error = 5;
+  }
+}
+
+message ReconcileDynamicResourceRequest {
+  oneof state {
+    // StatePending pending = 1;
+    StateReady ready = 2;
+    // StateCompleted completed = 3;
+    // StateSuspended suspended = 4;
+    StateError error = 5;
   }
 
-  repeated containeros.shared.v1.Identity deleted = 1;
-  repeated DynamicResource created = 2;
-  repeated DynamicResource updated = 3;
-  bytes state = 4;
+  containeros.shared.v1.Identity id = 6;
+  bytes spec = 7;
 }
 
-message ReconcileDeleteRequest {
-  containeros.shared.v1.MetaResource resource = 1;
-}
-
-message ReconcileDeleteResponse {
-  bool deleted = 1;
+message ReconcileDynamicResourceResponse {
+  oneof state {
+    // StatePending pending = 1;
+    StateReady ready = 2;
+    // StateCompleted completed = 3;
+    // StateSuspended suspended = 4;
+    StateError error = 5;
+  }
 }

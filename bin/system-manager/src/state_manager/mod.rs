@@ -7,14 +7,15 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::Duration;
 
 use cos_api_reconciler_client::proto::v1::ReconcilerServiceClient;
-use cos_api_shared::{Identity, Resource};
 pub use model::*;
 use tokio::time::Instant;
 use tokio_util::time::{DelayQueue, delay_queue};
 use tonic::transport::{Channel, Endpoint};
 
+use crate::resources::{Identity, Resource};
+
 pub struct StateManager {
-    pub resources: HashMap<Identity, Resource<Payload>>,
+    pub resources: HashMap<Identity, Resource>,
     clients: HashMap<String, ReconcilerServiceClient<Channel>>,
 
     scheduled_identities: HashMap<Identity, delay_queue::Key>,
@@ -59,77 +60,77 @@ impl StateManager {
         self.clients.get(id.schema()).cloned()
     }
 
-    fn tree_of<'a>(&'a self, id: &Identity) -> Vec<&'a Resource<Payload>> {
-        let mut queue = VecDeque::from([id]);
-        let mut tree = Vec::with_capacity(25);
-        while let Some(id) = queue.pop_front() {
-            let Some(res) = self.resource_read(id) else {
-                continue;
-            };
-            tree.push(res);
-            queue.extend(res.children());
-        }
-
-        tree
-    }
-
-    fn for_each_in_tree(
-        &mut self,
-        id: &Identity,
-        mut before: impl FnMut(&mut Resource<Payload>),
-        mut after: impl FnMut(&mut Resource<Payload>),
-    ) {
-        let mut queue = VecDeque::from([id.clone()]);
-
-        while let Some(id) = queue.pop_front() {
-            let Some(res) = self.resource_read_mut(&id) else {
-                continue;
-            };
-
-            before(res);
-
-            let children: Vec<Identity> =
-                res.children().iter().cloned().collect();
-
-            after(res);
-
-            queue.extend(children);
-        }
-    }
-
-    fn mark_for_deletion(&mut self, id: &Identity) {
-        todo!()
-        // let Some(res) = self.resource_read_mut(&id) else {
-        //     return;
-        // };
-
-        // *res.status_mut() = ResourceStatus::Deleting;
-        // for child in res.children().clone() {
-        //     self.mark_for_deletion(&child);
-        // }
-    }
-
-    fn try_delete(&mut self, id: &Identity) -> Result<(), ()> {
-        todo!()
-        // let Entry::Occupied(mut e) = self.resources.entry(id.clone()) else {
-        //     return Ok(());
-        // };
-
-        // if e.get().status() != &ResourceStatus::Deleting {
-        //     return Err(());
-        // }
-
-        // if e.get().children().is_empty() {
-        //     let v = e.remove();
-        //     if let Some(parent) = self.resource_read_mut(v.id()) {
-        //         parent.children_mut().remove(v.id());
-        //     }
-
-        //     return Ok(());
-        // }
-
-        // return Err(());
-    }
+    // fn tree_of<'a>(&'a self, id: &Identity) -> Vec<&'a Resource> {
+    // let mut queue = VecDeque::from([id]);
+    // let mut tree = Vec::with_capacity(25);
+    // while let Some(id) = queue.pop_front() {
+    // let Some(res) = self.resource_read(id) else {
+    // continue;
+    // };
+    // tree.push(res);
+    // queue.extend(res.children());
+    // }
+    //
+    // tree
+    // }
+    //
+    // fn for_each_in_tree(
+    // &mut self,
+    // id: &Identity,
+    // mut before: impl FnMut(&mut Resource),
+    // mut after: impl FnMut(&mut Resource),
+    // ) {
+    // let mut queue = VecDeque::from([id.clone()]);
+    //
+    // while let Some(id) = queue.pop_front() {
+    // let Some(res) = self.resource_read_mut(&id) else {
+    // continue;
+    // };
+    //
+    // before(res);
+    //
+    // let children: Vec<Identity> =
+    // res.children().iter().cloned().collect();
+    //
+    // after(res);
+    //
+    // queue.extend(children);
+    // }
+    // }
+    //
+    // fn mark_for_deletion(&mut self, id: &Identity) {
+    // todo!()
+    // let Some(res) = self.resource_read_mut(&id) else {
+    //     return;
+    // };
+    //
+    // *res.status_mut() = ResourceStatus::Deleting;
+    // for child in res.children().clone() {
+    //     self.mark_for_deletion(&child);
+    // }
+    // }
+    //
+    // fn try_delete(&mut self, id: &Identity) -> Result<(), ()> {
+    // todo!()
+    // let Entry::Occupied(mut e) = self.resources.entry(id.clone()) else {
+    //     return Ok(());
+    // };
+    //
+    // if e.get().status() != &ResourceStatus::Deleting {
+    //     return Err(());
+    // }
+    //
+    // if e.get().children().is_empty() {
+    //     let v = e.remove();
+    //     if let Some(parent) = self.resource_read_mut(v.id()) {
+    //         parent.children_mut().remove(v.id());
+    //     }
+    //
+    //     return Ok(());
+    // }
+    //
+    // return Err(());
+    // }
 
     // fn collect_deletion(&mut self, id: &Identity) -> bool {
     //     let Entry::Occupied(mut e) = self.resources.entry(id.clone()) else {

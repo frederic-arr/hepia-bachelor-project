@@ -8,8 +8,6 @@ workspace = true
 
 [dependencies]
 cos-api-shared.workspace = true
-cos-api-sysmgr.workspace = true
-cos-api-sysmgr-server.workspace = true
 cos-api-reconciler.workspace = true
 cos-api-reconciler-client.workspace = true
 invariant-macros.workspace = true

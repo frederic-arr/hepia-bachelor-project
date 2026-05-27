@@ -1,6 +1,6 @@
-#![feature(associated_type_defaults)]
+pub mod proto;
 
-use cos_api_reconciler::proto::v1::ReconcileResourceResponse;
+use cos_api_reconciler::proto::v1::{CreateDynamicResourceRequest, ReconcileDynamicResourceResponse};
 use cos_api_shared::{
     DynamicResource,
     Resource,
@@ -8,14 +8,12 @@ use cos_api_shared::{
     UserConfigResource,
 };
 
-pub mod proto;
-
 pub trait Reconcilable: Specification {
     type Resource;
     type CurrentState: Send;
     type Data: Send;
     type Error: Into<tonic::Status>;
-    type Output: Into<ReconcileResourceResponse>;
+    type Output: Into<ReconcileDynamicResourceResponse>;
     type Plan: Send;
 
     fn refresh(
@@ -41,7 +39,7 @@ pub trait ReconcilableDriver: Sync {
     type CurrentState: Send;
     type Data: Send;
     type Error: Into<tonic::Status>;
-    type Output: Into<ReconcileResourceResponse>;
+    type Output: Into<ReconcileDynamicResourceResponse>;
     type Plan: Send;
 
     fn refresh(
@@ -66,8 +64,9 @@ pub trait ReconcilableDriver: Sync {
     fn reconcile(
         &self,
         data: &mut Self::Data,
-    ) -> impl Future<Output = Result<ReconcileResourceResponse, tonic::Status>> + Send
-    {
+    ) -> impl Future<
+        Output = Result<ReconcileDynamicResourceResponse, tonic::Status>,
+    > + Send {
         async {
             let state = self.refresh(data).await.map_err(Into::into)?;
             let plan = self.plan(data, state.as_ref()).map_err(Into::into)?;

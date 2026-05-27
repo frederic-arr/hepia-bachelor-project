@@ -8,6 +8,8 @@ use std::hint::black_box;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::Relaxed;
 
+mod resources;
+
 struct Counter;
 
 static ALLOCATED: AtomicUsize = AtomicUsize::new(0);

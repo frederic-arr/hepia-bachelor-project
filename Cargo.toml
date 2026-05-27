@@ -2,14 +2,11 @@
 resolver = "3"
 members = [
     "bin/network-manager",
-    "bin/system-manager",
+    # "bin/system-manager",
     "packages/cos-api-shared",
     "packages/cos-api-reconciler",
     "packages/cos-api-reconciler-client",
     "packages/cos-api-reconciler-server",
-    "packages/cos-api-sysmgr",
-    "packages/cos-api-sysmgr-client",
-    "packages/cos-api-sysmgr-server",
     "packages/invariant-macros"
 ]
 
@@ -39,9 +36,6 @@ cos-api-shared = { path = "packages/cos-api-shared" }
 cos-api-reconciler = { path = "packages/cos-api-reconciler" }
 cos-api-reconciler-client = { path = "packages/cos-api-reconciler-client" }
 cos-api-reconciler-server = { path = "packages/cos-api-reconciler-server" }
-cos-api-sysmgr = { path = "packages/cos-api-sysmgr" }
-cos-api-sysmgr-client = { path = "packages/cos-api-sysmgr-client" }
-cos-api-sysmgr-server = { path = "packages/cos-api-sysmgr-server" }
 invariant-macros = { path = "packages/invariant-macros" }
 
 prost = { version = "0.14.3", default-features = false }
