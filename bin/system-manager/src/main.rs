@@ -226,16 +226,16 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
         "dummy0".to_string(),
     );
 
-    sm.state_manager.resources.insert(
-        id.clone(),
-        resources::Resource::Dynamic(DynamicResource {
-            meta: ResourceMeta {
-                id: id.clone(),
-                spec: ResourceSpec::Running { spec: Spec(spec) },
-                state: ResourceState::Unset,
-            },
-        }),
-    );
+    // sm.state_manager.resources.insert(
+    //     id.clone(),
+    //     resources::Resource::Dynamic(DynamicResource {
+    //         meta: ResourceMeta {
+    //             id: id.clone(),
+    //             spec: ResourceSpec::Running { spec: Spec(spec) },
+    //             state: ResourceState::Unset,
+    //         },
+    //     }),
+    // );
 
     let spec = json!({
         "running": true,
@@ -244,7 +244,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     let spec = rmp_serde::to_vec(&spec).unwrap();
     let id = Identity::new(
         ".containeros.containers.container-spec".to_string(),
-        "dummy0".to_string(),
+        "bbox".to_string(),
     );
 
     sm.state_manager.resources.insert(

@@ -27,6 +27,9 @@ impl StateManager {
         let conn = Endpoint::from_static("http://[::1]:50052").connect_lazy();
         let client = ReconcilerServiceClient::new(conn);
 
+        let conn2 = Endpoint::from_static("http://[::1]:50053").connect_lazy();
+        let client2 = ReconcilerServiceClient::new(conn2);
+
         // TODO: Add proper reconciler registration
         Self {
             resources: HashMap::default(),
@@ -46,6 +49,10 @@ impl StateManager {
                 (
                     ".containeros.net.route-spec".to_string(),
                     client.clone(),
+                ),
+                (
+                    ".containeros.containers.container-spec".to_string(),
+                    client2.clone(),
                 ),
             ]),
             scheduled_identities: HashMap::default(),

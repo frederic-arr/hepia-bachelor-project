@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "bin/network-manager",
+    "bin/container-manager",
     "bin/system-manager",
     "packages/cos-api-shared",
     "packages/cos-api-reconciler",
@@ -58,3 +59,4 @@ tracing = { version = "0.1.44", default-features = false, features = ["std", "at
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["ansi", "fmt", "std", "env-filter"] }
 thiserror = { version = "2.0.18", default-features = false, features = ["std"] }
 chrono = { version = "0.4.44", default-features = false }
+bollard = { version = "0.21.0", default-features = false, features = ["pipe"] }
