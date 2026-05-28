@@ -29,6 +29,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
         &self,
         request: Request<v1::CreateDynamicResourceRequest>,
     ) -> Result<Response<v1::CreateDynamicResourceResponse>, Status> {
+        // TODO: Move this to some sort of global state?
         let (conn, mut rtnl, _) = new_connection().unwrap();
         tokio::spawn(conn);
 
@@ -50,7 +51,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                 Ok(Response::new(v1::CreateDynamicResourceResponse {
                     state: Some(
                         v1::create_dynamic_resource_response::State::Ready(
-                            v1::StateReady {
+                            v1::create_dynamic_resource_response::StateReady {
                                 state: rmp_serde::to_vec(
                                     &LinkState::refresh(
                                         request.id,
@@ -74,6 +75,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
         &self,
         request: Request<v1::ReconcileDynamicResourceRequest>,
     ) -> Result<Response<v1::ReconcileDynamicResourceResponse>, Status> {
+        // TODO: Move this to some sort of global state?
         let (conn, mut rtnl, _) = new_connection().unwrap();
         tokio::spawn(conn);
 
@@ -119,7 +121,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                 };
 
                 Ok(Response::new(v1::ReconcileDynamicResourceResponse {
-                    state: Some(v1::reconcile_dynamic_resource_response::State::Ready(v1::StateReady {
+                    state: Some(v1::reconcile_dynamic_resource_response::State::Ready(v1::reconcile_dynamic_resource_response::StateReady {
                         state: rmp_serde::to_vec(
                             &state
                         )
@@ -137,7 +139,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50052".parse().unwrap();
     let svc = NetworkManagerReconcilerService::new();
 
-    println!("NetworkReconcilerServer listening on {addr}");
+    println!("network-manager listening on {addr}");
 
     Server::builder()
         .add_service(v1_svc::ReconcilerServiceServer::new(svc))

@@ -6,6 +6,12 @@ import "containeros/shared/v1/shared.proto";
 
 service ReconcilerService {
   // rpc ValidateResource, DeleteResource, Plan
+
+  // GUARANTEES:
+  // - CreateDynamicResource is always the first call made for any given resource.
+  // - CreateDynamicResource is retried rescheduled until it returns a gRPC-level success response. A gRPC error will
+  //   never advance the resource past this stage.
+  // - At most one concurrent call to either Create or Reconcile will be made per service.
   rpc CreateDynamicResource(CreateDynamicResourceRequest) returns (CreateDynamicResourceResponse) {}
   rpc ReconcileDynamicResource(ReconcileDynamicResourceRequest) returns (ReconcileDynamicResourceResponse) {}
 }
@@ -13,10 +19,6 @@ service ReconcilerService {
 // message StatePending {
 //   bytes state = 1;
 // }
-
-message StateReady {
-  bytes state = 1;
-}
 
 // message StateCompleted {
 //   bytes state = 1;
@@ -27,11 +29,6 @@ message StateReady {
 //   string reason = 2;
 // }
 
-message StateError {
-  bytes state = 1;
-  string reason = 2;
-}
-
 message CreateDynamicResourceRequest {
   containeros.shared.v1.Identity id = 1;
   // containeros.shared.v1.Identity owner = 2;
@@ -39,6 +36,15 @@ message CreateDynamicResourceRequest {
 }
 
 message CreateDynamicResourceResponse {
+  message StateReady {
+    bytes state = 1;
+  }
+
+  message StateError {
+    bytes state = 1;
+    string reason = 2;
+  }
+
   oneof state {
     // StatePending pending = 1;
     StateReady ready = 2;
@@ -49,6 +55,14 @@ message CreateDynamicResourceResponse {
 }
 
 message ReconcileDynamicResourceRequest {
+  message StateReady {
+    bytes state = 1;
+  }
+
+  message StateError {
+    bytes state = 1;
+  }
+
   oneof state {
     // StatePending pending = 1;
     StateReady ready = 2;
@@ -62,6 +76,15 @@ message ReconcileDynamicResourceRequest {
 }
 
 message ReconcileDynamicResourceResponse {
+  message StateReady {
+    bytes state = 1;
+  }
+
+  message StateError {
+    bytes state = 1;
+    string reason = 2;
+  }
+
   oneof state {
     // StatePending pending = 1;
     StateReady ready = 2;

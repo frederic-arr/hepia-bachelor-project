@@ -1,4 +1,4 @@
-mod conv;
+// mod conv;
 
 use std::collections::HashSet;
 use std::time::SystemTime;
@@ -6,8 +6,12 @@ use std::time::SystemTime;
 use serde::{Deserialize, Serialize};
 
 pub type Identity = cos_api_shared::Identity;
-pub type Spec = Vec<u8>;
-pub type State = Vec<u8>;
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Spec(pub Vec<u8>);
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct State(pub Vec<u8>);
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Resource {
@@ -17,10 +21,10 @@ pub enum Resource {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ResourceMeta {
-    id: Identity,
-    children: HashSet<Identity>,
-    spec: ResourceSpec,
-    state: ResourceState,
+    pub id: Identity,
+    // pub children: HashSet<Identity>,
+    pub spec: ResourceSpec,
+    pub state: ResourceState,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,51 +37,67 @@ pub enum ResourceSpec {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ResourceState {
     Unset,
-    Pending {
-        state: State,
-        state_at: SystemTime,
-    },
+    // Pending {
+    //     state: State,
+    //     state_at: SystemTime,
+    // },
     Ready {
         state: State,
-        state_at: SystemTime,
+        // state_at: SystemTime,
     },
-    Completed {
-        state: State,
-        state_at: SystemTime,
-    },
+    // Completed {
+    //     state: State,
+    //     state_at: SystemTime,
+    // },
     Error {
         error: String,
         state: State,
-        state_at: SystemTime,
+        // state_at: SystemTime,
     },
-    RefreshError {
-        error: String,
-        state: State,
-        state_at: SystemTime,
-    },
+    // RefreshError {
+    //     error: String,
+    //     state: State,
+    //     state_at: SystemTime,
+    // },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserConfigResource {
-    meta: ResourceMeta,
+    pub meta: ResourceMeta,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DynamicResource {
-    meta: ResourceMeta,
-    owner: Identity,
-    dependencies: HashSet<Identity>,
+    pub meta: ResourceMeta,
+    // pub owner: Identity,
+    // pub dependencies: HashSet<Identity>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserConfigResourceCreate {
-    id: Identity,
-    spec: Spec,
+    pub id: Identity,
+    pub spec: Spec,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DynamicResourceCreate {
-    id: Identity,
-    owner: Identity,
-    spec: Spec,
+    pub id: Identity,
+    // pub owner: Identity,
+    pub spec: Spec,
+}
+
+impl std::fmt::Debug for Spec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let v: rmpv::Value =
+            rmp_serde::from_slice(&self.0).unwrap_or(rmpv::Value::Nil);
+        f.debug_tuple("State").field(&v).finish()
+    }
+}
+
+impl std::fmt::Debug for State {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let v: rmpv::Value =
+            rmp_serde::from_slice(&self.0).unwrap_or(rmpv::Value::Nil);
+        f.debug_tuple("State").field(&v).finish()
+    }
 }

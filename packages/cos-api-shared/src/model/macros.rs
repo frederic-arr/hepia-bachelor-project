@@ -31,22 +31,20 @@ macro_rules! impl_try_from_opt_bounds {
     };
 }
 
-/*
-pub fn spec_inner(&self) -> &T {
-    self.spec.inner()
-}
-
-pub fn state_inner(&self) -> Option<&T::State> {
-    self.state.inner()
-}
-pub fn spec_inner_mut(&mut self) -> &mut T {
-    self.spec.inner_mut()
-}
-
-pub fn state_inner_mut(&mut self) -> Option<&mut T::State> {
-    self.state.inner_mut()
-}
-*/
+// pub fn spec_inner(&self) -> &T {
+// self.spec.inner()
+// }
+//
+// pub fn state_inner(&self) -> Option<&T::State> {
+// self.state.inner()
+// }
+// pub fn spec_inner_mut(&mut self) -> &mut T {
+// self.spec.inner_mut()
+// }
+//
+// pub fn state_inner_mut(&mut self) -> Option<&mut T::State> {
+// self.state.inner_mut()
+// }
 
 #[macro_export]
 macro_rules! delegate_to_meta {

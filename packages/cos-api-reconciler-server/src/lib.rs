@@ -1,6 +1,9 @@
 pub mod proto;
 
-use cos_api_reconciler::proto::v1::{CreateDynamicResourceRequest, ReconcileDynamicResourceResponse};
+use cos_api_reconciler::proto::v1::{
+    CreateDynamicResourceRequest,
+    ReconcileDynamicResourceResponse,
+};
 use cos_api_shared::{
     DynamicResource,
     Resource,

@@ -2,7 +2,7 @@
 resolver = "3"
 members = [
     "bin/network-manager",
-    # "bin/system-manager",
+    "bin/system-manager",
     "packages/cos-api-shared",
     "packages/cos-api-reconciler",
     "packages/cos-api-reconciler-client",

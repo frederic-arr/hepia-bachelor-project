@@ -1,5 +1,5 @@
 mod crud;
-mod model;
+// mod model;
 mod reconciliation;
 
 use std::collections::hash_map::Entry;
@@ -7,7 +7,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::Duration;
 
 use cos_api_reconciler_client::proto::v1::ReconcilerServiceClient;
-pub use model::*;
+// pub use model::*;
 use tokio::time::Instant;
 use tokio_util::time::{DelayQueue, delay_queue};
 use tonic::transport::{Channel, Endpoint};

@@ -4,6 +4,7 @@
 #![feature(iterator_try_collect)]
 
 use std::alloc::{GlobalAlloc, Layout, System};
+use std::collections::HashSet;
 use std::hint::black_box;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::Relaxed;
@@ -49,17 +50,24 @@ static A: Counter = Counter;
 mod state_manager;
 
 use cos_api_shared::{Identity, Resource};
-use cos_api_sysmgr::proto::v1;
-use cos_api_sysmgr_server::proto::v1 as v1_svc;
+// use cos_api_sysmgr::proto::v1;
+// use cos_api_sysmgr_server::proto::v1 as v1_svc;
 use serde_json::json;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tonic::{Request, Response, Status};
 use tracing_subscriber::util::SubscriberInitExt;
 
+use crate::resources::{
+    DynamicResource,
+    ResourceMeta,
+    ResourceSpec,
+    ResourceState,
+    Spec,
+};
 use crate::state_manager::{
-    CreateDynamicResource,
-    CreateUserConfigResource,
-    Payload,
+    // CreateDynamicResource,
+    // CreateUserConfigResource,
+    // Payload,
     StateManager,
 };
 
@@ -91,76 +99,76 @@ impl SystemManagerService {
     }
 }
 
-#[tonic::async_trait]
-impl v1_svc::SystemManagerService for SystemManagerService {
-    async fn resource_create_dynamic(
-        &self,
-        request: Request<v1::ResourceCreateDynamicRequest>,
-    ) -> Result<Response<v1::ResourceCreateDynamicResponse>, Status> {
-        todo!()
-        // let resource: CreateDynamicResource =
-        // request.into_inner().try_into().unwrap();
+// #[tonic::async_trait]
+// impl v1_svc::SystemManagerService for SystemManagerService {
+//     async fn resource_create_dynamic(
+//         &self,
+//         request: Request<v1::ResourceCreateDynamicRequest>,
+//     ) -> Result<Response<v1::ResourceCreateDynamicResponse>, Status> {
+//         todo!()
+//         // let resource: CreateDynamicResource =
+//         // request.into_inner().try_into().unwrap();
 
-        // let mut inner = self.write().await;
-        // inner
-        //     .state_manager
-        //     .resource_dynamic_create(resource)
-        //     .map_err(Status::internal)?;
-        // drop(inner);
+//         // let mut inner = self.write().await;
+//         // inner
+//         //     .state_manager
+//         //     .resource_dynamic_create(resource)
+//         //     .map_err(Status::internal)?;
+//         // drop(inner);
 
-        // Ok(Response::new(
-        //     v1::ResourceCreateDynamicResponse {},
-        // ))
-    }
+//         // Ok(Response::new(
+//         //     v1::ResourceCreateDynamicResponse {},
+//         // ))
+//     }
 
-    async fn resource_read(
-        &self,
-        request: Request<v1::ResourceReadRequest>,
-    ) -> Result<Response<v1::ResourceReadResponse>, Status> {
-        let id: Identity = request.into_inner().id.try_into().unwrap();
+//     async fn resource_read(
+//         &self,
+//         request: Request<v1::ResourceReadRequest>,
+//     ) -> Result<Response<v1::ResourceReadResponse>, Status> {
+//         let id: Identity = request.into_inner().id.try_into().unwrap();
 
-        let inner = self.read().await;
-        let resource = inner.state_manager.resource_read(&id).cloned();
-        drop(inner);
+//         let inner = self.read().await;
+//         let resource = inner.state_manager.resource_read(&id).cloned();
+//         drop(inner);
 
-        resource
-            .ok_or_else(|| {
-                Status::not_found(format!("resource {id} was not found"))
-            })
-            .map(|res| v1::ResourceReadResponse {
-                resource: Some(res.try_into().unwrap()),
-            })
-            .map(Response::new)
-    }
+//         resource
+//             .ok_or_else(|| {
+//                 Status::not_found(format!("resource {id} was not found"))
+//             })
+//             .map(|res| v1::ResourceReadResponse {
+//                 resource: Some(res.try_into().unwrap()),
+//             })
+//             .map(Response::new)
+//     }
 
-    async fn resource_list(
-        &self,
-        _request: Request<v1::ResourceListRequest>,
-    ) -> Result<Response<v1::ResourceListResponse>, Status> {
-        todo!()
-    }
+//     async fn resource_list(
+//         &self,
+//         _request: Request<v1::ResourceListRequest>,
+//     ) -> Result<Response<v1::ResourceListResponse>, Status> {
+//         todo!()
+//     }
 
-    async fn resource_update_dynamic_spec(
-        &self,
-        _request: Request<v1::ResourceUpdateDynamicSpecRequest>,
-    ) -> Result<Response<v1::ResourceUpdateDynamicSpecResponse>, Status> {
-        todo!()
-    }
+//     async fn resource_update_dynamic_spec(
+//         &self,
+//         _request: Request<v1::ResourceUpdateDynamicSpecRequest>,
+//     ) -> Result<Response<v1::ResourceUpdateDynamicSpecResponse>, Status> {
+//         todo!()
+//     }
 
-    async fn resource_update_state(
-        &self,
-        _request: Request<v1::ResourceUpdateStateRequest>,
-    ) -> Result<Response<v1::ResourceUpdateStateResponse>, Status> {
-        todo!()
-    }
+//     async fn resource_update_state(
+//         &self,
+//         _request: Request<v1::ResourceUpdateStateRequest>,
+//     ) -> Result<Response<v1::ResourceUpdateStateResponse>, Status> {
+//         todo!()
+//     }
 
-    async fn resource_delete_dynamic(
-        &self,
-        _request: Request<v1::ResourceDeleteDynamicRequest>,
-    ) -> Result<Response<v1::ResourceDeleteDynamicResponse>, Status> {
-        todo!()
-    }
-}
+//     async fn resource_delete_dynamic(
+//         &self,
+//         _request: Request<v1::ResourceDeleteDynamicRequest>,
+//     ) -> Result<Response<v1::ResourceDeleteDynamicResponse>, Status> {
+//         todo!()
+//     }
+// }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let before = ALLOCATED.load(Relaxed);
@@ -172,8 +180,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let after = ALLOCATED.load(Relaxed);
         println!("allocated bytes after main: {after}");
         println!("delta: {}", (after - before).max(0));
-        println!("peak: {} [KiB]", PEAK.load(Relaxed).div_ceil(1024));
-        println!("peak: {} [MiB]", PEAK.load(Relaxed).div_ceil(1024*1024));
+        println!(
+            "peak: {} [KiB]",
+            PEAK.load(Relaxed).div_ceil(1024)
+        );
+        println!(
+            "peak: {} [MiB]",
+            PEAK.load(Relaxed).div_ceil(1024 * 1024)
+        );
     }));
 
     let rt = tokio::runtime::Runtime::new().unwrap();
@@ -182,8 +196,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let after = ALLOCATED.load(Relaxed);
     println!("allocated bytes after main: {after}");
     println!("delta: {}", (after - before).max(0));
-    println!("peak: {} [KiB]", PEAK.load(Relaxed).div_ceil(1024));
-    println!("peak: {} [MiB]", PEAK.load(Relaxed).div_ceil(1024*1024));
+    println!(
+        "peak: {} [KiB]",
+        PEAK.load(Relaxed).div_ceil(1024)
+    );
+    println!(
+        "peak: {} [MiB]",
+        PEAK.load(Relaxed).div_ceil(1024 * 1024)
+    );
     Ok(())
 }
 
@@ -201,36 +221,60 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let spec = rmp_serde::to_vec(&spec).unwrap();
-    let cfg = CreateUserConfigResource {
-        id: Identity::new(
-            ".containeros.net.link-spec".to_string(),
-            "dummy0".to_string(),
-        ),
-        spec: spec.into(),
-    };
+    let id = Identity::new(
+        ".containeros.net.link-spec".to_string(),
+        "dummy0".to_string(),
+    );
 
-    sm.state_manager
-        .resource_user_config_create(cfg.clone())
-        .unwrap();
+    sm.state_manager.resources.insert(
+        id.clone(),
+        resources::Resource::Dynamic(DynamicResource {
+            meta: ResourceMeta {
+                id: id.clone(),
+                spec: ResourceSpec::Running { spec: Spec(spec) },
+                state: ResourceState::Unset,
+            },
+        }),
+    );
+
+    let spec = json!({
+        "running": true,
+    });
+
+    let spec = rmp_serde::to_vec(&spec).unwrap();
+    let id = Identity::new(
+        ".containeros.containers.container-spec".to_string(),
+        "dummy0".to_string(),
+    );
+
+    sm.state_manager.resources.insert(
+        id.clone(),
+        resources::Resource::Dynamic(DynamicResource {
+            meta: ResourceMeta {
+                id: id.clone(),
+                spec: ResourceSpec::Running { spec: Spec(spec) },
+                state: ResourceState::Unset,
+            },
+        }),
+    );
 
     let se = serde_json::to_string_pretty(
         &sm.state_manager.resources.values().collect::<Vec<_>>(),
     )
     .unwrap();
 
+    // let de: Vec<Resource<Payload>> = serde_json::from_str(&se).unwrap();
+    // let se2 = serde_json::to_string_pretty(&de).unwrap();
 
-    let de: Vec<Resource<Payload>> = serde_json::from_str(&se).unwrap();
-    let se2 = serde_json::to_string_pretty(&de).unwrap();
+    // println!("{se2}");
+    // assert_eq!(se, se2);
 
-    println!("{se2}");
-    assert_eq!(se, se2);
+    // let se = serde_json::to_string_pretty(&cfg).unwrap();
+    // let de: CreateUserConfigResource = serde_json::from_str(&se).unwrap();
+    // let se2 = serde_json::to_string_pretty(&de).unwrap();
 
-    let se = serde_json::to_string_pretty(&cfg).unwrap();
-    let de: CreateUserConfigResource = serde_json::from_str(&se).unwrap();
-    let se2 = serde_json::to_string_pretty(&de).unwrap();
-
-    println!("{se2}");
-    assert_eq!(se, se2);
+    // println!("{se2}");
+    // assert_eq!(se, se2);
 
     sm.state_manager.reconciliation_loop().await;
 

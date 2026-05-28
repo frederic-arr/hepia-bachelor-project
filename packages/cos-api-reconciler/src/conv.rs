@@ -26,10 +26,13 @@ where
         let id = value.id.unwrap();
         let state = match value.state.unwrap() {
             v1::reconcile_dynamic_resource_request::State::Ready(
-                v1::StateReady { state },
+                v1::reconcile_dynamic_resource_request::StateReady { state },
             ) => state,
             v1::reconcile_dynamic_resource_request::State::Error(
-                v1::StateError { state, .. },
+                v1::reconcile_dynamic_resource_request::StateError {
+                    state,
+                    ..
+                },
             ) => state,
         };
 
