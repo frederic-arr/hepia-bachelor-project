@@ -2,18 +2,23 @@ mod resources;
 
 use cos_api_reconciler::proto::v1;
 use cos_api_reconciler::{
-    CreateDynamicResourceRequest,
+    Identity,
     ReconcileDynamicResourceRequest,
+    ReconcileUserConfigRequest,
 };
-use cos_api_reconciler_server::ReconcilableDriver;
 use cos_api_reconciler_server::proto::v1 as v1_svc;
-use cos_api_shared::proto::v1 as v1_shared;
-use cos_api_shared::{Resource, Specification, State};
-use rtnetlink::{LinkDummy, new_connection};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, async_trait};
 
-use crate::resources::{LinkSpec, LinkState};
+use crate::resources::{
+    Link,
+    LinkConfig,
+    LinkConfigSpec,
+    LinkConfigState,
+    LinkSpec,
+    LinkState,
+    Reconcilable,
+};
 
 struct NetworkManagerReconcilerService;
 
@@ -25,47 +30,40 @@ impl NetworkManagerReconcilerService {
 
 #[async_trait]
 impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
-    async fn create_dynamic_resource(
+    async fn reconcile_user_config(
         &self,
-        request: Request<v1::CreateDynamicResourceRequest>,
-    ) -> Result<Response<v1::CreateDynamicResourceResponse>, Status> {
-        // TODO: Move this to some sort of global state?
-        let (conn, mut rtnl, _) = new_connection().unwrap();
-        tokio::spawn(conn);
+        request: Request<v1::ReconcileUserConfigRequest>,
+    ) -> Result<Response<v1::ReconcileUserConfigResponse>, Status> {
+        let request = request.into_inner();
+        match request.schema.as_str() {
+            LinkConfig::SCHEMA => {
+                let request = ReconcileUserConfigRequest::<
+                    LinkConfigSpec,
+                    LinkConfigState,
+                > {
+                    schema: request.schema,
+                    name: request.name,
+                    spec: rmp_serde::from_slice(&request.spec).unwrap(),
+                    state: request.state.and_then(|s| match s {
+                        v1::reconcile_user_config_request::State::Unset(_) => {
+                            None
+                        }
+                        v1::reconcile_user_config_request::State::Ready(s) => {
+                            rmp_serde::from_slice(&request.spec).unwrap()
+                        }
+                    }),
+                    children: request
+                        .children
+                        .into_iter()
+                        .map(|c| Identity {
+                            schema: c.schema,
+                            name: c.name,
+                        })
+                        .collect(),
+                };
 
-        let resource = request.into_inner();
-        let schema = resource.id.clone().unwrap().schema;
-        match schema.as_str() {
-            LinkSpec::SCHEMA => {
-                let request =
-                    CreateDynamicResourceRequest::<LinkSpec>::from(resource);
-
-                let mut msg = LinkDummy::new(request.id.name());
-                if request.spec.admin_up {
-                    msg = msg.up();
-                } else {
-                    msg = msg.down();
-                }
-
-                rtnl.link().add(msg.build()).execute().await.unwrap();
-                Ok(Response::new(v1::CreateDynamicResourceResponse {
-                    state: Some(
-                        v1::create_dynamic_resource_response::State::Ready(
-                            v1::create_dynamic_resource_response::StateReady {
-                                state: rmp_serde::to_vec(
-                                    &LinkState::refresh(
-                                        request.id,
-                                        &request.spec,
-                                        &mut rtnl,
-                                    )
-                                    .await
-                                    .unwrap(),
-                                )
-                                .unwrap(),
-                            },
-                        ),
-                    ),
-                }))
+                let response = LinkConfig::reconcile(&request).await;
+                Ok(Response::new(response))
             }
             _ => todo!(),
         }
@@ -75,59 +73,38 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
         &self,
         request: Request<v1::ReconcileDynamicResourceRequest>,
     ) -> Result<Response<v1::ReconcileDynamicResourceResponse>, Status> {
-        // TODO: Move this to some sort of global state?
-        let (conn, mut rtnl, _) = new_connection().unwrap();
-        tokio::spawn(conn);
-
-        let resource = request.into_inner();
-        let schema = resource.id.clone().unwrap().schema;
-        match schema.as_str() {
-            LinkSpec::SCHEMA => {
+        let request = request.into_inner();
+        match request.schema.as_str() {
+            Link::SCHEMA => {
                 let request =
-                    ReconcileDynamicResourceRequest::<LinkSpec>::from(resource);
-
-                let current = LinkState::refresh(
-                    request.id.clone(),
-                    &request.spec,
-                    &mut rtnl,
-                )
-                .await
-                .unwrap();
-
-                let mut msg = LinkDummy::new(request.id.name());
-                let needs_change =
-                    match (request.spec.admin_up, current.admin_up) {
-                        (true, false) => {
-                            msg = msg.up();
-                            true
-                        }
-                        (false, true) => {
-                            msg = msg.down();
-                            true
-                        }
-                        (true, true) | (false, false) => false,
+                    ReconcileDynamicResourceRequest::<LinkSpec, LinkState> {
+                        schema: request.schema,
+                        name: request.name,
+                        spec: rmp_serde::from_slice(&request.spec).unwrap(),
+                        state: request.state.and_then(|s| match s {
+                            v1::reconcile_dynamic_resource_request::State::Unset(
+                                _,
+                            ) => None,
+                            v1::reconcile_dynamic_resource_request::State::Ready(
+                                s,
+                            ) => rmp_serde::from_slice(&request.spec).unwrap(),
+                        }),
+                        owner: request.owner.map(|o| Identity {
+                            schema: o.schema,
+                            name: o.name,
+                        }).unwrap(),
+                        children: request
+                            .children
+                            .into_iter()
+                            .map(|c| Identity {
+                                schema: c.schema,
+                                name: c.name,
+                            })
+                            .collect(),
                     };
 
-                if needs_change {
-                    rtnl.link().change(msg.build()).execute().await.unwrap();
-                }
-
-                let state = if needs_change {
-                    LinkState::refresh(request.id, &request.spec, &mut rtnl)
-                        .await
-                        .unwrap()
-                } else {
-                    current
-                };
-
-                Ok(Response::new(v1::ReconcileDynamicResourceResponse {
-                    state: Some(v1::reconcile_dynamic_resource_response::State::Ready(v1::reconcile_dynamic_resource_response::StateReady {
-                        state: rmp_serde::to_vec(
-                            &state
-                        )
-                        .unwrap(),
-                    })),
-                }))
+                let response = Link::reconcile(&request).await;
+                Ok(Response::new(response))
             }
             _ => todo!(),
         }

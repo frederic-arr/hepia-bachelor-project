@@ -2,29 +2,24 @@ use std::collections::hash_map::Entry;
 use std::time::{Duration, SystemTime};
 
 use cos_api_reconciler::proto::v1;
-// use cos_api_reconciler::proto::v1::{
-//     ReconcileDeleteRequest,
-//     ReconcileResourceRequest,
-// };
-use cos_api_shared::proto::v1 as v1_shared;
 use invariant_macros::invariant_violation;
 use tokio::time::Instant;
 use tokio_stream::StreamExt;
 
 use crate::resources::{
+    DynamicResource,
     Identity,
     Resource,
-    ResourceSpec,
     ResourceState,
+    Spec,
     State,
 };
 use crate::state_manager::StateManager;
 
 impl StateManager {
     pub async fn reconciliation_loop(&mut self) {
-        // while let Some(exp) = self.reconciliation_queue.next().await {
-        // }
         loop {
+            // dbg!(&self.resources);
             let ids = self.resources.keys().cloned().collect::<Vec<_>>();
             for id in ids {
                 self.reconciliation_tick(&id).await;
@@ -41,153 +36,122 @@ impl StateManager {
             return;
         };
 
+        let children =
+            self.resources
+                .iter()
+                .filter_map(|(id, res)| match res {
+                    Resource::UserConfig(res) => None,
+                    Resource::DynamicResource(res) => (&res.owner == id)
+                        .then_some(v1::Identity {
+                            schema: id.schema.clone(),
+                            name: id.name.clone(),
+                        }),
+                })
+                .collect::<Vec<_>>();
+
         let Entry::Occupied(mut e) = self.resources.entry(id.clone()) else {
             invariant_violation!(
                 "reconciliation scheduled on a non-existing resource: {id}"
             );
         };
 
-        let mut current = e.get_mut();
-        match &mut current {
-            Resource::UserConfig(res) => todo!(),
-            Resource::Dynamic(res) => {
-                let id = v1_shared::Identity {
-                    schema: res.meta.id.schema().clone(),
-                    name: res.meta.id.name().clone(),
+        match &mut e.get_mut() {
+            Resource::UserConfig(res) => {
+                let request = v1::ReconcileUserConfigRequest {
+                    schema: res.schema.clone(),
+                    name: res.name.clone(),
+                    spec: res.spec.0.clone(),
+                    children: children,
+                    state: match res.state.clone() {
+                        ResourceState::Unset => Some(
+                            v1::reconcile_user_config_request::State::Unset(()),
+                        ),
+                        ResourceState::Set(state) => Some(
+                            v1::reconcile_user_config_request::State::Ready(
+                                state.0,
+                            ),
+                        ),
+                    },
                 };
+                let response = client
+                    .reconcile_user_config(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
 
-                let spec = match &res.meta.spec {
-                    ResourceSpec::Running { spec } => spec,
-                    ResourceSpec::Draining { spec } => spec,
-                    ResourceSpec::Deleting { spec } => spec,
+                res.state = ResourceState::Set(State(response.state));
+                let owner = Identity {
+                    schema: res.schema.clone(),
+                    name: res.name.clone(),
                 };
+                for to_create in response.create {
+                    let id = Identity {
+                        schema: to_create.schema.clone(),
+                        name: to_create.name.clone(),
+                    };
+                    self.resources.insert(
+                        id.clone(),
+                        Resource::DynamicResource(DynamicResource {
+                            schema: to_create.schema.clone(),
+                            name: to_create.name.clone(),
+                            owner: owner.clone(),
+                            spec: Spec(to_create.spec),
+                            state: ResourceState::Unset,
+                        }),
+                    );
+                }
+            }
+            Resource::DynamicResource(res) => {
+                let request = v1::ReconcileDynamicResourceRequest {
+                    schema: res.schema.clone(),
+                    name: res.name.clone(),
+                    spec: res.spec.0.clone(),
+                    owner: Some(v1::Identity {
+                        schema: res.owner.schema.clone(),
+                        name: res.owner.name.clone(),
+                    }),
+                    children: children,
+                    state: match res.state.clone() {
+                        ResourceState::Unset => Some(
+                            v1::reconcile_dynamic_resource_request::State::Unset(()),
+                        ),
+                        ResourceState::Set(state) => Some(
+                            v1::reconcile_dynamic_resource_request::State::Ready(
+                                state.0,
+                            ),
+                        ),
+                    },
+                };
+                let response = client
+                    .reconcile_dynamic_resource(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
 
-                match &res.meta.state {
-                    ResourceState::Unset => {
-                        let response = client
-                            .create_dynamic_resource(
-                                v1::CreateDynamicResourceRequest {
-                                    id: Some(id),
-                                    spec: spec.0.clone(),
-                                },
-                            )
-                            .await
-                            .unwrap();
 
-                        let new_state = match response.into_inner().state.unwrap() {
-                            v1::create_dynamic_resource_response::State::Ready(state) => {
-                                ResourceState::Ready { state: State(state.state.clone()) }
-                            },
-                            v1::create_dynamic_resource_response::State::Error(state) => todo!()
-                        };
-                        res.meta.state = new_state;
-                    }
-                    ResourceState::Ready { state, .. } => {
-                        let response = client
-                            .reconcile_dynamic_resource(
-                                v1::ReconcileDynamicResourceRequest {
-                                    id: Some(id),
-                                    spec: spec.0.clone(),
-                                    state: Some(v1::reconcile_dynamic_resource_request::State::Ready(v1::reconcile_dynamic_resource_request::StateReady {
-                                        state: state.0.clone(),
-                                    }))
-                                },
-                            )
-                            .await.unwrap();
-
-                        let new_state = match response.into_inner().state.unwrap() {
-                                v1::reconcile_dynamic_resource_response::State::Ready(state) => {
-                                    ResourceState::Ready { state: State(state.state) }
-                                },
-                                v1::reconcile_dynamic_resource_response::State::Error(state) => todo!()
-                            };
-                        res.meta.state = new_state;
-                    }
-                    ResourceState::Error { state, .. } => todo!(),
+                res.state = ResourceState::Set(State(response.state));
+                dbg!(&res.state);
+                let owner = Identity {
+                    schema: res.schema.clone(),
+                    name: res.name.clone(),
+                };
+                for to_create in response.create {
+                    let id = Identity {
+                        schema: to_create.schema.clone(),
+                        name: to_create.name.clone(),
+                    };
+                    self.resources.insert(
+                        id.clone(),
+                        Resource::DynamicResource(DynamicResource {
+                            schema: to_create.schema.clone(),
+                            name: to_create.name.clone(),
+                            owner: owner.clone(),
+                            spec: Spec(to_create.spec),
+                            state: ResourceState::Unset,
+                        }),
+                    );
                 }
             }
         };
-
-        // TODO: Should be refactored as it is quite ugly right now
-        // if matches!(
-        //     current.spec(),
-        //     ResourceSpec::Draining(_) | ResourceSpec::Deleting(_)
-        // ) {
-        //     if !current.children().is_empty() {
-        //         return;
-        //     }
-
-        //     let res = client
-        //         .reconcile_delete(ReconcileDeleteRequest {
-        //             resource: Some(current.clone().try_into().unwrap()),
-        //         })
-        //         .await
-        //         .unwrap();
-
-        //     if !res.into_inner().deleted {
-        //         return;
-        //     }
-
-        //     let Resource::Dynamic(res) = e.remove() else {
-        //         // We are removing a UserConfig. Since it's the "root" of any
-        //         // resource, there's nothing else to do
-        //         return;
-        //     };
-
-        //     let Some(owner) = self.resources.get_mut(res.owner()) else {
-        //         invariant_violation!(
-        //             "dynamic resource {} owner's {} does not exist",
-        //             res.id(),
-        //             res.owner(),
-        //         );
-        //     };
-
-        //     owner.children_mut().remove(res.id());
-        //     if owner.children().is_empty() {
-        //         self.schedule_reconcile_at_earliest_in(
-        //             res.owner().clone(),
-        //             Duration::from_secs(1),
-        //         );
-        //     }
-
-        //     return;
-        // }
-
-        // let res = client
-        //     .reconcile_resource(ReconcileResourceRequest {
-        //         resource: Some(current.clone().try_into().unwrap()),
-        //         additional_resources: vec![],
-        //     })
-        //     .await
-        //     .unwrap();
-
-        // let res = res.into_inner();
-        // let creations =
-        //     res.created.into_iter().map(|res| CreateDynamicResource {
-        //         id: res.id.try_into().unwrap(),
-        //         owner: id.clone(),
-        //         spec: res.spec,
-        //     });
-
-        // *current.state_mut() = ResourceState::Ready {
-        //     state: res.state.into(),
-        //     state_at: SystemTime::now(),
-        // };
-
-        // dbg!(&current);
-
-        // self.resource_dynamic_create_bulk(creations.collect(), None)
-        //     .unwrap();
-
-        // for deleted in res.deleted {
-        //     self.mark_for_deletion(&deleted.try_into().unwrap());
-        // }
-
-        // // TODO: Handle updates
-
-        // self.schedule_reconcile_at_latest_in(
-        //     id.clone(),
-        //     Duration::from_secs(5),
-        // );
     }
 }

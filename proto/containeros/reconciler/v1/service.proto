@@ -2,94 +2,65 @@ syntax = "proto3";
 
 package containeros.reconciler.v1;
 
-import "containeros/shared/v1/shared.proto";
+import "google/protobuf/empty.proto";
 
 service ReconcilerService {
   // rpc ValidateResource, DeleteResource, Plan
 
   // GUARANTEES:
-  // - CreateDynamicResource is always the first call made for any given resource.
-  // - CreateDynamicResource is retried rescheduled until it returns a gRPC-level success response. A gRPC error will
+  // - CreateXYZ is always the first call made for any given resource.
+  // - CreateXYZ is retried rescheduled until it returns a gRPC-level success response. A gRPC error will
   //   never advance the resource past this stage.
   // - At most one concurrent call to either Create or Reconcile will be made per service.
-  rpc CreateDynamicResource(CreateDynamicResourceRequest) returns (CreateDynamicResourceResponse) {}
+
+  rpc ReconcileUserConfig(ReconcileUserConfigRequest) returns (ReconcileUserConfigResponse) {}
   rpc ReconcileDynamicResource(ReconcileDynamicResourceRequest) returns (ReconcileDynamicResourceResponse) {}
 }
 
-// message StatePending {
-//   bytes state = 1;
-// }
+message Identity {
+  string schema = 1;
+  string name = 2;
+}
 
-// message StateCompleted {
-//   bytes state = 1;
-// }
-
-// message StateSuspended {
-//   bytes state = 1;
-//   string reason = 2;
-// }
-
-message CreateDynamicResourceRequest {
-  containeros.shared.v1.Identity id = 1;
-  // containeros.shared.v1.Identity owner = 2;
+message DynamicResourceCreate {
+  string schema = 1;
+  string name = 2;
   bytes spec = 3;
 }
 
-message CreateDynamicResourceResponse {
-  message StateReady {
-    bytes state = 1;
-  }
-
-  message StateError {
-    bytes state = 1;
-    string reason = 2;
-  }
+message ReconcileUserConfigRequest {
+  string schema = 1;
+  string name = 2;
+  bytes spec = 3;
 
   oneof state {
-    // StatePending pending = 1;
-    StateReady ready = 2;
-    // StateCompleted completed = 3;
-    // StateSuspended suspended = 4;
-    StateError error = 5;
+    google.protobuf.Empty unset = 4;
+    bytes ready = 5;
   }
+
+  repeated Identity children = 6;
+}
+
+message ReconcileUserConfigResponse {
+  bytes state = 1;
+  repeated DynamicResourceCreate create = 3;
 }
 
 message ReconcileDynamicResourceRequest {
-  message StateReady {
-    bytes state = 1;
-  }
-
-  message StateError {
-    bytes state = 1;
-  }
+  string schema = 1;
+  string name = 2;
+  bytes spec = 3;
 
   oneof state {
-    // StatePending pending = 1;
-    StateReady ready = 2;
-    // StateCompleted completed = 3;
-    // StateSuspended suspended = 4;
-    StateError error = 5;
+    google.protobuf.Empty unset = 4;
+    bytes ready = 5;
   }
 
-  containeros.shared.v1.Identity id = 6;
-  bytes spec = 7;
+  repeated Identity children = 6;
+  Identity owner = 7;
 }
 
 message ReconcileDynamicResourceResponse {
-  message StateReady {
-    bytes state = 1;
-  }
-
-  message StateError {
-    bytes state = 1;
-    string reason = 2;
-  }
-
-  oneof state {
-    // StatePending pending = 1;
-    StateReady ready = 2;
-    // StateCompleted completed = 3;
-    // StateSuspended suspended = 4;
-    StateError error = 5;
-  }
+  bytes state = 1;
+  repeated DynamicResourceCreate create = 3;
 }

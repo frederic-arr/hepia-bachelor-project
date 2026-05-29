@@ -37,10 +37,10 @@ pub struct ResourceMeta<T>
 where
     T: Specification,
 {
-    id: Identity,
-    children: HashSet<Identity>,
-    spec: ResourceSpec<T>,
-    state: ResourceState<T>,
+    pub id: Identity,
+    pub children: HashSet<Identity>,
+    pub spec: ResourceSpec<T>,
+    pub state: ResourceState<T>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -100,7 +100,7 @@ pub struct UserConfigResource<T>
 where
     T: Specification,
 {
-    meta: ResourceMeta<T>,
+    pub meta: ResourceMeta<T>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -112,9 +112,9 @@ pub struct DynamicResource<T>
 where
     T: Specification,
 {
-    meta: ResourceMeta<T>,
-    owner: Identity,
-    dependencies: HashSet<Identity>,
+    pub meta: ResourceMeta<T>,
+    pub owner: Identity,
+    pub dependencies: HashSet<Identity>,
 }
 
 impl<T> Resource<T>

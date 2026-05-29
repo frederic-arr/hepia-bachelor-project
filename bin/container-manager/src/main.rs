@@ -55,6 +55,13 @@ async fn create_connection() -> (Child, Docker) {
 
 #[async_trait]
 impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
+    async fn reconcile_user_config(
+        &self,
+        request: Request<v1::ReconcileUserConfigRequest>,
+    ) -> Result<Response<v1::ReconcileUserConfigResponse>, Status> {
+        todo!()
+    }
+
     async fn create_dynamic_resource(
         &self,
         request: Request<v1::CreateDynamicResourceRequest>,

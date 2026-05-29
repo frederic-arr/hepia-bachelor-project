@@ -7,7 +7,6 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-cos-api-shared.workspace = true
 tonic.workspace = true
 tonic-prost.workspace = true
 prost.workspace = true

@@ -7,7 +7,6 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-cos-api-shared.workspace = true
 cos-api-reconciler.workspace = true
 cos-api-reconciler-client.workspace = true
 invariant-macros.workspace = true

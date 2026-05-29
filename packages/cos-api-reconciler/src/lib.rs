@@ -1,4 +1,3 @@
-mod conv;
 mod model;
 pub mod proto;
 
