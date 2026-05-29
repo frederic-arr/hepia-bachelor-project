@@ -10,7 +10,19 @@
 // TODO: Table of figures
 // TODO: Table of appendices
 
-#lorem(20)
+/*
+- Introduction
+- Architecture générale
+
+- "Démonstration"
+- Test et validation
+    - Scénarios de validation
+    - Benchmarking
+- Comparaison avec d'autre solutions
+- Résultats (ACADÉM + FONCTIONEL: parler de la valeur ajoutée, des limitations, etc)
+- Discussion (TECHNIQUE: parler des bon et mauvais choix, limitations, etc)
+- Conclusion
+*/
 
 = Introduction
 == Contexte
