@@ -128,7 +128,6 @@ impl StateManager {
                     .unwrap()
                     .into_inner();
 
-
                 res.state = ResourceState::Set(State(response.state));
                 dbg!(&res.state);
                 let owner = Identity {

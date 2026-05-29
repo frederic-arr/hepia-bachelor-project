@@ -1,8 +1,8 @@
-mod link_config;
 mod link;
+mod link_config;
 
-pub use link_config::*;
 pub use link::*;
+pub use link_config::*;
 
 pub trait Reconcilable {
     const SCHEMA: &'static str;
