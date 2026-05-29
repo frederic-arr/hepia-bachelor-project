@@ -37,10 +37,7 @@ impl StateManager {
                     "config#containeros::net::link".to_string(),
                     client.clone(),
                 ),
-                (
-                    "res#containeros::net::link".to_string(),
-                    client,
-                ),
+                ("res#containeros::net::link".to_string(), client),
             ]),
             scheduled_identities: HashMap::default(),
             reconciliation_queue: DelayQueue::default(),
@@ -65,17 +62,18 @@ impl StateManager {
     /// to happen at `when`. If a reconciliation is already scheduled for
     /// after `when`, it is maintained. Otherwise, it is scheduled.
     fn schedule_reconcile_at_earliest(&mut self, id: Identity, when: Instant) {
+        use std::cmp::Ordering::{Less, Equal, Greater};
+
         self.scheduled_identities
             .entry(id)
             .and_modify(|existing| {
                 let existing_when =
                     self.reconciliation_queue.deadline(existing);
                 match existing_when.cmp(&when) {
-                    std::cmp::Ordering::Less => {
+                    Greater | Equal => (),
+                    Less => {
                         self.reconciliation_queue.reset_at(existing, when);
                     }
-                    std::cmp::Ordering::Equal => (),
-                    std::cmp::Ordering::Greater => (),
                 }
             })
             .or_insert_with_key(|id| {
@@ -88,15 +86,16 @@ impl StateManager {
     /// maintained. If a reconciliation is already scheduled for after
     /// `when`, it is reset to happen at `when`. Otherwise, it is scheduled.
     fn schedule_reconcile_at_latest(&mut self, id: Identity, when: Instant) {
+        use std::cmp::Ordering::{Less, Equal, Greater};
+
         self.scheduled_identities
             .entry(id)
             .and_modify(|existing| {
                 let existing_when =
                     self.reconciliation_queue.deadline(existing);
                 match existing_when.cmp(&when) {
-                    std::cmp::Ordering::Less => (),
-                    std::cmp::Ordering::Equal => (),
-                    std::cmp::Ordering::Greater => {
+                    Less | Equal => (),
+                    Greater => {
                         self.reconciliation_queue.reset_at(existing, when);
                     }
                 }

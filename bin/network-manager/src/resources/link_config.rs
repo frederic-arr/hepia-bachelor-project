@@ -93,9 +93,7 @@ impl Reconcilable for LinkConfig {
         request: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
-    ) -> Self::Apply {
-        ();
-    }
+    ) -> Self::Apply {}
 
     async fn update(
         request: &Self::Input,

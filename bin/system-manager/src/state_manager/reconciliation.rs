@@ -19,7 +19,6 @@ use crate::state_manager::StateManager;
 impl StateManager {
     pub async fn reconciliation_loop(&mut self) {
         loop {
-            // dbg!(&self.resources);
             let ids = self.resources.keys().cloned().collect::<Vec<_>>();
             for id in ids {
                 self.reconciliation_tick(&id).await;

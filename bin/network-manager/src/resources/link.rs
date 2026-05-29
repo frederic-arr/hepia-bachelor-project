@@ -76,9 +76,9 @@ impl Reconcilable for Link {
                     return None;
                 }
 
-                return panic!("{err}");
+                panic!("{err}");
             }
-            Err(err) => return panic!("{err}"),
+            Err(err) => panic!("{err}"),
         };
 
         state.index(link.header.index);
