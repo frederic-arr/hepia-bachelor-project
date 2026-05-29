@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://jassielof.github.io/json-schemas/docs/hayagriva.schema.json
+# $schema: https://jassielof.github.io/json-schemas/docs/hayagriva.schema.json
 
 # Mattermost: Buildroot par F. Gluck
 # Mattermost: Solution sécurisée pour infrastructure nexus par G. Pin
