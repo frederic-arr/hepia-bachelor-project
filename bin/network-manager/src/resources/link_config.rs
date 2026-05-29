@@ -50,7 +50,7 @@ impl Reconcilable for LinkConfig {
     ) -> Self::Plan {
         let link_id = Identity {
             schema: "res#containeros::net::link".to_string(),
-            name: request.name.to_string(),
+            name: request.name.clone(),
         };
 
         let link_spec = SubResourceCreate {
@@ -94,7 +94,7 @@ impl Reconcilable for LinkConfig {
         refreshed_state: &Self::State,
         plan: &Self::Plan,
     ) -> Self::Apply {
-        ()
+        ();
     }
 
     async fn update(

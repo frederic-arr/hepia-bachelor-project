@@ -31,7 +31,7 @@ impl StateManager {
     async fn reconciliation_tick(&mut self, id: &Identity) {
         tracing::info!("reconciliation attempt of {id}");
 
-        let Some(mut client) = self.get_client_for_id(&id) else {
+        let Some(mut client) = self.get_client_for_id(id) else {
             tracing::error!("no clients for {id}");
             return;
         };
@@ -61,7 +61,7 @@ impl StateManager {
                     schema: res.schema.clone(),
                     name: res.name.clone(),
                     spec: res.spec.0.clone(),
-                    children: children,
+                    children,
                     state: match res.state.clone() {
                         ResourceState::Unset => Some(
                             v1::reconcile_user_config_request::State::Unset(()),
@@ -110,7 +110,7 @@ impl StateManager {
                         schema: res.owner.schema.clone(),
                         name: res.owner.name.clone(),
                     }),
-                    children: children,
+                    children,
                     state: match res.state.clone() {
                         ResourceState::Unset => Some(
                             v1::reconcile_dynamic_resource_request::State::Unset(()),
@@ -151,6 +151,6 @@ impl StateManager {
                     );
                 }
             }
-        };
+        }
     }
 }

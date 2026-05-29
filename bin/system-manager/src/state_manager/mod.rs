@@ -39,7 +39,7 @@ impl StateManager {
                 ),
                 (
                     "res#containeros::net::link".to_string(),
-                    client.clone(),
+                    client,
                 ),
             ]),
             scheduled_identities: HashMap::default(),
@@ -74,8 +74,8 @@ impl StateManager {
                     std::cmp::Ordering::Less => {
                         self.reconciliation_queue.reset_at(existing, when);
                     }
-                    std::cmp::Ordering::Equal => return,
-                    std::cmp::Ordering::Greater => return,
+                    std::cmp::Ordering::Equal => (),
+                    std::cmp::Ordering::Greater => (),
                 }
             })
             .or_insert_with_key(|id| {
@@ -94,8 +94,8 @@ impl StateManager {
                 let existing_when =
                     self.reconciliation_queue.deadline(existing);
                 match existing_when.cmp(&when) {
-                    std::cmp::Ordering::Less => return,
-                    std::cmp::Ordering::Equal => return,
+                    std::cmp::Ordering::Less => (),
+                    std::cmp::Ordering::Equal => (),
                     std::cmp::Ordering::Greater => {
                         self.reconciliation_queue.reset_at(existing, when);
                     }
@@ -113,7 +113,7 @@ impl StateManager {
         id: Identity,
         when: Duration,
     ) {
-        self.schedule_reconcile_at_earliest(id, Instant::now() + when)
+        self.schedule_reconcile_at_earliest(id, Instant::now() + when);
     }
 
     /// Like [`Self::schedule_reconcile_at_latest`] but executes offset by
@@ -123,6 +123,6 @@ impl StateManager {
         id: Identity,
         when: Duration,
     ) {
-        self.schedule_reconcile_at_latest(id, Instant::now() + when)
+        self.schedule_reconcile_at_latest(id, Instant::now() + when);
     }
 }

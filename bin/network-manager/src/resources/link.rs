@@ -140,13 +140,13 @@ impl Reconcilable for Link {
 
         match plan {
             LinkPlan::Create(msg) => {
-                rtnl.link().add(msg.clone()).execute().await.unwrap()
+                rtnl.link().add(msg.clone()).execute().await.unwrap();
             }
             LinkPlan::Modify(msg) => {
-                rtnl.link().change(msg.clone()).execute().await.unwrap()
+                rtnl.link().change(msg.clone()).execute().await.unwrap();
             }
             LinkPlan::Delete(index) => {
-                rtnl.link().del(*index).execute().await.unwrap()
+                rtnl.link().del(*index).execute().await.unwrap();
             }
             LinkPlan::Noop => (),
         }

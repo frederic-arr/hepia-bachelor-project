@@ -45,7 +45,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                     name: request.name,
                     spec: rmp_serde::from_slice(&request.spec).unwrap(),
                     state: request.state.and_then(|s| match s {
-                        v1::reconcile_user_config_request::State::Unset(_) => {
+                        v1::reconcile_user_config_request::State::Unset(()) => {
                             None
                         }
                         v1::reconcile_user_config_request::State::Ready(s) => {
@@ -83,7 +83,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                         spec: rmp_serde::from_slice(&request.spec).unwrap(),
                         state: request.state.and_then(|s| match s {
                             v1::reconcile_dynamic_resource_request::State::Unset(
-                                _,
+                                (),
                             ) => None,
                             v1::reconcile_dynamic_resource_request::State::Ready(
                                 s,
