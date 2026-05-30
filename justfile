@@ -2,21 +2,25 @@
 
 mod docs 'docs/internal/justfile'
 mod proto 'proto/justfile'
+mod scripts 'scripts/justfile'
 
 @help:
     just --list
 
 [parallel]
-check: docs::check proto::check
+check: docs::check proto::check scripts::check
 
 [parallel]
-fix: docs::fix proto::fix
+fix: docs::fix proto::fix scripts::fix
 
 [parallel]
-build: docs::build
+build: docs::build proto::build scripts::build
 
 [parallel]
-clean: docs::clean
+clean: docs::clean proto::clean scripts::clean
+
+[private]
+ci-check: docs::ci-check proto::ci-check scripts::ci-check
 
 [private]
 _pre-commit: fix check

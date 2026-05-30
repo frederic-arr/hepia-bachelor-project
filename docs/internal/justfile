@@ -51,9 +51,12 @@ _abstract-output := "ISC_LOG_resume_diplome" + _output-suffix
 @help:
     just --list
 
-check: format lint
+check: format
 
 fix: format-fix
+
+[private]
+ci-check: check
 
 [private]
 format:
@@ -62,10 +65,6 @@ format:
 [private]
 format-fix:
     {{ _typstyle-runner }} --inplace ./
-
-[private]
-lint:
-    {{ _typstyle-runner }} --diff ./
 
 build: _build-slides-warmup _build-slides
     {{ _typst-runner }} subject-statement/main.typ output/{{ _subject-statement-output }}
