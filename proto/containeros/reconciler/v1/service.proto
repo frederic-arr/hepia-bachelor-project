@@ -22,10 +22,21 @@ message Identity {
   string name = 2;
 }
 
-message DynamicResourceCreate {
+message SubResourceWrite {
   string schema = 1;
   string name = 2;
   bytes spec = 3;
+}
+
+message SubResourceRead {
+  string schema = 1;
+  string name = 2;
+  bytes spec = 3;
+
+  oneof state {
+    google.protobuf.Empty unset = 4;
+    bytes ready = 5;
+  }
 }
 
 message ReconcileUserConfigRequest {
@@ -38,12 +49,12 @@ message ReconcileUserConfigRequest {
     bytes ready = 5;
   }
 
-  repeated Identity children = 6;
+  repeated SubResourceRead children = 6;
 }
 
 message ReconcileUserConfigResponse {
   bytes state = 1;
-  repeated DynamicResourceCreate create = 3;
+  repeated SubResourceWrite children = 2;
 }
 
 message ReconcileDynamicResourceRequest {
@@ -56,11 +67,11 @@ message ReconcileDynamicResourceRequest {
     bytes ready = 5;
   }
 
-  repeated Identity children = 6;
+  repeated SubResourceRead children = 6;
   Identity owner = 7;
 }
 
 message ReconcileDynamicResourceResponse {
   bytes state = 1;
-  repeated DynamicResourceCreate create = 3;
+  repeated SubResourceWrite children = 2;
 }

@@ -35,18 +35,28 @@ impl StateManager {
             return;
         };
 
-        let children =
-            self.resources
-                .iter()
-                .filter_map(|(id, res)| match res {
-                    Resource::UserConfig(res) => None,
-                    Resource::DynamicResource(res) => (&res.owner == id)
-                        .then_some(v1::Identity {
-                            schema: id.schema.clone(),
-                            name: id.name.clone(),
-                        }),
-                })
-                .collect::<Vec<_>>();
+        let children = self
+            .resources
+            .iter()
+            .filter_map(|(id, res)| match res {
+                Resource::UserConfig(res) => None,
+                Resource::DynamicResource(res) => {
+                    (&res.owner == id).then_some(v1::SubResourceRead {
+                        schema: id.schema.clone(),
+                        name: id.name.clone(),
+                        spec: res.spec.0.clone(),
+                        state: match res.state.clone() {
+                            ResourceState::Unset => {
+                                Some(v1::sub_resource_read::State::Unset(()))
+                            }
+                            ResourceState::Set(state) => Some(
+                                v1::sub_resource_read::State::Ready(state.0),
+                            ),
+                        },
+                    })
+                }
+            })
+            .collect::<Vec<_>>();
 
         let Entry::Occupied(mut e) = self.resources.entry(id.clone()) else {
             invariant_violation!(
@@ -83,7 +93,7 @@ impl StateManager {
                     schema: res.schema.clone(),
                     name: res.name.clone(),
                 };
-                for to_create in response.create {
+                for to_create in response.children {
                     let id = Identity {
                         schema: to_create.schema.clone(),
                         name: to_create.name.clone(),
@@ -133,7 +143,7 @@ impl StateManager {
                     schema: res.schema.clone(),
                     name: res.name.clone(),
                 };
-                for to_create in response.create {
+                for to_create in response.children {
                     let id = Identity {
                         schema: to_create.schema.clone(),
                         name: to_create.name.clone(),

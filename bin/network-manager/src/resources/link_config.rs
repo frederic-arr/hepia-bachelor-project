@@ -23,12 +23,8 @@ pub struct LinkConfigSpec {
 pub struct LinkConfigState {}
 
 #[derive(Debug)]
-pub enum LinkConfigPlan {
-    Noop,
-    Op {
-        created_children: Vec<SubResourceCreate>,
-        removed_children: Vec<Identity>,
-    },
+pub struct LinkConfigPlan {
+    children: Vec<SubResourceCreate>,
 }
 
 impl Reconcilable for LinkConfig {
@@ -55,38 +51,15 @@ impl Reconcilable for LinkConfig {
 
         let link_spec = SubResourceCreate {
             schema: link_id.schema.clone(),
-            name: link_id.name.clone(),
+            name: link_id.name,
             spec: rmp_serde::to_vec(&LinkSpec {
                 admin_up: request.spec.up,
             })
             .unwrap(),
         };
 
-        let required_children = HashMap::from([(link_id, link_spec)]);
-
-        let created_children = required_children
-            .iter()
-            .filter_map(|(id, spec)| {
-                request.children.contains(id).not().then_some(spec)
-            })
-            .cloned()
-            .collect::<Vec<_>>();
-
-        let removed_children = request
-            .children
-            .iter()
-            .filter(|child| !required_children.contains_key(child))
-            .cloned()
-            .collect::<Vec<_>>();
-
-        if removed_children.is_empty() && created_children.is_empty() {
-            return LinkConfigPlan::Noop;
-        }
-
-        LinkConfigPlan::Op {
-            created_children,
-            removed_children,
-        }
+        let children = vec![link_spec];
+        LinkConfigPlan { children }
     }
 
     async fn apply(
@@ -102,25 +75,17 @@ impl Reconcilable for LinkConfig {
         plan: &Self::Plan,
         apply: &Self::Apply,
     ) -> Self::Output {
-        match plan {
-            LinkConfigPlan::Noop => v1::ReconcileUserConfigResponse {
-                create: vec![],
-                state: rmp_serde::to_vec_named(refreshed_state).unwrap(),
-            },
-            LinkConfigPlan::Op {
-                created_children,
-                removed_children,
-            } => v1::ReconcileUserConfigResponse {
-                create: created_children
-                    .iter()
-                    .map(|c| v1::DynamicResourceCreate {
-                        schema: c.schema.clone(),
-                        name: c.name.clone(),
-                        spec: c.spec.clone(),
-                    })
-                    .collect(),
-                state: rmp_serde::to_vec_named(refreshed_state).unwrap(),
-            },
+        v1::ReconcileUserConfigResponse {
+            children: plan
+                .children
+                .iter()
+                .map(|c| v1::SubResourceWrite {
+                    schema: c.schema.clone(),
+                    name: c.name.clone(),
+                    spec: c.spec.clone(),
+                })
+                .collect(),
+            state: rmp_serde::to_vec_named(refreshed_state).unwrap(),
         }
     }
 }

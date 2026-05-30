@@ -66,6 +66,11 @@ impl Reconcilable for Link {
             rtnl.link().get().match_name(input.name.clone()).execute();
 
         let link = links.next().await.expect("at least one RTNL message");
+        assert!(
+            links.next().await.is_none(),
+            "got multiple links while only one was expected"
+        );
+
         let link = match link {
             Ok(v) => v,
             Err(rtnetlink::Error::NetlinkError(err)) => {
@@ -161,7 +166,7 @@ impl Reconcilable for Link {
         let new_state = Self::refresh(input).await.unwrap();
         v1::ReconcileDynamicResourceResponse {
             state: rmp_serde::to_vec_named(&new_state).unwrap(),
-            create: vec![],
+            children: vec![],
         }
     }
 }
