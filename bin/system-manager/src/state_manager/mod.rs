@@ -62,7 +62,7 @@ impl StateManager {
     /// to happen at `when`. If a reconciliation is already scheduled for
     /// after `when`, it is maintained. Otherwise, it is scheduled.
     fn schedule_reconcile_at_earliest(&mut self, id: Identity, when: Instant) {
-        use std::cmp::Ordering::{Less, Equal, Greater};
+        use std::cmp::Ordering::{Equal, Greater, Less};
 
         self.scheduled_identities
             .entry(id)
@@ -86,7 +86,7 @@ impl StateManager {
     /// maintained. If a reconciliation is already scheduled for after
     /// `when`, it is reset to happen at `when`. Otherwise, it is scheduled.
     fn schedule_reconcile_at_latest(&mut self, id: Identity, when: Instant) {
-        use std::cmp::Ordering::{Less, Equal, Greater};
+        use std::cmp::Ordering::{Equal, Greater, Less};
 
         self.scheduled_identities
             .entry(id)
