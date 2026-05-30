@@ -1,0 +1,46 @@
+#!/usr/bin/env -S just --justfile
+
+set dotenv-load
+
+_check-cmd := "cargo clippy --all-targets --all-features"
+
+@help:
+    just --list
+
+check: format lint
+
+fix: format-fix lint-fix
+
+[private]
+ci-check: format ci-lint
+
+[private]
+format:
+    cargo fmt --all --check
+
+[private]
+format-fix:
+    cargo fmt --all
+
+[private]
+lint:
+    {{ _check-cmd }} --future-incompat-report
+
+[private]
+lint-fix:
+    {{ _check-cmd }} --fix --allow-dirty
+
+[private]
+ci-lint:
+    {{ _check-cmd }} --future-incompat-report -- -D warnings
+
+build:
+
+clean:
+    cargo clean
+
+rebuild-proto:
+    cargo clean -p cos-api-reconciler -p cos-api-reconciler-server -p cos-api-reconciler-client
+    cargo check -p cos-api-reconciler
+    cargo check -p cos-api-reconciler-server
+    cargo check -p cos-api-reconciler-client

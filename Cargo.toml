@@ -24,6 +24,7 @@ missing_panics_doc = "allow"
 missing_errors_doc = "allow"
 result_unit_err = "allow"
 unused_async = "allow" # TODO: remove
+too_many_lines = "allow" # TODO: remove
 
 [workspace.lints.cargo]
 pedantic = "warn"
