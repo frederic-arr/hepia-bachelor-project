@@ -11,9 +11,6 @@ check:
     {{ buf-bin }} format --diff --exit-code
     {{ buf-bin }} lint
 
-[private]
-ci-check: check
-
 fix:
     {{ buf-bin }} format -w
 

@@ -12,11 +12,6 @@ check:
     {{ cargo-cmd }} fmt --all --check
     {{ cargo-cmd }} clippy {{ cargo-args }} --future-incompat-report
 
-[private]
-ci-check:
-    {{ cargo-cmd }} fmt --all --check
-    {{ cargo-cmd }} clippy {{ cargo-args }} --future-incompat-report -- -D warnings
-
 fix:
     {{ cargo-cmd }} fmt --all
     {{ cargo-cmd }} clippy {{ cargo-args }} --future-incompat-report --fix --allow-dirty
