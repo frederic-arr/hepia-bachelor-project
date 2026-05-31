@@ -15,7 +15,7 @@ stages:
 
 check-docs-internal:
   stage: check
-  script: nix develop -c just docs check
+  script: nix develop -c just docs ci-check
 
 build-docs-internal:
   stage: build
@@ -29,3 +29,11 @@ build-docs-internal:
     expire_in: 7 days
     paths: [output/**/*.pdf]
   needs: [check-docs-internal]
+
+check-proto:
+  stage: check
+  script: nix develop -c just proto ci-check
+
+# check-src:
+#   stage: check
+#   script: nix develop -c just scripts ci-check

@@ -23,6 +23,9 @@ slides-prefix := "ISC_LOG_slides"
 check:
     {{ typstyle-bin }} {{ typstyle-args }} --check ./
 
+[private]
+ci-check: check
+
 fix:
     {{ typstyle-bin }} {{ typstyle-args }} --inplace ./
 

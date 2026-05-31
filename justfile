@@ -11,6 +11,9 @@ mod scripts 'scripts/justfile'
 check: docs::check proto::check scripts::check
 
 [parallel]
+ci-check: docs::ci-check proto::ci-check scripts::ci-check
+
+[parallel]
 fix: docs::fix proto::fix scripts::fix
 
 [parallel]
@@ -20,4 +23,4 @@ build: docs::build proto::build scripts::build
 clean: docs::clean proto::clean scripts::clean
 
 [private]
-_pre-commit: fix check
+_pre-commit: ci-check
