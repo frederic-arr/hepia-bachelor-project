@@ -27,10 +27,10 @@ fix:
     {{ typstyle-bin }} {{ typstyle-args }} --inplace ./
 
 build: _outdir (_build-slide "handout-16-9") _build-slides
-    {{ typst-bin }} {{ typst-args }} subject-statement/main.typ output/{{ subject-statement-output }}
-    {{ typst-bin }} {{ typst-args }} abstract/main.typ output/{{ abstract-output }}
-    {{ typst-bin }} {{ typst-args }} poster/main.typ output/{{ poster-output }}
-    {{ typst-bin }} {{ typst-args }} thesis/main.typ output/{{ thesis-output }}
+    {{ typst-bin }} compile {{ typst-args }} subject-statement/main.typ output/{{ subject-statement-output }}
+    {{ typst-bin }} compile {{ typst-args }} abstract/main.typ output/{{ abstract-output }}
+    {{ typst-bin }} compile {{ typst-args }} poster/main.typ output/{{ poster-output }}
+    {{ typst-bin }} compile {{ typst-args }} thesis/main.typ output/{{ thesis-output }}
 
 clean:
     rm -rf ./output/
@@ -42,7 +42,7 @@ _outdir:
 
 [private]
 _build-slide slide:
-    {{ typst-bin }} {{ typst-args }} slides/formats/slides-{{ slide }}.typ output/slides/{{ slides-prefix }}_{{ slide }}{{ _output-suffix }}
+    {{ typst-bin }} compile {{ typst-args }} slides/formats/slides-{{ slide }}.typ output/slides/{{ slides-prefix }}_{{ slide }}{{ _output-suffix }}
 
 [private]
 [parallel]
