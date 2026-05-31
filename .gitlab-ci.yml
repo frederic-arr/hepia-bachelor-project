@@ -1,3 +1,7 @@
+image:
+  name: docker.io/nixos/nix:2.32.8@sha256:080e6df285c98b2ea34080bf3762308288e73d7f4012e3bcf96bb98911a24311
+  entrypoint: [""]
+
 default:
   before_script:
     - mkdir -p /etc/nix
