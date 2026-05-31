@@ -2,91 +2,49 @@
 
 set dotenv-load
 
-[private]
-_docker := env("JUST_CONTAINER_RUNTIME", "docker")
-
-[private]
-_docker-args := "run --rm -v " + module_directory() + ":/work -v typst-cache:/root/.cache/typst --entrypoint '' -w /work "
-
-[private]
-_docker-typst-image := "docker.io/pandoc/typst:3.9.0.2@sha256:8b88646589ec8aa05afdca02dbe6849fa38f3235fb23559970ba82088a5d8f75"
-
-[private]
-_docker-typstyle-image := "docker.io/fredericarr/typstyle:latest"
-
-[private]
-_typst-args := "--root . --ignore-system-fonts --font-path ./lib/fonts/alegreya-sans:./lib/fonts/liberation"
-
-[private]
-_typst-cc := "typst compile " + _typst-args
-
-[private]
-_typst-runner := _docker + " " + _docker-args + " " + _docker-typst-image + " " + _typst-cc
-
-[private]
-_typstyle-args := "--line-width 80 --indent-width 4 --wrap-text"
-
-[private]
-_typstyle-cc := "typstyle " + _typstyle-args
-
-[private]
-_typstyle-runner := _docker + " " + _docker-args + " " + _docker-typstyle-image + " " + _typstyle-cc
+typst-bin := "typst"
+typst-args := "--root . --ignore-system-fonts --font-path ./lib/fonts/alegreya-sans:./lib/fonts/liberation"
+typstyle-bin := "typstyle"
+typstyle-args := "--line-width 80 --indent-width 4 --wrap-text"
 
 [private]
 _output-suffix := "_Arroyo_Gluck_2026.pdf"
 
-[private]
-_subject-statement-output := "Enonce_LOG_diplome" + _output-suffix
-
-[private]
-_thesis-output := "Rapport_Intermediare" + _output-suffix
-# _thesis-output := "ISC_LOG_memoire_diplome" + _output-suffix
-
-[private]
-_poster-output := "ISC_LOG_poster_diplome" + _output-suffix
-
-[private]
-_abstract-output := "ISC_LOG_resume_diplome" + _output-suffix
+subject-statement-output := "Enonce_LOG_diplome" + _output-suffix
+thesis-output := "Rapport_Intermediare" + _output-suffix
+# thesis-output := "ISC_LOG_memoire_diplome" + _output-suffix
+poster-output := "ISC_LOG_poster_diplome" + _output-suffix
+abstract-output := "ISC_LOG_resume_diplome" + _output-suffix
+slides-prefix := "ISC_LOG_slides"
 
 @help:
     just --list
 
-check: format
+check:
+    {{ typstyle-bin }} {{ typstyle-args }} --check ./
 
-fix: format-fix
+fix:
+    {{ typstyle-bin }} {{ typstyle-args }} --inplace ./
 
-[private]
-ci-check: check
-
-[private]
-format:
-    {{ _typstyle-runner }} --check ./
-
-[private]
-format-fix:
-    {{ _typstyle-runner }} --inplace ./
-
-build: _build-slides-warmup _build-slides
-    {{ _typst-runner }} subject-statement/main.typ output/{{ _subject-statement-output }}
-    {{ _typst-runner }} abstract/main.typ output/{{ _abstract-output }}
-    {{ _typst-runner }} poster/main.typ output/{{ _poster-output }}
-    {{ _typst-runner }} thesis/main.typ output/{{ _thesis-output }}
+build: _outdir (_build-slide "handout-16-9") _build-slides
+    {{ typst-bin }} {{ typst-args }} subject-statement/main.typ output/{{ subject-statement-output }}
+    {{ typst-bin }} {{ typst-args }} abstract/main.typ output/{{ abstract-output }}
+    {{ typst-bin }} {{ typst-args }} poster/main.typ output/{{ poster-output }}
+    {{ typst-bin }} {{ typst-args }} thesis/main.typ output/{{ thesis-output }}
 
 clean:
     rm -rf ./output/
     find . -name "*.pdf" -delete
 
 [private]
-_cs slide: _outdir
-    {{ _typst-runner }} slides/formats/slides-{{ slide }}.typ output/slides/slides-{{ slide }}{{ _output-suffix }}
-
-[private]
 _outdir:
     mkdir -p output/slides/
 
 [private]
-_build-slides-warmup: (_cs "handout-16-9")
+_build-slide slide:
+    {{ typst-bin }} {{ typst-args }} slides/formats/slides-{{ slide }}.typ output/slides/{{ slides-prefix }}_{{ slide }}{{ _output-suffix }}
 
 [private]
 [parallel]
-_build-slides: (_cs "handout-16-10") (_cs "handout-16-9") (_cs "handout-4-3") (_cs "presentation-16-10") (_cs "presentation-16-9") (_cs "presentation-4-3") (_cs "pympress-16-10") (_cs "pympress-16-9") (_cs "pympress-4-3")
+_build-slides: (_build-slide "handout-16-10") (_build-slide "handout-4-3") (_build-slide "presentation-16-10") (_build-slide "presentation-16-9") (_build-slide "presentation-4-3") (_build-slide "pympress-16-10") (_build-slide "pympress-16-9") (_build-slide "pympress-4-3")
+

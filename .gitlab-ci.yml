@@ -1,3 +1,5 @@
+image: nixos/nix
+
 workflow:
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
@@ -12,12 +14,12 @@ stages:
 
 check-docs-internal:
   stage: check
-  script: just docs check
+  script: nix develop -c just docs check
 
 build-docs-internal:
   stage: build
   script:
-    - just docs build
+    - nix develop -c just docs build
     - cp -r docs/internal/output/ ./output/
   artifacts:
     when: on_success

@@ -20,7 +20,4 @@ build: docs::build proto::build scripts::build
 clean: docs::clean proto::clean scripts::clean
 
 [private]
-ci-check: docs::ci-check proto::ci-check scripts::ci-check
-
-[private]
 _pre-commit: fix check
