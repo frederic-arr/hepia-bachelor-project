@@ -2,25 +2,23 @@
 
 mod docs 'docs/internal/justfile'
 mod proto 'proto/justfile'
-mod scripts 'scripts/justfile'
+mod rust 'scripts/justfile'
 
 @help:
     just --list
 
 [parallel]
-check: docs::check proto::check scripts::check
+check: docs::check proto::check rust::check
 
 [parallel]
-fix: docs::fix proto::fix scripts::fix
+fix: docs::fix proto::fix rust::fix
 
 [parallel]
-build: docs::build proto::build scripts::build
+build: docs::build proto::build rust::build
 
 [parallel]
-clean: docs::clean proto::clean scripts::clean
+clean: docs::clean proto::clean rust::clean
 
 [private]
-ci-check: docs::ci-check proto::ci-check scripts::ci-check
-
-[private]
-_pre-commit: fix check
+[env("RUSTFLAGS", "-D warnings")]
+_pre-commit: check

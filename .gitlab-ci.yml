@@ -10,14 +10,21 @@ stages:
   - check
   - build
 
+variables:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
+  CARGO_HOME: "${CI_PROJECT_DIR}/.cargo-cache"
+  CARGO_INCREMENTAL: "0"
+  RUSTFLAGS: "-D warnings"
+  CARGO_TERM_COLOR: always
+
 check-docs-internal:
   stage: check
-  script: just docs check
+  script: nix develop -c just docs check
 
 build-docs-internal:
   stage: build
   script:
-    - just docs build
+    - nix develop -c just docs build
     - cp -r docs/internal/output/ ./output/
   artifacts:
     when: on_success
@@ -26,3 +33,45 @@ build-docs-internal:
     expire_in: 7 days
     paths: [output/**/*.pdf]
   needs: [check-docs-internal]
+
+check-proto:
+  stage: check
+  script: nix develop -c just proto check
+
+check-rust:
+  stage: check
+  script: nix develop -c just rust check
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .cargo-cache/registry
+      - .cargo-cache/git
+      - target/
+
+# https://rustprojectprimer.com/ci/index.html
+
+# TODO:
+# - typos
+# - unit tests (cargo test)
+# - doc generation (cargo doc)
+# - book generation (cargo book)
+
+# Later/more complete:
+# - dependency auditing (cargo audit/cargo deny check)
+# - semver checks (cargo semver-checks)
+# - semverfeature powerset (cargo hack check)
+# - msrv verification
+# - outdated dependencies (cargo outdated/cargo upgrades)
+# - fuzzing
+# - mutation testing (cargo mutants)
+# - test coverage
+# - integration tests
+# - concurrency testing (tokio)
+# - undefiend behavior (cargo miri)
+# - llvm/asan/etc
+# - valgrind
+# - cargo vet to manually allow dependencies
+# - performance testing (criterion/cargo flamegraph)
+# - SBOM
+# - license check
+# - build the final artifacts (duh)
