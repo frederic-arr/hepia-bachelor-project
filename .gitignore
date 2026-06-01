@@ -6,3 +6,4 @@
 
 # Rust Internal Compiler Errors
 rustc-ice-*.txt
+result

@@ -19,12 +19,28 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
+        kernelFn = pkgs.callPackage ./kernel/kernel.nix { };
       in
       {
         formatter = pkgs.nixfmt-tree;
+        packages = {
+          kernel-x86_64-generic = kernelFn {
+            arch      = "x86_64";
+            base      = "defconfig";
+            fragments = [ ];
+          };
+        };
+
         devShells.default = pkgs.mkShellNoCC {
           packages = with pkgs; [
+            pkg-config
+            stdenv.cc
+            ncurses
+            gnumake
+            flex
+            bison
             just
+            just-lsp
             jq
             pre-commit
             protobuf
