@@ -27,6 +27,7 @@
             just
             jq
             pre-commit
+            protobuf
             typst
             typstyle
             tinymist
