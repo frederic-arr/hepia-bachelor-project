@@ -31,6 +31,8 @@ let
     inherit lib stdenv version src;
     modDirVersion = version;
     configfile    = mergedConfig;
+    allowImportFromDerivation = true;
+    kernelPatches = map (p: { patch = p; }) storePatches; # I hope I never have to patch the kernel
   };
 
   menuconfig = pkgs.writeShellApplication {
@@ -54,11 +56,12 @@ let
       export HOSTCC="${pkgs.stdenv.cc}/bin/cc"
       export HOSTCFLAGS="-I${pkgs.ncurses.dev}/include"
       export HOSTLDFLAGS="-L${pkgs.ncurses.out}/lib"
+      export NIX_LDFLAGS="-L${pkgs.ncurses.out}/lib"
 
       workdir="$PWD/kernel"
-      outfull="$workdir/config.full"
-      outmerged="$workdir/config.merged"
-      outdiff="$workdir/config.diff"
+      outfull="$PWD/kernel/config.full"
+      outmerged="$PWD/kernel/config.merged"
+      outdiff="$PWD/kernel/config.diff"
       cd "$workdir"
 
       if [ ! -d linux-${version} ]; then
@@ -74,21 +77,16 @@ let
       cp .config .config.baseline
 
       ${lib.optionalString (fragments != [ ]) ''
-        KCONFIG_CONFIG=.config.custom scripts/kconfig/merge_config.sh -m ${builtins.toString fragments}
-      ''}
-
-      ${lib.optionalString (fragments != [ ]) ''
         scripts/kconfig/merge_config.sh -m .config ${builtins.toString fragments}
       ''}
 
-      make olddefconfig
-      cp .config .config.before
-      make menuconfig
-      cp .config .config.after
+      cp .config .config.current
 
-      scripts/diffconfig -m .config.before .config.after > "$outdiff"
-      scripts/diffconfig -m .config.baseline .config.after > "$outmerged"
-      cp .config.after "$outfull"
+      make menuconfig
+
+      scripts/diffconfig -m .config.current .config > "$outdiff"
+      scripts/diffconfig -m .config.baseline .config > "$outmerged"
+      cp .config "$outfull"
 
       echo "Menuconfig changes: $outdiff"
       echo "Diff from ${base}: $outmerged"

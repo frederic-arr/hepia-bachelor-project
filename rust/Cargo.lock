@@ -195,6 +195,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "clang-sys"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
+dependencies = [
+ "glob",
+ "libc",
+ "libloading",
+]
+
+[[package]]
 name = "container-manager"
 version = "0.1.0"
 dependencies = [
@@ -809,6 +820,10 @@ dependencies = [
 [[package]]
 name = "init"
 version = "0.1.0"
+dependencies = [
+ "loopdev-3",
+ "rustix",
+]
 
 [[package]]
 name = "invariant-macros"
@@ -888,6 +903,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "616ec5685824bcc94416c6d4a7a446eea774a31efd7062c8480ba6fd06d7a6e5"
 
 [[package]]
+name = "loopdev-3"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff3f91f417dba260dff8932ea5ebc1eeaf8c74842555da5eb0ac7ef41176ce2b"
+dependencies = [
+ "bindgen",
+ "errno",
+ "libc",
+]
+
+[[package]]
 name = "matchers"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -913,6 +939,12 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
+
+[[package]]
+name = "minimal-lexical"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "mio"
@@ -1422,12 +1454,6 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "supervisor"
 version = "0.1.0"
-dependencies = [
- "linux-utils",
- "rustix",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "syn"

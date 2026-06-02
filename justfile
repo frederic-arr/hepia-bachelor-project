@@ -2,8 +2,7 @@
 
 mod docs 'docs/internal/justfile'
 mod proto 'proto/justfile'
-mod rust 'scripts/justfile'
-mod kernel 'kernel/justfile'
+mod rust 'rust/justfile'
 
 @help:
     just --list
