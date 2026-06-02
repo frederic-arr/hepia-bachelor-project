@@ -150,8 +150,11 @@
               buf
               plantuml
               rustToolchain
+              llvmPackages.libclang
               clang
             ];
+
+            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           };
         };
       }
