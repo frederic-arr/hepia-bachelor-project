@@ -195,23 +195,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "clang-sys"
-version = "1.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
-dependencies = [
- "glob",
- "libc",
- "libloading",
-]
-
-[[package]]
 name = "container-manager"
 version = "0.1.0"
 dependencies = [
  "bollard",
  "cos-api-reconciler",
  "cos-api-reconciler-server",
+ "cos-api-shared",
  "derive_builder",
  "futures",
  "invariant-macros",
@@ -819,12 +809,6 @@ dependencies = [
 [[package]]
 name = "init"
 version = "0.1.0"
-dependencies = [
- "linux-utils",
- "rustix",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "invariant-macros"
@@ -892,15 +876,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
-name = "linux-utils"
-version = "0.1.0"
-dependencies = [
- "loopdev-3",
- "rustix",
- "tracing",
-]
-
-[[package]]
 name = "litemap"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -911,17 +886,6 @@ name = "log"
 version = "0.4.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "616ec5685824bcc94416c6d4a7a446eea774a31efd7062c8480ba6fd06d7a6e5"
-
-[[package]]
-name = "loopdev-3"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff3f91f417dba260dff8932ea5ebc1eeaf8c74842555da5eb0ac7ef41176ce2b"
-dependencies = [
- "bindgen",
- "errno",
- "libc",
-]
 
 [[package]]
 name = "matchers"
@@ -949,12 +913,6 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
-
-[[package]]
-name = "minimal-lexical"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "mio"
