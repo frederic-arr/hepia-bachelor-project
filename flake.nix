@@ -150,6 +150,7 @@
               buf
               plantuml
               rustToolchain
+              clang
             ];
           };
         };
