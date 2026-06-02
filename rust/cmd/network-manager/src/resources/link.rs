@@ -109,7 +109,6 @@ impl Reconcilable for Link {
     }
 
     fn plan(
-        ctx: &mut Self::Context,
         input: &Self::Input,
         refreshed_state: &Self::State,
     ) -> impl Future<Output = Self::Plan> {

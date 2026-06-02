@@ -38,15 +38,11 @@ impl Reconcilable for LinkConfig {
 
     const SCHEMA: &'static str = "config#containeros::net::link";
 
-    fn refresh(
-        ctx: &mut Self::Context,
-        request: &Self::Input,
-    ) -> impl Future<Output = Self::State> {
+    fn refresh(request: &Self::Input) -> impl Future<Output = Self::State> {
         std::future::ready(LinkConfigState {})
     }
 
     fn plan(
-        ctx: &mut Self::Context,
         request: &Self::Input,
         refreshed_state: &Self::State,
     ) -> impl Future<Output = Self::Plan> {
@@ -78,7 +74,6 @@ impl Reconcilable for LinkConfig {
     }
 
     fn update(
-        ctx: &mut Self::Context,
         request: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
