@@ -21,12 +21,19 @@ let
     strictDeps = true;
 
     # Will be overriden later but set to supress warning during buildDepsOnly
-    nativeBuildInputs = [ protobuf ];
-    preBuild = ''
-      mkdir -p $sourceRoot/cmd
-      mkdir -p $sourceRoot/crates
-      cp -r ${protoSrc} ./proto
+    nativeBuildInputs = [
+      pkgs.pkg-config
+      pkgs.pkgsBuildBuild.rustPlatform.bindgenHook
+      protobuf
+    ];
+
+    postUnpack = ''
+      cp -r ${protoSrc} $sourceRoot/../proto
+      chmod -R u+w $sourceRoot/../proto
     '';
+
+    CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
+    CARGO_BUILD_RUSTFLAGS = "-C target-feature=+crt-static";
   };
 
   cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {

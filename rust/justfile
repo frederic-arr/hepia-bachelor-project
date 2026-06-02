@@ -14,7 +14,7 @@ check:
 
 fix:
     {{ cargo-cmd }} fmt --all
-    {{ cargo-cmd }} clippy {{ cargo-args }} --future-incompat-report --fix --allow-dirty
+    {{ cargo-cmd }} clippy {{ cargo-args }} --fix --allow-dirty
 
 build:
 
