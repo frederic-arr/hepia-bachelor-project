@@ -156,6 +156,9 @@
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+            CPATH = "${pkgs.linuxHeaders}/include";
+            BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.linuxHeaders}/include";
+            NIX_CFLAGS_COMPILE = "-I${pkgs.linuxHeaders}/include";
           };
         };
       }
