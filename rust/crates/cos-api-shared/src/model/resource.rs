@@ -43,7 +43,7 @@ where
     pub state: ResourceState<T>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(bound(
     serialize = "T: Serialize",
     deserialize = "T: DeserializeOwned"
@@ -203,11 +203,11 @@ where
         &mut self.spec
     }
 
-    pub fn spec_inner(&self) -> &T {
+    pub const fn spec_inner(&self) -> &T {
         self.spec.inner()
     }
 
-    pub fn spec_inner_mut(&mut self) -> &mut T {
+    pub const fn spec_inner_mut(&mut self) -> &mut T {
         self.spec.inner_mut()
     }
 
@@ -219,11 +219,11 @@ where
         &mut self.state
     }
 
-    pub fn state_inner(&self) -> Option<&T::State> {
+    pub const fn state_inner(&self) -> Option<&T::State> {
         self.state.inner()
     }
 
-    pub fn state_inner_mut(&mut self) -> Option<&mut T::State> {
+    pub const fn state_inner_mut(&mut self) -> Option<&mut T::State> {
         self.state.inner_mut()
     }
 }
@@ -306,25 +306,25 @@ where
 {
     fn into_inner(self) -> T {
         match self {
-            ResourceSpec::Running(spec) => spec,
-            ResourceSpec::Draining(spec) => spec,
-            ResourceSpec::Deleting(spec) => spec,
+            Self::Running(spec) => spec,
+            Self::Draining(spec) => spec,
+            Self::Deleting(spec) => spec,
         }
     }
 
-    fn inner(&self) -> &T {
+    const fn inner(&self) -> &T {
         match self {
-            ResourceSpec::Running(spec) => spec,
-            ResourceSpec::Draining(spec) => spec,
-            ResourceSpec::Deleting(spec) => spec,
+            Self::Running(spec) => spec,
+            Self::Draining(spec) => spec,
+            Self::Deleting(spec) => spec,
         }
     }
 
-    fn inner_mut(&mut self) -> &mut T {
+    const fn inner_mut(&mut self) -> &mut T {
         match self {
-            ResourceSpec::Running(spec) => spec,
-            ResourceSpec::Draining(spec) => spec,
-            ResourceSpec::Deleting(spec) => spec,
+            Self::Running(spec) => spec,
+            Self::Draining(spec) => spec,
+            Self::Deleting(spec) => spec,
         }
     }
 }
@@ -335,34 +335,34 @@ where
 {
     fn into_inner(self) -> Option<T::State> {
         match self {
-            ResourceState::Unset => None,
-            ResourceState::Pending { state, .. } => Some(state),
-            ResourceState::Error2 { state, .. } => Some(state),
-            ResourceState::Ready { state, .. } => Some(state),
-            ResourceState::Completed { state, .. } => Some(state),
-            ResourceState::RefreshError { state, .. } => Some(state),
+            Self::Unset => None,
+            Self::Pending { state, .. } => Some(state),
+            Self::Error2 { state, .. } => Some(state),
+            Self::Ready { state, .. } => Some(state),
+            Self::Completed { state, .. } => Some(state),
+            Self::RefreshError { state, .. } => Some(state),
         }
     }
 
-    fn inner(&self) -> Option<&T::State> {
+    const fn inner(&self) -> Option<&T::State> {
         match self {
-            ResourceState::Unset => None,
-            ResourceState::Pending { state, .. } => Some(state),
-            ResourceState::Error2 { state, .. } => Some(state),
-            ResourceState::Ready { state, .. } => Some(state),
-            ResourceState::Completed { state, .. } => Some(state),
-            ResourceState::RefreshError { state, .. } => Some(state),
+            Self::Unset => None,
+            Self::Pending { state, .. } => Some(state),
+            Self::Error2 { state, .. } => Some(state),
+            Self::Ready { state, .. } => Some(state),
+            Self::Completed { state, .. } => Some(state),
+            Self::RefreshError { state, .. } => Some(state),
         }
     }
 
-    fn inner_mut(&mut self) -> Option<&mut T::State> {
+    const fn inner_mut(&mut self) -> Option<&mut T::State> {
         match self {
-            ResourceState::Unset => None,
-            ResourceState::Pending { state, .. } => Some(state),
-            ResourceState::Error2 { state, .. } => Some(state),
-            ResourceState::Ready { state, .. } => Some(state),
-            ResourceState::Completed { state, .. } => Some(state),
-            ResourceState::RefreshError { state, .. } => Some(state),
+            Self::Unset => None,
+            Self::Pending { state, .. } => Some(state),
+            Self::Error2 { state, .. } => Some(state),
+            Self::Ready { state, .. } => Some(state),
+            Self::Completed { state, .. } => Some(state),
+            Self::RefreshError { state, .. } => Some(state),
         }
     }
 }
@@ -390,7 +390,11 @@ where
     type Error = String;
 
     fn try_from(value: ResourceSpec<T>) -> Result<Self, Self::Error> {
-        use v1::resource_meta::Spec::*;
+        use v1::resource_meta::Spec::{
+            SpecDeleting,
+            SpecDraining,
+            SpecRunning,
+        };
 
         match value {
             ResourceSpec::Running(spec) => spec
@@ -416,7 +420,13 @@ where
     type Error = String;
 
     fn try_from(value: ResourceState<T>) -> Result<Self, Self::Error> {
-        use v1::resource_meta::State::*;
+        use v1::resource_meta::State::{
+            StateCompleted,
+            StateError,
+            StatePending,
+            StateReady,
+            StateUnset,
+        };
 
         match value {
             ResourceState::Unset => Ok(StateUnset(())),
@@ -566,7 +576,11 @@ where
     type Error = String;
 
     fn try_from(value: v1::resource_meta::Spec) -> Result<Self, Self::Error> {
-        use v1::resource_meta::Spec::*;
+        use v1::resource_meta::Spec::{
+            SpecDeleting,
+            SpecDraining,
+            SpecRunning,
+        };
 
         match value {
             SpecRunning(data) => rmp_serde::from_slice::<T>(&data)
@@ -591,10 +605,17 @@ where
     fn try_from(
         value: v1::resource_meta::State,
     ) -> Result<Self, <Self as TryFrom<v1::resource_meta::State>>::Error> {
-        use v1::resource_meta::State::*;
+        use v1::resource_meta::State::{
+            StateCompleted,
+            StateError,
+            StatePending,
+            StateReady,
+            StateRefreshError,
+            StateUnset,
+        };
 
         match value {
-            StateUnset(_) => Ok(Self::Unset),
+            StateUnset(()) => Ok(Self::Unset),
             StatePending(v1::ResourceState { state, state_at }) => {
                 rmp_serde::from_slice::<T::State>(&state)
                     .map_err(|_| "invalid state".to_string())

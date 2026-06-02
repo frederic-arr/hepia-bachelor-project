@@ -108,10 +108,10 @@ impl Reconcilable for Link {
         state.build().map(Some).unwrap()
     }
 
-    async fn plan(
+    fn plan(
         input: &Self::Input,
         refreshed_state: &Self::State,
-    ) -> Self::Plan {
+    ) -> impl Future<Output = Self::Plan> {
         let mut msg = LinkDummy::new(&input.name);
         let empty = LinkDummy::new(&input.name).build();
 
@@ -126,13 +126,15 @@ impl Reconcilable for Link {
 
         let msg = msg.build();
         if msg == empty {
-            return LinkPlan::Noop;
+            return std::future::ready(LinkPlan::Noop);
         }
 
-        match refreshed_state {
+        let state = match refreshed_state {
             Some(_) => LinkPlan::Modify(msg),
             None => LinkPlan::Create(msg),
-        }
+        };
+
+        std::future::ready(state)
     }
 
     async fn apply(

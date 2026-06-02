@@ -36,14 +36,14 @@ impl Reconcilable for LinkConfig {
 
     const SCHEMA: &'static str = "config#containeros::net::link";
 
-    async fn refresh(request: &Self::Input) -> Self::State {
-        LinkConfigState {}
+    fn refresh(request: &Self::Input) -> impl Future<Output = Self::State> {
+        std::future::ready(LinkConfigState {})
     }
 
-    async fn plan(
+    fn plan(
         request: &Self::Input,
         refreshed_state: &Self::State,
-    ) -> Self::Plan {
+    ) -> impl Future<Output = Self::Plan> {
         let link_id = Identity {
             schema: "res#containeros::net::link".to_string(),
             name: request.name.clone(),
@@ -59,7 +59,8 @@ impl Reconcilable for LinkConfig {
         };
 
         let children = vec![link_spec];
-        LinkConfigPlan { children }
+        let plan = LinkConfigPlan { children };
+        std::future::ready(plan)
     }
 
     async fn apply(
@@ -69,13 +70,13 @@ impl Reconcilable for LinkConfig {
     ) -> Self::Apply {
     }
 
-    async fn update(
+    fn update(
         request: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
         apply: &Self::Apply,
-    ) -> Self::Output {
-        v1::ReconcileUserConfigResponse {
+    ) -> impl Future<Output = Self::Output> {
+        let response = v1::ReconcileUserConfigResponse {
             children: plan
                 .children
                 .iter()
@@ -86,6 +87,8 @@ impl Reconcilable for LinkConfig {
                 })
                 .collect(),
             state: rmp_serde::to_vec_named(refreshed_state).unwrap(),
-        }
+        };
+
+        std::future::ready(response)
     }
 }

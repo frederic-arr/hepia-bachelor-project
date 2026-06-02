@@ -65,11 +65,11 @@ macro_rules! delegate_to_meta {
             self.meta().state()
         }
 
-        pub fn spec_inner(&self) -> &T {
+        pub const fn spec_inner(&self) -> &T {
             self.meta().spec_inner()
         }
 
-        pub fn state_inner(&self) -> Option<&T::State> {
+        pub const fn state_inner(&self) -> Option<&T::State> {
             self.meta().state_inner()
         }
     };
@@ -97,11 +97,11 @@ macro_rules! delegate_to_meta {
             self.meta_mut().state_mut()
         }
 
-        pub fn spec_inner_mut(&mut self) -> &mut T {
+        pub const fn spec_inner_mut(&mut self) -> &mut T {
             self.meta_mut().spec_inner_mut()
         }
 
-        pub fn state_inner_mut(&mut self) -> Option<&mut T::State> {
+        pub const fn state_inner_mut(&mut self) -> Option<&mut T::State> {
             self.meta_mut().state_inner_mut()
         }
     };
