@@ -1,14 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
-    "bin/network-manager",
-    # "bin/container-manager",
-    "bin/system-manager",
-    # "packages/cos-api-shared",
-    "packages/cos-api-reconciler",
-    "packages/cos-api-reconciler-client",
-    "packages/cos-api-reconciler-server",
-    "packages/invariant-macros"
+    "cmd/*",
+    "crates/*"
 ]
 
 [workspace.lints.rust]
@@ -34,12 +28,6 @@ non_kebab_case_features = "forbid"
 unused_dependencies = "allow" # TODO: remove
 
 [workspace.dependencies]
-cos-api-shared = { path = "packages/cos-api-shared" }
-cos-api-reconciler = { path = "packages/cos-api-reconciler" }
-cos-api-reconciler-client = { path = "packages/cos-api-reconciler-client" }
-cos-api-reconciler-server = { path = "packages/cos-api-reconciler-server" }
-invariant-macros = { path = "packages/invariant-macros" }
-
 prost = { version = "0.14.3", default-features = false }
 prost-types = { version = "0.14.3", default-features = false, features = ["std"] }
 rtnetlink = { version = "0.21.0", default-features = false, features = ["tokio_socket"] }

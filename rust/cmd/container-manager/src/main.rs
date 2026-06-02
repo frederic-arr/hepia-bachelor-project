@@ -1,3 +1,4 @@
+/*
 mod resources;
 
 use std::process::{Child, Command, Stdio};
@@ -196,3 +197,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+*/
+
+fn main() {}

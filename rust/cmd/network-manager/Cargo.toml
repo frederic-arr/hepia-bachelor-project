@@ -7,9 +7,9 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-cos-api-reconciler.workspace = true
-cos-api-reconciler-server.workspace = true
-invariant-macros.workspace = true
+cos-api-reconciler.path = "../../crates/cos-api-reconciler"
+cos-api-reconciler-server.path = "../../crates/cos-api-reconciler-server"
+invariant-macros.path = "../../crates/invariant-macros"
 tokio.workspace = true
 tonic.workspace = true
 rtnetlink.workspace = true

@@ -1,6 +1,5 @@
 #![feature(map_try_insert)]
 #![feature(iterator_try_reduce)]
-#![feature(bool_to_result)]
 #![feature(iterator_try_collect)]
 
 mod resources;
