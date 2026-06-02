@@ -152,6 +152,7 @@
               rustToolchain
               llvmPackages.libclang
               clang
+              linuxHeaders
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
