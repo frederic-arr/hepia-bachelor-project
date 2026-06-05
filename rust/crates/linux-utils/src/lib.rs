@@ -29,27 +29,26 @@ pub enum SpecialFs {
 }
 
 impl SpecialFs {
-    #[must_use]
-    pub const fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         match self {
-            Self::Sys => "sysfs",
-            Self::Proc => "proc",
-            Self::Dev => "devtmpfs",
-            Self::Cgroup2 => "cgroup2",
-            Self::Tmp => "tmpfs",
-            Self::DevPts => "devpts",
-            Self::Hugetlbfs => "hugetlbfs",
-            Self::Bpf => "bpf",
-            Self::Trace => "tracefs",
-            Self::Config => "configfs",
-            Self::Debug => "debufs",
-            Self::Security => "securityfs",
+            SpecialFs::Sys => "sysfs",
+            SpecialFs::Proc => "proc",
+            SpecialFs::Dev => "devtmpfs",
+            SpecialFs::Cgroup2 => "cgroup2",
+            SpecialFs::Tmp => "tmpfs",
+            SpecialFs::DevPts => "devpts",
+            SpecialFs::Hugetlbfs => "hugetlbfs",
+            SpecialFs::Bpf => "bpf",
+            SpecialFs::Trace => "tracefs",
+            SpecialFs::Config => "configfs",
+            SpecialFs::Debug => "debufs",
+            SpecialFs::Security => "securityfs",
         }
     }
 }
 
 pub fn mount_special<Target>(
-    fs_type: &SpecialFs,
+    fs_type: SpecialFs,
     target: Target,
     flags: MountFlags,
     options: &[&str],

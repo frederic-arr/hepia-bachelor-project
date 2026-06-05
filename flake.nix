@@ -53,17 +53,22 @@
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          paths  = [ supervisor ];
+          # paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox ];
+          paths  = [ supervisor pkgs.podman pkgs.busybox ];
           pathsToLink = [ "/bin" "/lib" ];
         };
 
-        # Inspired by https://git.jeffas.net/nixpkgs/files/nixos/lib/make-squashfs.nix.html
+        # Inspired by https://github.com/NixOS/nixpkgs/blob/26.05/nixos/lib/make-squashfs.nix
         # Which seems to be the source somewhat?
+        # https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
         # TODO: Add compression?
         rootfs = pkgs.runCommand "mkrootfs" { } ''
           closureInfo=${pkgs.closureInfo { rootPaths = [ rootfsEnv ]; }}
           mkdir -p source/nix/store
-          mkdir -p source/{dev,run,proc,sys}
+          mkdir -p source/{bin,lib}
+          mkdir -p source/{dev,proc,sys}
+          mkdir -p source/{etc,home,media,mnt,opt,run,sbin,srv,tmp,usr,var}
+
           cp -a ${rootfsEnv}/. source/
 
           cp "$closureInfo/registration" source/nix/store/
@@ -86,17 +91,27 @@
 
         init = rustFn {
           package = "init";
-          deps = [ "invariant-macros" ];
+          deps = [ "linux-utils" "invariant-macros" ];
         };
 
         supervisor = rustFn {
           package = "supervisor";
-          deps = [ "invariant-macros" ];
+          deps = [ "linux-utils" "invariant-macros" ];
         };
 
         netmgr = rustFn {
           package = "network-manager";
           deps = [ "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-server" ];
+        };
+
+        conmgr = rustFn {
+          package = "container-manager";
+          deps = [ "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-server" ];
+        };
+
+        sysmgr = rustFn {
+          package = "system-manager";
+          deps = [ "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-client" ];
         };
 
         qemu-boot-x86_64 = pkgs.runCommand "boot-x86_64" { } ''

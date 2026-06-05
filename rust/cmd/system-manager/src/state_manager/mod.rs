@@ -23,12 +23,10 @@ pub struct StateManager {
 
 impl StateManager {
     pub fn new() -> Self {
-        let conn =
-            Endpoint::from_static("http://127.0.0.1:50052").connect_lazy();
+        let conn = Endpoint::from_static("http://127.0.0.1:50052").connect_lazy();
         let client = ReconcilerServiceClient::new(conn);
 
-        let conn2 =
-            Endpoint::from_static("http://127.0.0.1:50053").connect_lazy();
+        let conn2 = Endpoint::from_static("http://127.0.0.1:50053").connect_lazy();
         let client2 = ReconcilerServiceClient::new(conn2);
 
         // TODO: Add proper reconciler registration

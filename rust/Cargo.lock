@@ -212,7 +212,6 @@ dependencies = [
  "bollard",
  "cos-api-reconciler",
  "cos-api-reconciler-server",
- "cos-api-shared",
  "derive_builder",
  "futures",
  "invariant-macros",
@@ -821,8 +820,10 @@ dependencies = [
 name = "init"
 version = "0.1.0"
 dependencies = [
- "loopdev-3",
+ "linux-utils",
  "rustix",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -889,6 +890,15 @@ name = "linux-raw-sys"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
+
+[[package]]
+name = "linux-utils"
+version = "0.1.0"
+dependencies = [
+ "loopdev-3",
+ "rustix",
+ "tracing",
+]
 
 [[package]]
 name = "litemap"
@@ -1454,6 +1464,12 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "supervisor"
 version = "0.1.0"
+dependencies = [
+ "linux-utils",
+ "rustix",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "syn"

@@ -7,6 +7,7 @@ edition = "2024"
 workspace = true
 
 [dependencies]
+linux-utils.path = "../../crates/linux-utils"
+tracing.workspace = true
+tracing-subscriber.workspace = true
 rustix.workspace = true
-loopdev.workspace = true
-# tracing.workspace = true

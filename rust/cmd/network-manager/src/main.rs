@@ -31,9 +31,9 @@ impl NetworkManagerReconcilerService {
     fn new() -> Self {
         let mut f = std::fs::File::create("/etc/resolv.conf").unwrap();
         f.write_all(
-            br"
+            br#"
     nameserver 9.9.9.9
-    ",
+    "#,
         )
         .unwrap();
 
