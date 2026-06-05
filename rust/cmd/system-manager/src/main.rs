@@ -6,6 +6,7 @@ mod resources;
 mod state_manager;
 
 use std::collections::HashSet;
+use std::time::Duration;
 
 use serde_json::json;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -68,6 +69,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         name: "dummy0".to_string(),
     };
 
+    // sm.state_manager.resources.insert(
+    //     id.clone(),
+    //     resources::Resource::UserConfig(UserConfig {
+    //         schema: id.schema,
+    //         name: id.name,
+    //         spec: Spec(spec),
+    //         state: ResourceState::Unset,
+    //     }),
+    // );
+
+    let spec = json!({
+        "image": "docker.io/library/busybox:latest",
+        "running": true,
+        "cmd": ["sleep", "infinity"]
+    });
+
+    let spec = rmp_serde::to_vec(&spec).unwrap();
+    let id = Identity {
+        schema: "config#containeros::container::container".to_string(),
+        name: "bbox3".to_string(),
+    };
+
     sm.state_manager.resources.insert(
         id.clone(),
         resources::Resource::UserConfig(UserConfig {
@@ -78,7 +101,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
     );
 
-    sm.state_manager.reconciliation_loop().await;
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    // sm.state_manager.reconciliation_loop().await;
     drop(sm);
     Ok(())
 }

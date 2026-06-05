@@ -11,38 +11,41 @@ use cos_api_reconciler_server::Reconcilable;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::resources::LinkSpec;
+use crate::resources::ContainerSpec;
 
-pub struct LinkConfig;
+pub struct ContainerConfig;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-pub struct LinkConfigSpec {
-    pub up: bool,
+pub struct ContainerConfigSpec {
+    pub image: String,
+    pub running: bool,
+    pub cmd: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-pub struct LinkConfigState {}
+pub struct ContainerConfigState {}
 
 #[derive(Debug)]
-pub struct LinkConfigPlan {
+pub struct ContainerConfigPlan {
     children: Vec<SubResourceCreate>,
 }
 
-impl Reconcilable for LinkConfig {
+impl Reconcilable for ContainerConfig {
     type Apply = ();
     type Context = ();
-    type Input = ReconcileUserConfigRequest<LinkConfigSpec, LinkConfigState>;
+    type Input =
+        ReconcileUserConfigRequest<ContainerConfigSpec, ContainerConfigState>;
     type Output = v1::ReconcileUserConfigResponse;
-    type Plan = LinkConfigPlan;
-    type State = LinkConfigState;
+    type Plan = ContainerConfigPlan;
+    type State = ContainerConfigState;
 
-    const SCHEMA: &'static str = "config#containeros::net::link";
+    const SCHEMA: &'static str = "config#containeros::container::container";
 
     fn refresh(
         ctx: &mut Self::Context,
         request: &Self::Input,
     ) -> impl Future<Output = Self::State> {
-        std::future::ready(LinkConfigState {})
+        std::future::ready(ContainerConfigState {})
     }
 
     fn plan(
@@ -50,22 +53,24 @@ impl Reconcilable for LinkConfig {
         request: &Self::Input,
         refreshed_state: &Self::State,
     ) -> impl Future<Output = Self::Plan> {
-        let link_id = Identity {
-            schema: "res#containeros::net::link".to_string(),
+        let container_resource_id = Identity {
+            schema: "res#containeros::container::container".to_string(),
             name: request.name.clone(),
         };
 
-        let link_spec = SubResourceCreate {
-            schema: link_id.schema.clone(),
-            name: link_id.name,
-            spec: rmp_serde::to_vec(&LinkSpec {
-                admin_up: request.spec.up,
+        let container_spec = SubResourceCreate {
+            schema: container_resource_id.schema.clone(),
+            name: container_resource_id.name,
+            spec: rmp_serde::to_vec(&ContainerSpec {
+                image: request.spec.image.clone(),
+                running: request.spec.running,
+                cmd: request.spec.cmd.clone(),
             })
             .unwrap(),
         };
 
-        let children = vec![link_spec];
-        let plan = LinkConfigPlan { children };
+        let children = vec![container_spec];
+        let plan = ContainerConfigPlan { children };
         std::future::ready(plan)
     }
 

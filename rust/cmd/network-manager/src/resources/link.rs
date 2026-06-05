@@ -1,13 +1,12 @@
 use cos_api_reconciler::ReconcileDynamicResourceRequest;
 use cos_api_reconciler::proto::v1;
+use cos_api_reconciler_server::Reconcilable;
 use derive_builder::Builder;
 use futures::StreamExt;
 use rtnetlink::packet_route::link::{LinkAttribute, LinkFlags, LinkMessage};
 use rtnetlink::{Handle, LinkDummy, new_connection};
 use rustix::io::Errno;
 use serde::{Deserialize, Serialize};
-
-use crate::resources::Reconcilable;
 
 pub struct Link;
 
@@ -49,6 +48,7 @@ pub enum LinkPlan {
 
 impl Reconcilable for Link {
     type Apply = ();
+    type Context = Handle;
     type Input = ReconcileDynamicResourceRequest<LinkSpec, LinkState>;
     type Output = v1::ReconcileDynamicResourceResponse;
     type Plan = LinkPlan;
@@ -56,14 +56,14 @@ impl Reconcilable for Link {
 
     const SCHEMA: &'static str = "res#containeros::net::link";
 
-    async fn refresh(input: &Self::Input) -> Self::State {
-        let (conn, mut rtnl, _) = new_connection().unwrap();
-        tokio::spawn(conn);
-
+    async fn refresh(
+        ctx: &mut Self::Context,
+        input: &Self::Input,
+    ) -> Self::State {
         let mut state = LinkStateBuilder::default();
 
         let mut links =
-            rtnl.link().get().match_name(input.name.clone()).execute();
+            ctx.link().get().match_name(input.name.clone()).execute();
 
         let link = links.next().await.expect("at least one RTNL message");
         assert!(
@@ -109,6 +109,7 @@ impl Reconcilable for Link {
     }
 
     fn plan(
+        ctx: &mut Self::Context,
         input: &Self::Input,
         refreshed_state: &Self::State,
     ) -> impl Future<Output = Self::Plan> {
@@ -138,34 +139,36 @@ impl Reconcilable for Link {
     }
 
     async fn apply(
+        ctx: &mut Self::Context,
         input: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
     ) -> Self::Apply {
-        let (conn, mut rtnl, _) = new_connection().unwrap();
-        let task = tokio::spawn(conn);
+        // let (conn, mut rtnl, _) = new_connection().unwrap();
+        // let task = tokio::spawn(conn);
 
         match plan {
             LinkPlan::Create(msg) => {
-                rtnl.link().add(msg.clone()).execute().await.unwrap();
+                ctx.link().add(msg.clone()).execute().await.unwrap();
             }
             LinkPlan::Modify(msg) => {
-                rtnl.link().change(msg.clone()).execute().await.unwrap();
+                ctx.link().change(msg.clone()).execute().await.unwrap();
             }
             LinkPlan::Delete(index) => {
-                rtnl.link().del(*index).execute().await.unwrap();
+                ctx.link().del(*index).execute().await.unwrap();
             }
             LinkPlan::Noop => (),
         }
     }
 
     async fn update(
+        ctx: &mut Self::Context,
         input: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
         apply: &Self::Apply,
     ) -> Self::Output {
-        let new_state = Self::refresh(input).await.unwrap();
+        let new_state = Self::refresh(ctx, input).await.unwrap();
         v1::ReconcileDynamicResourceResponse {
             state: rmp_serde::to_vec_named(&new_state).unwrap(),
             children: vec![],

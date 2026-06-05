@@ -7,7 +7,6 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-cos-api-shared.path = "../../crates/cos-api-shared"
 cos-api-reconciler.path = "../../crates/cos-api-reconciler"
 cos-api-reconciler-server.path = "../../crates/cos-api-reconciler-server"
 invariant-macros.path = "../../crates/invariant-macros"

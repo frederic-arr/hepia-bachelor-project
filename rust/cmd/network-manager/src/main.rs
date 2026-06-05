@@ -1,12 +1,16 @@
 mod resources;
 
+use std::io::Write;
+
 use cos_api_reconciler::proto::v1;
 use cos_api_reconciler::{
     Identity,
     ReconcileDynamicResourceRequest,
     ReconcileUserConfigRequest,
 };
+use cos_api_reconciler_server::Reconcilable;
 use cos_api_reconciler_server::proto::v1 as v1_svc;
+use rtnetlink::{Handle, LinkMessageBuilder, LinkUnspec, new_connection};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status, async_trait};
 
@@ -17,14 +21,26 @@ use crate::resources::{
     LinkConfigState,
     LinkSpec,
     LinkState,
-    Reconcilable,
 };
 
-struct NetworkManagerReconcilerService;
+struct NetworkManagerReconcilerService {
+    rtnl: Handle,
+}
 
 impl NetworkManagerReconcilerService {
-    const fn new() -> Self {
-        Self
+    fn new() -> Self {
+        let mut f = std::fs::File::create("/etc/resolv.conf").unwrap();
+        f.write_all(
+            br#"
+    nameserver 9.9.9.9
+    "#,
+        )
+        .unwrap();
+
+        let (conn, mut rtnl, _) = new_connection().unwrap();
+        tokio::spawn(conn);
+
+        Self { rtnl }
     }
 }
 
@@ -62,7 +78,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                         .collect(),
                 };
 
-                let response = LinkConfig::reconcile(&request).await;
+                let response = LinkConfig::reconcile(&mut (), &request).await;
                 Ok(Response::new(response))
             }
             _ => todo!(),
@@ -103,7 +119,8 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                             .collect(),
                     };
 
-                let response = Link::reconcile(&request).await;
+                let response =
+                    Link::reconcile(&mut self.rtnl.clone(), &request).await;
                 Ok(Response::new(response))
             }
             _ => todo!(),
@@ -113,7 +130,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50052".parse().unwrap();
+    let addr = "127.0.0.1:50052".parse().unwrap();
     let svc = NetworkManagerReconcilerService::new();
 
     println!("network-manager listening on {addr}");
