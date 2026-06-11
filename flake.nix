@@ -168,6 +168,20 @@
               llvmPackages.libclang
               clang
               linuxHeaders
+              bison
+              flex
+              perl
+              bc
+              openssl
+              rsync
+              gmp
+              libmpc
+              mpfr
+              elfutils
+              zstd
+              python3Minimal
+              kmod
+              hexdump
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
