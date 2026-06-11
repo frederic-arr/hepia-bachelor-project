@@ -12,5 +12,8 @@
     ],
     "files.associations": {
         "buf.yaml": "yaml"
-    }
+    },
+    "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
+    "nixEnvSelector.useFlakes": true,
+    "nixEnvSelector.flakeShell": "default"
 }

@@ -4,5 +4,8 @@
         "editorconfig.editorconfig",
         "bufbuild.vscode-buf",
         "redhat.vscode-yaml",
+        "arrterian.nix-env-selector",
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
     ]
 }
