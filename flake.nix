@@ -31,7 +31,7 @@
         x86_64-generic = kernelFn {
           arch      = "x86_64";
           base      = "defconfig";
-          fragments = [ ./kernel/common/common.conf ];
+          fragments = [ ./kernel/shared/common.conf ];
         };
 
         initrd = pkgs.makeInitrdNG {
