@@ -1,4 +1,4 @@
-/target
+target/
 *.pdf
 .env
 .env.*
@@ -6,3 +6,4 @@
 
 # Rust Internal Compiler Errors
 rustc-ice-*.txt
+result

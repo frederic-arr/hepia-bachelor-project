@@ -1,0 +1,21 @@
+[package]
+name = "network-manager"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+cos-api-reconciler.path = "../../crates/cos-api-reconciler"
+cos-api-reconciler-server.path = "../../crates/cos-api-reconciler-server"
+invariant-macros.path = "../../crates/invariant-macros"
+tokio.workspace = true
+tonic.workspace = true
+rtnetlink.workspace = true
+futures.workspace = true
+rustix.workspace = true
+derive_builder.workspace = true
+serde.workspace = true
+rmp-serde.workspace = true
+thiserror.workspace = true

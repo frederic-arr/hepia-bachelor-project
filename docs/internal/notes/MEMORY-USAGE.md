@@ -1,3 +1,4 @@
+## Reducing memory usage
 In crate's `Cargo.toml`:
 ```toml
 cargo-features = ["panic-immediate-abort"]
@@ -17,9 +18,9 @@ build-std = ["std", "panic_abort"]
 build-std-features = ["optimize_for_size"]
 
 [build]
-target = "x86_64-unknown-linux-gnu"
+target = "x86_64-unknown-linux-musl"
 
-[target.x86_64-unknown-linux-gnu]
+[target.x86_64-unknown-linux-musl]
 rustflags = [
     "-Ctarget-feature=+crt-static",
     "-Zunstable-options",

@@ -41,12 +41,12 @@ check-proto:
 check-rust:
   stage: check
   script: nix develop -c just rust check
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - .cargo-cache/registry
-      - .cargo-cache/git
-      - target/
+  # cache:
+  #   key: ${CI_COMMIT_REF_SLUG}
+  #   paths:
+  #     - .cargo-cache/registry
+  #     - .cargo-cache/git
+  #     - target/
 
 # https://rustprojectprimer.com/ci/index.html
 
