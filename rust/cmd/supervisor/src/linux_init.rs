@@ -22,14 +22,15 @@ const MFSEC: MountFlags = MountFlags::from_bits_truncate(
         | MountFlags::RELATIME.bits(),
 );
 
+#[allow(clippy::unnecessary_wraps)]
 fn create_rfs() -> std::io::Result<()> {
-    mount_special(SpecialFs::Sys, "/sys", MFSEC, &[]).unwrap();
-    mount_special(SpecialFs::Tmp, "/tmp", MFSEC, &[]).unwrap();
-    mount_special(SpecialFs::Tmp, "/run", MFSEC, &[]).unwrap();
-    mount_special(SpecialFs::Tmp, "/dev/shm", MFSEC, &[]).unwrap();
+    mount_special(&SpecialFs::Sys, "/sys", MFSEC, &[]).unwrap();
+    mount_special(&SpecialFs::Tmp, "/tmp", MFSEC, &[]).unwrap();
+    mount_special(&SpecialFs::Tmp, "/run", MFSEC, &[]).unwrap();
+    mount_special(&SpecialFs::Tmp, "/dev/shm", MFSEC, &[]).unwrap();
 
     mount_special(
-        SpecialFs::DevPts,
+        &SpecialFs::DevPts,
         "/dev/pts",
         MountFlags::NOSUID | MountFlags::NOEXEC | MountFlags::RELATIME,
         &["mode=620"],
@@ -37,7 +38,7 @@ fn create_rfs() -> std::io::Result<()> {
     .unwrap();
 
     mount_special(
-        SpecialFs::Hugetlbfs,
+        &SpecialFs::Hugetlbfs,
         "/dev/hugepages",
         MountFlags::NOSUID | MountFlags::NODEV | MountFlags::RELATIME,
         &["pagesize=2M"],
@@ -45,7 +46,7 @@ fn create_rfs() -> std::io::Result<()> {
     .unwrap();
 
     mount_special(
-        SpecialFs::Trace,
+        &SpecialFs::Trace,
         "/sys/kernel/tracing",
         MFSEC,
         &[],
@@ -79,7 +80,7 @@ fn create_rfs() -> std::io::Result<()> {
     // )
     // .unwrap();
 
-    mount_special(SpecialFs::Cgroup2, "/sys/fs/cgroup", MFSEC, &[]).unwrap();
+    mount_special(&SpecialFs::Cgroup2, "/sys/fs/cgroup", MFSEC, &[]).unwrap();
 
     let tmpfs = [
         "/etc", "/home", "/media", "/mnt", "/opt", "/run", "/sbin", "/srv",
@@ -87,7 +88,7 @@ fn create_rfs() -> std::io::Result<()> {
     ];
 
     for target in tmpfs {
-        mount_special(SpecialFs::Tmp, target, MFSEC, &[]).unwrap();
+        mount_special(&SpecialFs::Tmp, target, MFSEC, &[]).unwrap();
     }
 
     let dirs = [

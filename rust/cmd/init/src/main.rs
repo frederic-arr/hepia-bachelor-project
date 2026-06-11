@@ -26,14 +26,14 @@ fn switch_root(new_root: &str, init: &str) -> std::io::Result<()> {
 
 fn mount_pseudofs() -> std::io::Result<()> {
     mount_special(
-        SpecialFs::Dev,
+        &SpecialFs::Dev,
         "/dev",
         MountFlags::NOSUID | MountFlags::RELATIME,
         &["mode=755"],
     )?;
 
     mount_special(
-        SpecialFs::Proc,
+        &SpecialFs::Proc,
         "/proc",
         MountFlags::NOSUID
             | MountFlags::NOEXEC
@@ -54,5 +54,3 @@ fn main() {
     switch_root("/mnt", "/bin/supervisor").unwrap();
     unreachable!();
 }
-
-// /bin/podman pull docker.io/library/busybox:latest
