@@ -12,18 +12,38 @@
         commandes précédentes
     - Globalement c'est beaucoup plus simple a l'utilisation
 - Désavantages:
-    - Plus compliqué a implémenter vu qu'on déplace toute la complexité dans le systpme au lieu de laisser l'utilisateur se débrouiller
+    - Plus compliqué a implémenter vu qu'on déplace toute la complexité dans le
+        systpme au lieu de laisser l'utilisateur se débrouiller
     - Dans un sens, moins flexible pour l'utilisateur
 - Découpage de la configuration en resources
     - iface réseau, disque, route, etc.
-    - facteur de différenciaction entre les type resources: a expliquer pck je sais pas comment
-    - chaque type de resource est géré par uniquement un gestionnaire ("manager") dans lequel est implmenté la logique
+    - facteur de différenciaction entre les type resources: a expliquer pck je
+        sais pas comment
+    - chaque type de resource est géré par uniquement un gestionnaire
+        ("manager") dans lequel est implmenté la logique
 - Il y a deux grande catégories de resources:
-    - d'une part les "user config", ça c'est la configuration fournise par l'utilisateur, elle est immuable et est la source de toutes les autres
-    - d'autre part il y a les "dynamic resources", ces resources découlent directement d'un user config, elle représente une resource réels et peuvent être modifié par le système. Leur utilité est de représenter un systpme qui, par nature, est dynamique. Par exemple une configuration utilisateur DHCP, va devoir configurer une interface de manière largement similaire a une assignation statique par exemple
-    - ça permet aussi d'avoir un lien de dépendance orchestré en interne. par exemple lorsqu'on déclare un conteneur, il y a enfaite deux resources: le conteneur et son image. le conteneur dépend de l'image mais c'est implicite, et le téléchargement de l'image peut être séparer de la gestion du conteneur (déjà parce qu'on pourrait directement crée le conteneur sur une archive tar.gz au lieu d'une image remote)
-- Maintenant il y a plusieurs problèmatiques, d'une part qu'est-ce qui lance une réconciliation? On a l'upload d'une nouvelle config utilisateur, la réaction a un évenemetn d'une resource (contenenur exit, iface disconnect, disk hotplug, etc.), mais aussi la création d'une sous-resoiurce.
-- A partir de la, deux options: soit c'est le dépôt de configuration qui orchestre le tout, soit c'est le manager responsable d'une resource qui s'occupe lui même de lancer la réconciliation. Ces deux approches sont symétriquement opposés, voici le TLDR en anglais
+    - d'une part les "user config", ça c'est la configuration fournise par
+        l'utilisateur, elle est immuable et est la source de toutes les autres
+    - d'autre part il y a les "dynamic resources", ces resources découlent
+        directement d'un user config, elle représente une resource réels et
+        peuvent être modifié par le système. Leur utilité est de représenter un
+        systpme qui, par nature, est dynamique. Par exemple une configuration
+        utilisateur DHCP, va devoir configurer une interface de manière
+        largement similaire a une assignation statique par exemple
+    - ça permet aussi d'avoir un lien de dépendance orchestré en interne. par
+        exemple lorsqu'on déclare un conteneur, il y a enfaite deux resources:
+        le conteneur et son image. le conteneur dépend de l'image mais c'est
+        implicite, et le téléchargement de l'image peut être séparer de la
+        gestion du conteneur (déjà parce qu'on pourrait directement crée le
+        conteneur sur une archive tar.gz au lieu d'une image remote)
+- Maintenant il y a plusieurs problèmatiques, d'une part qu'est-ce qui lance une
+    réconciliation? On a l'upload d'une nouvelle config utilisateur, la réaction
+    a un évenemetn d'une resource (contenenur exit, iface disconnect, disk
+    hotplug, etc.), mais aussi la création d'une sous-resoiurce.
+- A partir de la, deux options: soit c'est le dépôt de configuration qui
+    orchestre le tout, soit c'est le manager responsable d'une resource qui
+    s'occupe lui même de lancer la réconciliation. Ces deux approches sont
+    symétriquement opposés, voici le TLDR en anglais
 
 #let row-label(body) = {
     set par(justify: false)
@@ -111,8 +131,14 @@
             are required to work for the system to work too.],
     ),
 )
-- On a choisi l'approche centralisé. Cette approche ne scale pas du tout, mais c'est pas un problème, car le système n'est pas distribué et n'a pas pour but d'executer des milliers de conteneurs sur un seul système. Pour rappel on veut un minimum d'overhead. Si on déploie des milliers de conteneurs c'est qu'on a plein de resources et qu'on peut utiliser un orhcestrateur tel que K8S.
-- Outre ça, le design la logique de réconciliation est fait de manière à être adaptable plus ou moins facilement a l'un ou l'autre des système.
+- On a choisi l'approche centralisé. Cette approche ne scale pas du tout, mais
+    c'est pas un problème, car le système n'est pas distribué et n'a pas pour
+    but d'executer des milliers de conteneurs sur un seul système. Pour rappel
+    on veut un minimum d'overhead. Si on déploie des milliers de conteneurs
+    c'est qu'on a plein de resources et qu'on peut utiliser un orhcestrateur tel
+    que K8S.
+- Outre ça, le design la logique de réconciliation est fait de manière à être
+    adaptable plus ou moins facilement a l'un ou l'autre des système.
 - Le poitn d'entrée de la fonction
 
 = Configuration du système
