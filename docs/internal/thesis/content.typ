@@ -1,113 +1,210 @@
-= Réconciliation d'une resource
+#set text(lang: "fr", hyphenate: false)
+#set par(justify: true)
 
-Chaque type de resource dispose de sa propre logique de réconciliation,
-toutefois, elles suivent toutes une procédure commune. La commande qui initie la
-réconciliation contient l'identité de la resource à réconcilier, sont état
-désiré (spécification), ainsi que l'état actuel calculé durant l'appel
-précédent.
+#import "lib.typ": *
 
-Tout d'abord l'état actuel va être recalculé via `refresh()`. Ensuite, `plan()`
-va comparer le nouvel état actuel avec l'état désiré et sortir un plan qui
-représente les actions a entreprendre _immédiatement_ pour faire converger les
-deux. Il est important de noter ici que _immédiatement_ veut dire que l'ensemble
-des actions doit être réalisable en un temps court. Si l'action est de longue
-durée (par exemple un téléchargement), alors celle-ci constitue la seul action
-du plan. Une fois le plan calculé, celui-ci peut être appliqué. Lorsque l'action
-entreprise prende longtemps, alors celle-ci est lancée en arrière-plan, de sorte
-à ce que la fonction `apply()` retourne dans un délai assez bref. Cette
-exécution en arrière plan doit être fait de sorte a ce que un appel ultérieur a
-`reconcile()` ne génère pas de nouvelles tâches d'arrière-plan si cela n'est pas
-nécessaire (pour ne pas télécahrger un fichier deux fois par exemple).
+= Conception du système
+// Contient tout ce qui est important pour l'utilisateur final.
 
-Enfin, la fonction `update()` va prendre l'ensemble de ces données, et produire
-une réponse à transmettre à l'appelant. Cette fonction est utile car, dans le
-cadre d'un apply, c'est ici que l'état actuel peut être recalculé une seconde
-fois, toutefois, si le plan ne possède aucun changement, alors on peut
-réutiliser l'état que nous avions déjà récupérer dans `refresh()`.
+// Objectifs du chapitre
+// Plan du chapitre
+// Résultats du chapitre
 
-= Orchestration de la réconciliation
+== Principes
 
-Chaque resource dispose de sa propre logique de réconciliation, gérée au sein
-d'un "manager". Afin d'avoir un système résilient, il est nécessaire d'apeller
-cette logique de réconciliation de manière régulière. Pour ce faire, deux
-approches fondamentalement opposées existent: une approche centralisée et une
-approche décentralisée.
+// TODO: référencer le projet de semestre
+Le système s'articule autour de cinq principes fondamentaux: la déclarativité,
+l'automatisation, la légèreté, la sécurité par défaut et la portabilité. Ces
+principes ont été dégagés de l'analyse des besoins présentés dans le projet de
+semestre, et répondent à un contexte de déploiement particulier: des
+environnements hétérogènes, non distribués, parfois sur du matériel aux
+ressources contraintes et administrés par un utilisateur seul.
 
-Par approche centralisée, il faut comprendre qu'un seul composant est
-responsable de parcourir la liste des resources et de transmettre des demandes
-de réconciliation au sous-système responsable. À l'inverse, dans l'approche
-décentralisée, le sous-sytème responsable de la resource va lui-même planifier
-sa propre boucle.
+=== Déclarativité
 
+Tout d'abord, plutôt que de décrire les étapes à exécuter pour atteindre un état
+donné, l'utilisateur décrit directement l'état final souhaité. Le système
+détermine lui-même les actions nécessaires pour y parvenir, quelle que soit
+l'état courant de la machine.
 
+// TODO: Besoin de dire pourquoi ça facilite le retour arrière?
+Ce choix est particulièrement adapté à un contexte de reconfiguration fréquente
+sur des environnements variés. Une approche impérative obligerait l'utilisateur
+à prendre en compte l'état courant avant chaque opération et rend plus difficile
+la récupération en cas d'erreur durant la configuration du système. La
+déclarativité permet d'améliorer la reproductibilité des déploiements et
+simplifie le retour à un état antérieur en cas d'erreur humaine.
 
+=== Automatisation
 
+Toute opération administrative, depuis l'installation initiale jusqu'à la
+reconfiguration, doit pouvoir être réalisée sans intervention manuelle.
+L'objectif recherché est de permettre une intégration simple dans le processus
+de déploiement, en particulier lorsque celui-ci repose sur une approche
+GitOps/DevOps.
 
-= Aaaaaa
+Les interventions manuelles pour le diagnostic ou la récupération restent
+possibles, mais doivent demeurer exceptionnelles et clairement distinctes du
+mode normal d'exploitation.
 
-La gestion du système de manière déclarative se fait au travers d'un fichier de
-configuration. Celui-ci décrit l'ensemble des aspects du système qui doivent
-être configurés. Cela inclu la configuration d'une interface réseau, de routes
-IP, de conteneurs, ou bien encore de disques.
+=== Légèreté
 
-Afin de faciliter la gestion de ces aspects, ceux-ci sont séparés en
-"resources". Pour chaque resource, sa réconciliation passe par 4 étapes:
-- le `refresh`, ou on va récupérer l'état actuel de la resource
-- le `plan`, ou
+Le système doit présenter une empreinte mémoire minimale afin de laisser un
+maximum de ressources aux services déployés par l'utilisateur. De fait, il
+n'assume qu'un seul rôle: servir de plateforme d'exécution pour des services
+conteneurisés et aucun composant superflu n'est présent.
 
-== Composants
+Ce principe se justifie par des délpoiement sur des appareils basse consommation
+disposant de peu de resources. Cela présente en outre deux effets secondaires
+bénéfiques: une configuration plus simple en raisoin du petit nombre de
+composants et une surface d'attaque plus réduite.
 
-La solution est découpée en plusieurs composants. Chaque composant est
-responsable d'un aspect particulier de la gestion du système. Un certains nombre
-de composant peuvent être regroupés sous "managers". Ces "managers" sont chargés
-de réconcilier l'état désiré du système avec l'état actuel et suivents tous une
-architecture semblable qui sera expliqué plus en détails au chapitre XYZ.
+=== Sécurité par défaut
 
-La solution est composée de X composants:
-+ `supervisor`
-+ `system-manager`
-+ `network-manager`
-+ `container-manager`
-+ `storage-manager`
+Le système adopte des paramètres restrictifs dès l'installation, sans
+configuration supplémentaire. Les services internes et ceux déployés par
+l'utilisateur sont isolés aussi fortement que possible, afin de limiter les
+risques de mouvement latéral en cas de compromission d'un composant.
 
+L'analyse des besoins rèvle principalement un usage pour l'hébergemetn de
+services accessible via Internet et donc soumis en permanence à des tentatives
+d'intrusion. Des mécanismes d'exception strictement contrôlés restent
+disponibles pour les cas qui le requièrent, notamment lorsque l'hôte assume un
+rôle de routeur ou de pare-feu réseau.
 
+=== Portabilité
 
+L'interface d'administration et le format de configuration doivent rester
+identiques quelle que soit la configuration matérielle ou réseau sous-jacente.
+En dehors des dépendances introduites explicitement par l'utilisateur, le
+transfert du système d'un environnement à un autre ne doit nécessiter aucune
+adaptation de la configuration existante.
 
+Dans un contexte où un même utilisateur administre plusieurs machines aux
+profils distincts, cette homogénéité réduit la charge cognitive et rend les
+procédures opérationnelles transférables sans friction.
 
+== Gestion déclarative
 
+// TODO: référencer Terraform, Docker, et K8s
+La gestion et la configuration du système reposent principalement sur le
+principe de déclarativité: l'utilisateur décrit les divers éléments de
+configuration du système au sein d'un fichier de configuration, téléverse ce
+fichier sur le système, et celui-ci tente alors automatiquement et
+continuellement de faire converger la configuration fournie avec l'état réel du
+système. Cette approche est déjà bien connue dans le contexte de la
+conteneurisation et de l'infrastructure, notamment au travers d'outils tels que
+Terraform, Kubernetes ou Docker Compose.
 
+// TODO: référencer GitOps et Git (?)
+Cette approche présente deux avantages principaux. D'une part, elle permet de
+comprendre le système et d'avoir une vue d'ensemble de sa configuration à tout
+instant. D'autre part, elle se prête naturellement à une gestion de type GitOps:
+le fichier de configuration constituant la source de vérité unique du système,
+il suffit de versionner ce fichier dans Git pour disposer d'un historique
+complet de l'infrastructure. Appliquer un changement revient alors simplement à
+soumettre une nouvelle version du fichier, sans avoir à se soucier de l'état
+précédent du système, puisque c'est le contrôleur qui se charge de calculer et
+d'exécuter les actions nécessaires pour atteindre le nouvel état désiré.
 
+// TODO: référencer la théorie du contrôle
+Ce principe est directement inspiré de la théorie du contrôle, et plus
+précisément des boucles de rétroaction en circuit fermé. Dans le contexte du
+système présenté, le terme contrôleur désigne le composant logiciel qui embarque
+la logique de réconciliation propre à un type de ressource donné. Cette
+convergence est illustrée par la boucle de contrôle présentée en @ctrl-loop.
 
+#refdiagram(
+    label: <ctrl-loop>,
+    caption: [Schéma conceptuel d'une boucle de contrôle déclarative],
+    note: [
+        Le contrôleur (encadré rouge) observe l'état actuel de la ressource,
+        calcule l'écart avec l'état désiré, et applique les actions correctives.
+    ],
+    source: [réalisé par Bob MORAN],
 
-= Conceptuelle
+    spacing: 2cm,
+    node-stroke: 2pt,
+    edge-stroke: 2pt,
+    mark-scale: 60%,
+    {
+        node(label: <obs>, num: [1], (0, 2), title: [Observe])
+        node(label: <diff>, num: [2], (1, 1), title: [Diff & Plan])
+        node(label: <act>, (2, 2), title: [Act])
+        node(
+            enclose: (<obs>, <diff>, <act>),
+            inset: 5mm,
+            snap: false,
+            stroke: red,
+        )
+        node(
+            label: <config>,
+            num: [3],
+            stroke: none,
+            (1, 0),
+            title: [Desired State],
+            subtitle: [user configuration],
+        )
+        node(
+            label: <resource>,
+            (1, 3),
+            title: [Managed Resource],
+            subtitle: [actual state],
+        )
 
-== Utilisation de la solution
+        edge(<config>, <diff>, "--|>")
+        edge(<obs>, <diff>, "-|>", bend: 30deg, title: [Current state])
+        edge(
+            label: <actions>,
+            num: [4],
+            <diff>,
+            <act>,
+            "-|>",
+            bend: 30deg,
+            title: place(dx: 0.3em, box(
+                fill: white,
+                width: 5cm,
+                outset: 2mm,
+                place(dy: -0.45em)[Actions to close the gap],
+            )),
+        )
+        edge(<act>, <obs>, "-|>", title: [Infinitely recurring])
+        edge(<obs>, <resource>, "--|>", label-side: right, title: [
+            Gather information
+        ])
+        edge(<act>, <resource>, "--|>", label-side: left, title: [
+            Execute actions
+        ])
+    },
+)
 
-L'administrateur du système crée un fichier de configuration, dans le cas le
-plus simple, celui-ci contient:
-- la configuration réseau
+Par exemple, un utilisateur peut vouloir que son interface réseau soit "up", ce
+qui représente l'état souhaité~#bref(<config>). L'état actuel de l'interface
+(statut, adresse IP, etc.) est d'abord récupéré~#bref(<obs>), puis comparé au
+statut désiré~#bref(<diff>). Dans le cas où l'interface se trouve dans l'état
+"down", la commande correspondante est exécutée afin de la mettre en
+route~#bref(<actions>). Ce même mécanisme s'applique naturellement à toute mise
+à jour de la ressource: une modification de la configuration déclarative se
+traduit automatiquement par les actions correctives adéquates. Le processus se
+répétant indéfiniment, le système détecte et corrige sans intervention tout
+écart causé par un facteur externe, tel que le débranchement accidentel du
+câble.
 
+== Modèle de resource
+#todo[][
+    - Présenter un peu plus les resoruces (pas forcément exhaustif)
+    - Présenter le split user vs dynamic
+    - Le concepte de manager
+]
 
+== Interface d'administration
+#todo[][
+    Parler de l'API, du CLI et du provider Terraform
+]
 
-== Composants logiciel
+== Exemple d'utilisation
+#todo[][
+    Un exemple simple et concret pour bien cerner
+]
 
-=== Superviseur
-
-Le superviseur est le premier exécutable appelé par le noyeau Linux, il doit,
-dans l'ordre:
-+ monter l'ensemble des pseudo-FS (càd `/dev`, `/sys`, etc.)
-+ monter la configuration (sous `/etc/containers/config`)
-
-Le superviseur est le premier exécutable appelé par le noyeau Linux, il doit:
-- monter la configuration
-
-=== System Manager
-=== Network Manager
-=== Container Manager
-
-== Gestion de l'état
-
-Deux architecture possible:
-+ un composant central qui stocke et schedule les réconciliation (pour donner a
-    d'autre composants)
-+ ou, le composant central ne stoque que la data
+= Architecture et sécurité
