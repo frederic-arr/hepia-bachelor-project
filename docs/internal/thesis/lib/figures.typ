@@ -69,7 +69,8 @@
 
 
 #let node(label: none, num: none, title: none, subtitle: none, ..args) = {
-    import "@preview/fletcher:0.5.8": node
+    import "/packages.typ": *
+    import packages.fletcher: node
 
     node(name: label, ..args, {
         if num != none {
@@ -100,7 +101,8 @@
 }
 
 #let edge(label: none, num: none, title: none, subtitle: none, ..args) = {
-    import "@preview/fletcher:0.5.8": edge
+    import "/packages.typ": *
+    import packages.fletcher: edge
 
     let els = counter("badge")
     edge(..args, {
@@ -148,7 +150,8 @@
     note: none,
     ..args,
 ) = context {
-    import "@preview/fletcher:0.5.8": diagram
+    import "/packages.typ": *
+    import packages.fletcher: diagram
 
     let els = counter("badge")
     els.update(c => 1)

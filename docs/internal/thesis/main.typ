@@ -1,7 +1,16 @@
+#import "/packages.typ": *;
+#import packages.codly: *
+#import packages.codly-languages: *
+
+#set text(lang: "fr", hyphenate: false)
+#set par(justify: true)
+
+#set page(numbering: "I")
+
 // TOOD: Acknowledgments
 
-#include "/subject-statement/main.typ"
-#include "/abstract/main.typ"
+#show: codly-init.with()
+#codly(languages: codly-languages)
 
 // TODO: AI usage declaration
 
@@ -24,12 +33,31 @@
 - Conclusion
 */
 
-= Introduction
-== Contexte
-== Problématique
-== Objectifs
-== Structure du document
+#outline()
+#pagebreak()
 
+#include "extra/acknowledgements.typ"
+#include "/subject-statement/main.typ"
+#include "/abstract/main.typ"
+
+#include "contents/introduction.typ"
+
+#set page(numbering: "1")
+#counter(page).update(1)
+#set heading(numbering: "1.")
+
+#include "contents/overview.typ"
+#include "contents/architecture.typ"
+#include "contents/implementation.typ"
+#include "contents/validation.typ"
+#include "contents/comparison.typ"
+#include "contents/results.typ"
+#include "contents/discussion.typ"
+
+#set heading(numbering: none)
+#include "contents/conclusion.typ"
+
+/*
 = *NON CATÉGORISÉ*
 - Parler des dépendances (crates)
 - Coordination des resources
@@ -96,3 +124,4 @@ Comparer à Talos Linux et NixOS par rapport aux benchmarks et aux scénarios.
 = Annexe B
 = Glossaire
 = Bibliographie
+*/

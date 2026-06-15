@@ -1,7 +1,14 @@
-#set text(lang: "fr", hyphenate: false)
-#set par(justify: true)
+// #import "@preview/codly:1.3.0": *
+// #import "@preview/codly-languages:0.1.1": *
 
-#import "lib.typ": *
+// #set text(lang: "fr", hyphenate: false)
+// #set par(justify: true)
+// #set page(numbering: "1")
+
+#import "../lib.typ": *
+
+// #show: codly-init.with()
+// #codly(languages: codly-languages)
 
 = Conception du système
 // Contient tout ce qui est important pour l'utilisateur final.
@@ -11,6 +18,8 @@
 // Résultats du chapitre
 
 == Principes
+
+#show heading.where(level: 3): set heading(outlined: false)
 
 // TODO: référencer le projet de semestre
 Le système s'articule autour de cinq principes fondamentaux: la déclarativité,
@@ -84,107 +93,50 @@ Dans un contexte où un même utilisateur administre plusieurs machines aux
 profils distincts, cette homogénéité réduit la charge cognitive et rend les
 procédures opérationnelles transférables sans friction.
 
+#show heading.where(level: 3): set heading(outlined: true)
+
 == Gestion déclarative
 
 // TODO: référencer Terraform, Docker, et K8s
-La gestion et la configuration du système reposent principalement sur le
-principe de déclarativité: l'utilisateur décrit les divers éléments de
-configuration du système au sein d'un fichier de configuration, téléverse ce
-fichier sur le système, et celui-ci tente alors automatiquement et
-continuellement de faire converger la configuration fournie avec l'état réel du
-système. Cette approche est déjà bien connue dans le contexte de la
-conteneurisation et de l'infrastructure, notamment au travers d'outils tels que
-Terraform, Kubernetes ou Docker Compose.
+La gestion et la configuration du système reposent sur le principe de
+déclarativité: l'utilisateur décrit les divers éléments de configuration du
+système au sein d'un fichier de configuration, téléverse ce fichier sur le
+système, et celui-ci tente alors automatiquement et continuellement de faire
+converger la configuration fournie avec l'état réel du système. Cette approche
+est déjà bien connue dans le contexte de la conteneurisation et de
+l'infrastructure, notamment au travers d'outils tels que Terraform, Kubernetes
+ou Docker Compose qui adoptent aussi le concepte de déclarativité.
 
 // TODO: référencer GitOps et Git (?)
 Cette approche présente deux avantages principaux. D'une part, elle permet de
-comprendre le système et d'avoir une vue d'ensemble de sa configuration à tout
-instant. D'autre part, elle se prête naturellement à une gestion de type GitOps:
-le fichier de configuration constituant la source de vérité unique du système,
-il suffit de versionner ce fichier dans Git pour disposer d'un historique
-complet de l'infrastructure. Appliquer un changement revient alors simplement à
-soumettre une nouvelle version du fichier, sans avoir à se soucier de l'état
-précédent du système, puisque c'est le contrôleur qui se charge de calculer et
-d'exécuter les actions nécessaires pour atteindre le nouvel état désiré.
+facilement comprendre le système et d'avoir une vue d'ensemble de sa
+configuration à tout instant. D'autre part, elle se prête naturellement à une
+gestion de type GitOps: le fichier de configuration constituant la source de
+vérité unique du système, il suffit de versionner ce fichier dans Git pour
+disposer d'un historique complet de l'infrastructure. Appliquer un changement
+revient alors simplement à soumettre une nouvelle version du fichier, sans avoir
+à se soucier de l'état précédent du système, puisque c'est le contrôleur qui se
+charge de calculer et d'exécuter les actions nécessaires pour atteindre le
+nouvel état désiré.
 
 // TODO: référencer la théorie du contrôle
 Ce principe est directement inspiré de la théorie du contrôle, et plus
-précisément des boucles de rétroaction en circuit fermé. Dans le contexte du
-système présenté, le terme contrôleur désigne le composant logiciel qui embarque
-la logique de réconciliation propre à un type de ressource donné. Cette
-convergence est illustrée par la boucle de contrôle présentée en @ctrl-loop.
+précisément des boucles de rétroaction en circuit fermé. Au sein du présent
+système, la configuration est décomposée en resources. Celles-ci représente une
+interface réseau, une route IP, un disque, un conteneur, etc. Chaque resource
+est associée à un controlleur qui implémente la logique nécessaire afin de la
+réconcilier. Le processus-type de réconciliation est illustrée par la boucle de
+contrôle présentée dans la @ctrloop.
 
-#refdiagram(
-    label: <ctrl-loop>,
-    caption: [Schéma conceptuel d'une boucle de contrôle déclarative],
-    note: [
-        Le contrôleur (encadré rouge) observe l'état actuel de la ressource,
-        calcule l'écart avec l'état désiré, et applique les actions correctives.
-    ],
-    source: [réalisé par Bob MORAN],
-
-    spacing: 2cm,
-    node-stroke: 2pt,
-    edge-stroke: 2pt,
-    mark-scale: 60%,
-    {
-        node(label: <obs>, num: [1], (0, 2), title: [Observe])
-        node(label: <diff>, num: [2], (1, 1), title: [Diff & Plan])
-        node(label: <act>, (2, 2), title: [Act])
-        node(
-            enclose: (<obs>, <diff>, <act>),
-            inset: 5mm,
-            snap: false,
-            stroke: red,
-        )
-        node(
-            label: <config>,
-            num: [3],
-            stroke: none,
-            (1, 0),
-            title: [Desired State],
-            subtitle: [user configuration],
-        )
-        node(
-            label: <resource>,
-            (1, 3),
-            title: [Managed Resource],
-            subtitle: [actual state],
-        )
-
-        edge(<config>, <diff>, "--|>")
-        edge(<obs>, <diff>, "-|>", bend: 30deg, title: [Current state])
-        edge(
-            label: <actions>,
-            num: [4],
-            <diff>,
-            <act>,
-            "-|>",
-            bend: 30deg,
-            title: place(dx: 0.3em, box(
-                fill: white,
-                width: 5cm,
-                outset: 2mm,
-                place(dy: -0.45em)[Actions to close the gap],
-            )),
-        )
-        edge(<act>, <obs>, "-|>", title: [Infinitely recurring])
-        edge(<obs>, <resource>, "--|>", label-side: right, title: [
-            Gather information
-        ])
-        edge(<act>, <resource>, "--|>", label-side: left, title: [
-            Execute actions
-        ])
-    },
-)
+#include "../diagrams/ctrlloop.typ"
 
 Par exemple, un utilisateur peut vouloir que son interface réseau soit "up", ce
-qui représente l'état souhaité~#bref(<config>). L'état actuel de l'interface
-(statut, adresse IP, etc.) est d'abord récupéré~#bref(<obs>), puis comparé au
-statut désiré~#bref(<diff>). Dans le cas où l'interface se trouve dans l'état
-"down", la commande correspondante est exécutée afin de la mettre en
-route~#bref(<actions>). Ce même mécanisme s'applique naturellement à toute mise
-à jour de la ressource: une modification de la configuration déclarative se
+qui constitue l'état souhaité~#bref(<ctrloop-cfg>). L'état actuel de l'interface
+(statut, adresse IP, etc.) est d'abord récupéré~#bref(<ctrloop-obs>), puis
+comparé au statut désiré~#bref(<ctrloop-diff>). Dans le cas où l'interface se
+trouve dans l'état "down", la commande correspondante est exécutée afin de la
+mettre en route~#bref(<ctrloop-actions>). Ce même mécanisme s'applique à toute
+mise à jour de la ressource: une modification de la configuration déclarative se
 traduit automatiquement par les actions correctives adéquates. Le processus se
 répétant indéfiniment, le système détecte et corrige sans intervention tout
 écart causé par un facteur externe, tel que le débranchement accidentel du
@@ -197,10 +149,40 @@ câble.
     - Le concepte de manager
 ]
 
+Chaque resource est uniquement identifiable par la combinaison de son type et de
+son nom. A chaque type de resource est associé un schéma propre à celle-ci et
+décrivant les éléments propre on domaine concerné. Un état est aussi associé a
+chaque resource
+
+La configuration utilisateur est une liste de resources, et cette configuration
+n'est modifiable QUE par l'utilisateur. Cette configuration utilisateur donne
+lieu a une ou plusieur resources dynamiques. Par exemple, lors de la déclaration
+d'un conteneur, cela donnera lieu, d'une part a une resource "image" qui
+téléchargera l'image, et a une resource "conteneur" qui execéutra l'image.
+
+#include "../diagrams/cfgdyn.typ"
+
+// TODO: commenter le schéma ci-dessus
+
 == Interface d'administration
-#todo[][
-    Parler de l'API, du CLI et du provider Terraform
-]
+
+Étant donné le model de configuration, il n'est plus nécessaire d'executer des
+commandes sur la machine. Il suffit d'uploader un fichier. Compte tenu de cela,
+l'accès SSH est remplacé par une API classique, elle-même exposée via un client
+en ligne de commande ainsi qu'un provider Terraform.
+
+Outre le téléversemetn de fichiers, cette API permet aussi d'executer quelques
+actions impératives (redémarrer un conteneur), récupérer et observer l'état
+d'une resource (qu'elle soti dynamique ou non), voir les lgos, et arrêter la
+machine. Elle permet aussi de rentrer dans l'environnement d'exécution d'un
+conteneur (equivalent de `docker exec`), de port forward, etc. Elle permet aussi
+d'explorer le système de fichier et d'éditer certains fichier uniquemetn si
+ceux-ci ne sont aps géré par une configuration (par exemple modifier un ficheir
+au sein d'un volume de conteneur). Prend en charge aussi les backups.
+
+Dans le cadre du mode de maintenancs, d'autre commandes pour le diagnostic sont
+mise a disposition a travers un shell simple. Cela nécessite totuefois un
+redémarrage.
 
 == Exemple d'utilisation
 #todo[][
