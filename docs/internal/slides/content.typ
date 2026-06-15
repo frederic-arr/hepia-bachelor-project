@@ -1,4 +1,5 @@
-#import "@preview/touying:0.7.1": *
+#import "/packages.typ": *
+#import packages.touying: *
 #import themes.metropolis: *
 
 // Filler slides are to be used as the slide before the presentation starts

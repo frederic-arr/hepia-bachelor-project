@@ -1,4 +1,5 @@
-#import "@preview/touying:0.7.1": *
+#import "/packages.typ": *
+#import packages.touying: config-common
 #import "config.typ"
 
 #config.mk-slides(
