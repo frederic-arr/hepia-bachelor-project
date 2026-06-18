@@ -97,12 +97,12 @@ impl Reconcilable for LinkConfig {
                     .spec
                     .altnames
                     .clone()
-                    .unwrap_or_else(|| vec![]),
+                    .unwrap_or_else(std::vec::Vec::new),
                 arp: request.spec.arp.unwrap_or(true),
                 promiscuous: request.spec.promiscuous.unwrap_or(false),
                 link_type: match request.spec.link_type {
-                    LinkConfigType::Dummy { .. } => LinkType::Dummy,
-                    LinkConfigType::Ethernet { .. } => LinkType::Ethernet,
+                    LinkConfigType::Dummy => LinkType::Dummy,
+                    LinkConfigType::Ethernet => LinkType::Ethernet,
                 },
             })
             .unwrap(),
@@ -124,7 +124,7 @@ impl Reconcilable for LinkConfig {
             name: route_id.name,
             spec: rmp_serde::to_vec(&RouteSpec {
                 gateway: request.spec.ip_gateway,
-                destination: Ipv4Addr::new(0, 0, 0, 0),
+                destination: Ipv4Addr::UNSPECIFIED,
                 prefix_len: 0,
             })
             .unwrap(),
@@ -135,13 +135,13 @@ impl Reconcilable for LinkConfig {
         std::future::ready(Ok(plan))
     }
 
-    async fn apply(
+    fn apply(
         ctx: &mut Self::Context,
         request: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
-    ) -> Result<Self::Apply, Self::Error> {
-        Ok(())
+    ) -> impl Future<Output = Result<Self::Apply, Self::Error>> {
+        std::future::ready(Ok(()))
     }
 
     fn update(

@@ -70,7 +70,7 @@ impl Reconcilable for Address {
         let mut links = ctx
             .link()
             .get()
-            .match_name(input.spec.link_name.to_string())
+            .match_name(input.spec.link_name.clone())
             .execute();
 
         let link = links.try_next().await.unwrap().unwrap();
@@ -101,11 +101,8 @@ impl Reconcilable for Address {
         state.prefix_len(address.header.prefix_len);
         for nla in address.attributes {
             use rtnetlink::packet_route::link;
-            match nla {
-                AddressAttribute::Address(IpAddr::V4(addr)) => {
-                    state.address(addr);
-                }
-                _ => {}
+            if let AddressAttribute::Address(IpAddr::V4(addr)) = nla {
+                state.address(addr);
             }
         }
 

@@ -75,13 +75,13 @@ impl Reconcilable for ContainerConfig {
         std::future::ready(Ok(plan))
     }
 
-    async fn apply(
+    fn apply(
         ctx: &mut Self::Context,
         request: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
-    ) -> Result<Self::Apply, Self::Error> {
-        Ok(())
+    ) -> impl Future<Output = Result<Self::Apply, Self::Error>> {
+        std::future::ready(Ok(()))
     }
 
     fn update(

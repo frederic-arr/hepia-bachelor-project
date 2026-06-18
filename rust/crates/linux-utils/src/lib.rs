@@ -174,6 +174,10 @@ where
     let lower = format!("lowerdir={lower}");
     options.push(&lower);
 
+    #[expect(
+        clippy::branches_sharing_code,
+        reason = "due to lifetimes, we cannot do it another way"
+    )]
     let options = if let Some((upper, work)) = writable {
         if !std::fs::exists(&upper)? {
             std::fs::create_dir_all(&upper)?;

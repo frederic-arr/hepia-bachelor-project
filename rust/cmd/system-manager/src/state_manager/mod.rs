@@ -47,10 +47,7 @@ impl StateManager {
                     "res#containeros::net::address".to_string(),
                     client.clone(),
                 ),
-                (
-                    "res#containeros::net::route".to_string(),
-                    client.clone(),
-                ),
+                ("res#containeros::net::route".to_string(), client),
                 (
                     "config#containeros::container::container".to_string(),
                     client2.clone(),

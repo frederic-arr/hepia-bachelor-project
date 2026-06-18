@@ -132,7 +132,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                 let response =
                     Link::reconcile(&mut self.rtnl.clone(), &request)
                         .await
-                        .map_err(|v| Status::internal(v))?;
+                        .map_err(Status::internal)?;
                 Ok(Response::new(response))
             }
             Address::SCHEMA => {
@@ -166,7 +166,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                 let response =
                     Address::reconcile(&mut self.rtnl.clone(), &request)
                         .await
-                        .map_err(|v| Status::internal(v))?;
+                        .map_err(Status::internal)?;
                 Ok(Response::new(response))
             }
             Route::SCHEMA => {
@@ -200,7 +200,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                 let response =
                     Route::reconcile(&mut self.rtnl.clone(), &request)
                         .await
-                        .map_err(|v| Status::internal(v))?;
+                        .map_err(Status::internal)?;
                 Ok(Response::new(response))
             }
             _ => todo!(),

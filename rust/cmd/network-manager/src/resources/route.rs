@@ -70,19 +70,15 @@ impl Reconcilable for Route {
         let mut routes = ctx.route().get(query).execute().try_filter(|route| {
             let route_gw =
                 route.attributes.iter().find_map(|attr| match attr {
-                    RouteAttribute::Gateway(gw) => match gw {
-                        RouteAddress::Inet(gw) => Some(gw),
-                        _ => None,
-                    },
+                    RouteAttribute::Gateway(RouteAddress::Inet(gw)) => Some(gw),
                     _ => None,
                 });
 
             let route_destination =
                 route.attributes.iter().find_map(|attr| match attr {
-                    RouteAttribute::Destination(dest) => match dest {
-                        RouteAddress::Inet(dest) => Some(dest),
-                        _ => None,
-                    },
+                    RouteAttribute::Destination(RouteAddress::Inet(dest)) => {
+                        Some(dest)
+                    }
                     _ => None,
                 });
 
@@ -96,7 +92,7 @@ impl Reconcilable for Route {
             let is_matching =
                 is_matching_destination && is_matching_len && is_matching_gw;
 
-            futures::future::ready(is_matching)
+            std::future::ready(is_matching)
         });
 
         let route = routes
@@ -105,9 +101,9 @@ impl Reconcilable for Route {
             .map_err(|e| format!("unable to fetch routes: {e}"))?;
 
         if let Some(route) = routes.next().await {
-            return Err(format!(
-                "got multiple routes while expected at moste one"
-            ));
+            return Err(
+                "got multiple routes while expected at moste one".to_string()
+            );
         }
 
         let Some(route) = route else {
@@ -141,6 +137,10 @@ impl Reconcilable for Route {
         refreshed_state: &Self::State,
         plan: &Self::Plan,
     ) -> Result<Self::Apply, Self::Error> {
+        #[expect(
+            clippy::match_wildcard_for_single_variants,
+            reason = "will be dealt with later"
+        )]
         match plan {
             RoutePlan::Create(msg) => ctx
                 .route()

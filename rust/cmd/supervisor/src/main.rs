@@ -26,13 +26,13 @@ fn main() {
 
     busybox.wait().unwrap();
 
-    let conmgr = Command::new("/bin/container-manager")
+    let mut conmgr = Command::new("/bin/container-manager")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
         .unwrap();
 
-    let netmgr = Command::new("/bin/network-manager")
+    let mut netmgr = Command::new("/bin/network-manager")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
@@ -40,7 +40,7 @@ fn main() {
 
     thread::sleep(Duration::from_secs(5));
 
-    let sysmgr = Command::new("/bin/system-manager")
+    let mut sysmgr = Command::new("/bin/system-manager")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
@@ -68,6 +68,9 @@ fn main() {
         .unwrap();
 
     busybox.wait().unwrap();
+    conmgr.wait().unwrap();
+    sysmgr.wait().unwrap();
+    netmgr.wait().unwrap();
 
     loop {
         std::thread::park();

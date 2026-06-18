@@ -85,7 +85,7 @@ impl StateManager {
                 let Ok(response) = client
                     .reconcile_user_config(request)
                     .await
-                    .map(|r| r.into_inner())
+                    .map(tonic::Response::into_inner)
                 else {
                     return;
                 };
@@ -136,7 +136,7 @@ impl StateManager {
                 let Ok(response) = client
                     .reconcile_dynamic_resource(request)
                     .await
-                    .map(|r| r.into_inner())
+                    .map(tonic::Response::into_inner)
                 else {
                     return;
                 };

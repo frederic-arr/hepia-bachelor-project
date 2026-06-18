@@ -1,9 +1,6 @@
 [workspace]
 resolver = "3"
-members = [
-    "cmd/*",
-    "crates/*"
-]
+members = ["cmd/*", "crates/*"]
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
@@ -13,40 +10,84 @@ unused = { level = "allow", priority = -1 } # TODO: remove
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 as_conversions = "deny"
+allow_attributes_without_reason = "deny"
+allow_attributes = "deny"
 similar_names = "allow"
 missing_panics_doc = "allow"
 missing_errors_doc = "allow"
 result_unit_err = "allow"
-unused_async = "allow" # TODO: remove
-too_many_lines = "allow" # TODO: remove
+unused_async = "allow"                       # TODO: remove
+too_many_lines = "allow"                     # TODO: remove
 
 [workspace.lints.cargo]
 pedantic = "warn"
 nursery = "warn"
 non_kebab_case_packages = "forbid"
 non_kebab_case_features = "forbid"
-unused_dependencies = "allow" # TODO: remove
+unused_dependencies = "allow"      # TODO: remove
 
 [workspace.dependencies]
 prost = { version = "0.14.3", default-features = false }
-prost-types = { version = "0.14.3", default-features = false, features = ["std"] }
-rtnetlink = { version = "0.21.0", default-features = false, features = ["tokio_socket"] }
-rustix = {version = "1.1.4", default-features = false, features = [ "std", "linux_latest", "mount", "process", "fs" ] }
-tokio = { version = "1.52.3", default-features = false, features = ["macros", "rt-multi-thread"] }
-tonic = { version = "0.14.6", default-features = false, features = ["codegen", "router", "transport"] }
+prost-types = { version = "0.14.3", default-features = false, features = [
+    "std",
+] }
+rtnetlink = { version = "0.21.0", default-features = false, features = [
+    "tokio_socket",
+] }
+rustix = { version = "1.1.4", default-features = false, features = [
+    "std",
+    "linux_latest",
+    "mount",
+    "process",
+    "fs",
+] }
+tokio = { version = "1.52.3", default-features = false, features = [
+    "macros",
+    "rt-multi-thread",
+] }
+tonic = { version = "0.14.6", default-features = false, features = [
+    "codegen",
+    "router",
+    "transport",
+] }
 tonic-prost = { version = "0.14.6", default-features = false }
-tonic-prost-build = { version = "0.14.6", default-features = false, features = ["transport"] }
+tonic-prost-build = { version = "0.14.6", default-features = false, features = [
+    "transport",
+] }
 futures = { version = "0.3.32", default-features = false }
-derive_builder = { version = "0.20.2", default-features = false, features = ["std"] }
-serde = { version = "1.0.228", default-features = false, features = ["std", "derive"] }
+derive_builder = { version = "0.20.2", default-features = false, features = [
+    "std",
+] }
+serde = { version = "1.0.228", default-features = false, features = [
+    "std",
+    "derive",
+] }
 rmp-serde = { version = "1.3.1", default-features = false }
-rmpv = { version = "1.3.1", default-features = false, features = ["serde", "with-serde"]}
-tokio-util = { version = "0.7.18", default-features = false, features = ["time"] }
+rmpv = { version = "1.3.1", default-features = false, features = [
+    "serde",
+    "with-serde",
+] }
+tokio-util = { version = "0.7.18", default-features = false, features = [
+    "time",
+] }
 tokio-stream = { version = "0.1.18", default-features = false }
-serde_json = { version = "1.0.150", default-features = false, features = ["std"] }
-tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
-tracing-subscriber = { version = "0.3.23", default-features = false, features = ["ansi", "fmt", "std", "env-filter"] }
+serde_json = { version = "1.0.150", default-features = false, features = [
+    "std",
+] }
+tracing = { version = "0.1.44", default-features = false, features = [
+    "std",
+    "attributes",
+] }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = [
+    "ansi",
+    "fmt",
+    "std",
+    "env-filter",
+] }
 thiserror = { version = "2.0.18", default-features = false, features = ["std"] }
 chrono = { version = "0.4.44", default-features = false }
-bollard = { version = "0.21.0", default-features = false, features = ["http", "pipe"] }
+bollard = { version = "0.21.0", default-features = false, features = [
+    "http",
+    "pipe",
+] }
 loopdev = { package = "loopdev-3", version = "0.5.3", default-features = false }

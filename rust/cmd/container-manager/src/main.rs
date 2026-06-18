@@ -155,7 +155,7 @@ impl v1_svc::ReconcilerService for ContainerManagerReconcilerService {
                 let response =
                     Container::reconcile(&mut self.handle.clone(), &request)
                         .await
-                        .map_err(|v| Status::internal(v))?;
+                        .map_err(Status::internal)?;
                 Ok(Response::new(response))
             }
             _ => todo!(),

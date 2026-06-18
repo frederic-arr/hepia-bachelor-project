@@ -22,7 +22,7 @@ const MFSEC: MountFlags = MountFlags::from_bits_truncate(
         | MountFlags::RELATIME.bits(),
 );
 
-#[allow(clippy::unnecessary_wraps)]
+#[expect(clippy::unnecessary_wraps, reason = "will be dealt with later")]
 fn create_rfs() -> std::io::Result<()> {
     mount_special(&SpecialFs::Sys, "/sys", MFSEC, &[]).unwrap();
     mount_special(&SpecialFs::Tmp, "/tmp", MFSEC, &[]).unwrap();

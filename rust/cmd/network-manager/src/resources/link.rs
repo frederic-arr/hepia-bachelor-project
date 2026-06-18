@@ -236,18 +236,19 @@ impl Reconcilable for Link {
 
 impl Link {
     fn plan_unspec<T>(
-        ctx: &mut <Self as Reconcilable>::Context,
+        ctx: &<Self as Reconcilable>::Context,
         input: &<Self as Reconcilable>::Input,
         refreshed_state: &<Self as Reconcilable>::State,
         mut msg: LinkMessageBuilder<T>,
     ) -> LinkMessageBuilder<T> {
-        msg = match input.spec.admin_up {
-            true => msg.up(),
-            false => msg.down(),
+        msg = if input.spec.admin_up {
+            msg.up()
+        } else {
+            msg.down()
         };
 
         if let Some(addr) = input.spec.address {
-            msg = msg.address(addr.into())
+            msg = msg.address(addr.into());
         }
 
         if let Some(brd) = input.spec.broadcast {
