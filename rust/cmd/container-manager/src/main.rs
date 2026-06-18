@@ -1,3 +1,5 @@
+#![feature(never_type)]
+
 mod resources;
 
 use std::collections::HashMap;
@@ -44,7 +46,6 @@ impl ContainerManagerReconcilerService {
 
 async fn create_connection() -> (Child, Docker) {
     std::fs::create_dir_all("/etc/containers").unwrap();
-    std::fs::create_dir_all("/var/tmp/libpod").unwrap();
     let mut f = std::fs::File::create("/etc/containers/policy.json").unwrap();
     f.write_all(
         br#"
@@ -61,6 +62,7 @@ async fn create_connection() -> (Child, Docker) {
 
     let mut handle = Command::new("/bin/podman")
         .args(["system", "service", "--time=0", "tcp://127.0.0.1:9876"])
+        .env("NETAVARK_FW", "nftables")
         .stderr(Stdio::inherit())
         .stdout(Stdio::inherit())
         .spawn()
@@ -107,8 +109,9 @@ impl v1_svc::ReconcilerService for ContainerManagerReconcilerService {
                         .collect(),
                 };
 
-                let response =
-                    ContainerConfig::reconcile(&mut (), &request).await;
+                let response = ContainerConfig::reconcile(&mut (), &request)
+                    .await
+                    .expect("not possible to have errors");
                 Ok(Response::new(response))
             }
             _ => todo!(),
@@ -151,7 +154,8 @@ impl v1_svc::ReconcilerService for ContainerManagerReconcilerService {
 
                 let response =
                     Container::reconcile(&mut self.handle.clone(), &request)
-                        .await;
+                        .await
+                        .map_err(|v| Status::internal(v))?;
                 Ok(Response::new(response))
             }
             _ => todo!(),

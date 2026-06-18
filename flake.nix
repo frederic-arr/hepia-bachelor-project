@@ -44,18 +44,18 @@
               target = "/busybox";
               source  = "${pkgs.busybox}/bin/busybox";
             }
-            {
-              target = "/root.squashfs";
-              source  = rootfs;
-            }
+            # {
+            #   target = "/root.squashfs";
+            #   source  = rootfs;
+            # }
           ];
         };
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          # paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox ];
-          paths  = [ supervisor pkgs.podman pkgs.busybox ];
-          pathsToLink = [ "/bin" "/lib" ];
+          paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox pkgs.cacert ];
+          # paths  = [ supervisor pkgs.podman pkgs.busybox pkgs.cacert ];
+          pathsToLink = [ "/bin" "/lib" "/etc" ];
         };
 
         # Inspired by https://github.com/NixOS/nixpkgs/blob/26.05/nixos/lib/make-squashfs.nix
@@ -118,6 +118,36 @@
           mkdir -p $out
           cp ${x86_64-generic.kernel}/bzImage $out/bzImage
           cp ${initrd}/initrd                 $out/initrd
+          cp ${rootfs}                        $out/root.squashfs
+        '';
+
+        iso = pkgs.runCommand "embedded-x86_64.iso" {
+          nativeBuildInputs = with pkgs; [
+            grub2
+            grub2_efi
+            xorriso
+            mtools
+          ];
+        } ''
+          mkdir -p iso/boot/grub
+
+          cp ${x86_64-generic.kernel}/bzImage iso/boot/bzImage
+          cp ${initrd}/initrd                  iso/boot/initrd
+          cp ${rootfs}                         iso/root.squashfs
+
+          cat > iso/boot/grub/grub.cfg << 'EOF'
+          set timeout=5
+
+          menuentry "ContainerOS" {
+            linux  /boot/bzImage init=/init console=ttyS0,115200
+            initrd /boot/initrd
+          }
+          EOF
+
+          grub-mkrescue \
+            --modules="linux iso9660 squash4 normal boot configfile" \
+            -o $out \
+            iso/
         '';
 
         src = pkgs.fetchurl {
@@ -129,6 +159,7 @@
         formatter = pkgs.nixfmt-tree;
         packages = {
           inherit qemu-boot-x86_64;
+          inherit iso;
           inherit rootfs;
           inherit initrd;
           inherit init;

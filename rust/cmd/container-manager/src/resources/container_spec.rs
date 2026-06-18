@@ -47,6 +47,7 @@ pub enum ContainerPlan {
 impl Reconcilable for Container {
     type Apply = ();
     type Context = Docker;
+    type Error = String;
     type Input = ReconcileDynamicResourceRequest<ContainerSpec, ContainerState>;
     type Output = v1::ReconcileDynamicResourceResponse;
     type Plan = ContainerPlan;
@@ -57,7 +58,7 @@ impl Reconcilable for Container {
     async fn refresh(
         ctx: &mut Self::Context,
         request: &Self::Input,
-    ) -> Self::State {
+    ) -> Result<Self::State, Self::Error> {
         let mut filters = HashMap::new();
         filters.insert("name".to_string(), vec![request.name.clone()]);
 
@@ -66,12 +67,15 @@ impl Reconcilable for Container {
             .filters(&filters)
             .build();
 
-        let container = ctx
+        let Some(container) = ctx
             .list_containers(Some(options))
             .await
-            .unwrap()
+            .map_err(|e| format!("{e}"))?
             .first()
-            .cloned()?;
+            .cloned()
+        else {
+            return Ok(None);
+        };
 
         let mut state = ContainerStateBuilder::default();
         if let Some(id) = container.id {
@@ -103,14 +107,14 @@ impl Reconcilable for Container {
             }
         }
 
-        state.build().map(Some).unwrap()
+        Ok(state.build().map(Some).unwrap())
     }
 
     async fn plan(
         ctx: &mut Self::Context,
         request: &Self::Input,
         refreshed_state: &Self::State,
-    ) -> Self::Plan {
+    ) -> Result<Self::Plan, Self::Error> {
         let mut filters = HashMap::new();
         filters.insert("reference", vec![request.spec.image.as_str()]);
 
@@ -120,26 +124,28 @@ impl Reconcilable for Container {
 
         let Some(images) = ctx.list_images(Some(opts)).await.unwrap().first()
         else {
-            return ContainerPlan::Pull(request.spec.image.clone());
+            return Ok(ContainerPlan::Pull(request.spec.image.clone()));
         };
 
         let Some(refreshed_state) = refreshed_state else {
-            return ContainerPlan::Create;
+            return Ok(ContainerPlan::Create);
         };
 
         if request.spec.image != refreshed_state.image {
-            return ContainerPlan::Delete;
+            return Ok(ContainerPlan::Delete);
         }
 
         if request.spec.cmd.join(" ") != refreshed_state.cmd {
-            return ContainerPlan::Delete;
+            return Ok(ContainerPlan::Delete);
         }
 
-        match (request.spec.running, refreshed_state.running) {
+        let plan = match (request.spec.running, refreshed_state.running) {
             (true, false) => ContainerPlan::Start(request.name.clone()),
             (false, true) => ContainerPlan::Stop(request.name.clone()),
             (true, true) | (false, false) => ContainerPlan::Noop,
-        }
+        };
+
+        Ok(plan)
     }
 
     async fn apply(
@@ -147,7 +153,7 @@ impl Reconcilable for Container {
         request: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
-    ) -> Self::Apply {
+    ) -> Result<Self::Apply, Self::Error> {
         match plan {
             ContainerPlan::Create => {
                 let opts = CreateContainerOptionsBuilder::default()
@@ -159,19 +165,29 @@ impl Reconcilable for Container {
                     cmd: Some(request.spec.cmd.clone()),
                     ..Default::default()
                 };
-                ctx.create_container(Some(opts), cfg).await.unwrap();
+                ctx.create_container(Some(opts), cfg)
+                    .await
+                    .map_err(|e| format!("unable to create container: {e}"))?;
                 if request.spec.running {
-                    ctx.start_container(&request.name, None).await;
+                    ctx.start_container(&request.name, None)
+                        .await
+                        .map_err(|e| format!("unable to run container: {e}"))?;
                 }
+
+                Ok(())
             }
             ContainerPlan::Delete => {
                 if let Some(refreshed_state) = refreshed_state
                     && refreshed_state.running
                 {
-                    ctx.stop_container(&request.name, None).await;
+                    ctx.stop_container(&request.name, None).await.map_err(
+                        |e| format!("unable to stop container: {e}"),
+                    )?;
                 }
 
-                ctx.remove_container(&request.name, None).await;
+                ctx.remove_container(&request.name, None)
+                    .await
+                    .map_err(|e| format!("unable to remove container: {e}"))
             }
             ContainerPlan::Pull(image) => {
                 let opts = CreateImageOptionsBuilder::default()
@@ -184,14 +200,18 @@ impl Reconcilable for Container {
                         dbg!(r);
                     }
                 });
+
+                Ok(())
             }
-            ContainerPlan::Start(name) => {
-                ctx.start_container(name, None).await.unwrap();
-            }
-            ContainerPlan::Stop(name) => {
-                ctx.stop_container(name, None).await.unwrap();
-            }
-            ContainerPlan::Noop => {}
+            ContainerPlan::Start(name) => ctx
+                .start_container(name, None)
+                .await
+                .map_err(|e| format!("unable to start container: {e}")),
+            ContainerPlan::Stop(name) => ctx
+                .stop_container(name, None)
+                .await
+                .map_err(|e| format!("unable to stop container: {e}")),
+            ContainerPlan::Noop => Ok(()),
         }
     }
 
@@ -201,12 +221,12 @@ impl Reconcilable for Container {
         refreshed_state: &Self::State,
         plan: &Self::Plan,
         apply: &Self::Apply,
-    ) -> impl Future<Output = Self::Output> {
+    ) -> impl Future<Output = Result<Self::Output, Self::Error>> {
         let response = v1::ReconcileDynamicResourceResponse {
             children: vec![],
             state: rmp_serde::to_vec_named(refreshed_state).unwrap(),
         };
 
-        std::future::ready(response)
+        std::future::ready(Ok(response))
     }
 }

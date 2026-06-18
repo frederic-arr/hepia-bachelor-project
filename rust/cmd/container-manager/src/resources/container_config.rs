@@ -33,6 +33,7 @@ pub struct ContainerConfigPlan {
 impl Reconcilable for ContainerConfig {
     type Apply = ();
     type Context = ();
+    type Error = !;
     type Input =
         ReconcileUserConfigRequest<ContainerConfigSpec, ContainerConfigState>;
     type Output = v1::ReconcileUserConfigResponse;
@@ -44,15 +45,15 @@ impl Reconcilable for ContainerConfig {
     fn refresh(
         ctx: &mut Self::Context,
         request: &Self::Input,
-    ) -> impl Future<Output = Self::State> {
-        std::future::ready(ContainerConfigState {})
+    ) -> impl Future<Output = Result<Self::State, Self::Error>> {
+        std::future::ready(Ok(ContainerConfigState {}))
     }
 
     fn plan(
         ctx: &mut Self::Context,
         request: &Self::Input,
         refreshed_state: &Self::State,
-    ) -> impl Future<Output = Self::Plan> {
+    ) -> impl Future<Output = Result<Self::Plan, Self::Error>> {
         let container_resource_id = Identity {
             schema: "res#containeros::container::container".to_string(),
             name: request.name.clone(),
@@ -71,7 +72,7 @@ impl Reconcilable for ContainerConfig {
 
         let children = vec![container_spec];
         let plan = ContainerConfigPlan { children };
-        std::future::ready(plan)
+        std::future::ready(Ok(plan))
     }
 
     async fn apply(
@@ -79,7 +80,8 @@ impl Reconcilable for ContainerConfig {
         request: &Self::Input,
         refreshed_state: &Self::State,
         plan: &Self::Plan,
-    ) -> Self::Apply {
+    ) -> Result<Self::Apply, Self::Error> {
+        Ok(())
     }
 
     fn update(
@@ -88,7 +90,7 @@ impl Reconcilable for ContainerConfig {
         refreshed_state: &Self::State,
         plan: &Self::Plan,
         apply: &Self::Apply,
-    ) -> impl Future<Output = Self::Output> {
+    ) -> impl Future<Output = Result<Self::Output, Self::Error>> {
         let response = v1::ReconcileUserConfigResponse {
             children: plan
                 .children
@@ -102,6 +104,6 @@ impl Reconcilable for ContainerConfig {
             state: rmp_serde::to_vec_named(refreshed_state).unwrap(),
         };
 
-        std::future::ready(response)
+        std::future::ready(Ok(response))
     }
 }

@@ -82,11 +82,13 @@ impl StateManager {
                         ),
                     },
                 };
-                let response = client
+                let Ok(response) = client
                     .reconcile_user_config(request)
                     .await
-                    .unwrap()
-                    .into_inner();
+                    .map(|r| r.into_inner())
+                else {
+                    return;
+                };
 
                 res.state = ResourceState::Set(State(response.state));
                 let owner = Identity {
@@ -131,14 +133,16 @@ impl StateManager {
                         ),
                     },
                 };
-                let response = client
+                let Ok(response) = client
                     .reconcile_dynamic_resource(request)
                     .await
-                    .unwrap()
-                    .into_inner();
+                    .map(|r| r.into_inner())
+                else {
+                    return;
+                };
 
                 res.state = ResourceState::Set(State(response.state));
-                dbg!(&res.state);
+                // dbg!(&res.state);
                 let owner = Identity {
                     schema: res.schema.clone(),
                     name: res.name.clone(),

@@ -1,7 +1,7 @@
 use std::ffi::CString;
 use std::path::Path;
 
-use loopdev::LoopControl;
+use loopdev::{LoopControl, LoopDevice};
 use rustix::mount::MountFlags;
 
 pub fn switchroot<Target, Init>(target: Target, init: Init)
@@ -26,6 +26,9 @@ pub enum SpecialFs {
     Debug,
     // SeLinux,
     Security,
+    Overlay,
+    Iso,
+    Squashfs,
 }
 
 impl SpecialFs {
@@ -44,6 +47,9 @@ impl SpecialFs {
             Self::Config => "configfs",
             Self::Debug => "debufs",
             Self::Security => "securityfs",
+            Self::Overlay => "overlay",
+            Self::Iso => "iso9660",
+            Self::Squashfs => "squashfs",
         }
     }
 }
@@ -80,7 +86,42 @@ where
     .map_err(Into::into)
 }
 
+pub fn attach_loop<Image>(image: Image) -> std::io::Result<LoopDevice>
+where
+    Image: AsRef<Path>,
+{
+    let lc = LoopControl::open()?;
+    let ld = lc.next_free()?;
+    ld.with().read_only(true).attach(image)?;
+    Ok(ld)
+}
+
 pub fn mount_squashfs<Target, Image>(
+    target: Target,
+    image: Image,
+    flags: MountFlags,
+    options: &[&str],
+) -> std::io::Result<()>
+where
+    Target: AsRef<Path>,
+    Image: AsRef<Path>,
+{
+    if !std::fs::exists(&target).unwrap() {
+        std::fs::create_dir_all(&target).unwrap();
+    }
+
+    let opts = CString::new(options.join(","))?;
+    rustix::mount::mount(
+        image.as_ref(),
+        target.as_ref(),
+        SpecialFs::Squashfs.as_str(),
+        flags.union(MountFlags::RDONLY),
+        (!options.is_empty()).then_some(opts.as_c_str()),
+    )
+    .map_err(Into::into)
+}
+
+pub fn mount_iso<Target, Image>(
     target: Target,
     image: Image,
     flags: MountFlags,
@@ -94,17 +135,71 @@ where
         std::fs::create_dir_all(&target)?;
     }
 
-    let lc = LoopControl::open()?;
-    let ld = lc.next_free()?;
-    ld.attach_file(image)?;
-
     let opts = CString::new(options.join(","))?;
     rustix::mount::mount(
-        ld.path().unwrap(),
+        image.as_ref(),
         target.as_ref(),
-        "squashfs",
-        flags,
+        SpecialFs::Iso.as_str(),
+        flags.union(MountFlags::RDONLY),
         (!options.is_empty()).then_some(opts.as_c_str()),
+    )
+    .map_err(Into::into)
+}
+
+pub fn mount_overlayfs<Lower, Upper, Work, Target>(
+    lower: &[Lower],
+    writable: Option<(Upper, Work)>,
+    target: Target,
+    flags: MountFlags,
+    options: &[&str],
+) -> std::io::Result<()>
+where
+    Lower: AsRef<Path>,
+    Upper: AsRef<Path>,
+    Work: AsRef<Path>,
+    Target: AsRef<Path>,
+{
+    if !std::fs::exists(&target)? {
+        std::fs::create_dir_all(&target)?;
+    }
+
+    let lower = lower
+        .iter()
+        .map(|l| l.as_ref().display().to_string())
+        .collect::<Vec<_>>()
+        .join(":");
+
+    let mut options = options.to_vec();
+
+    let lower = format!("lowerdir={lower}");
+    options.push(&lower);
+
+    let options = if let Some((upper, work)) = writable {
+        if !std::fs::exists(&upper)? {
+            std::fs::create_dir_all(&upper)?;
+        }
+
+        if !std::fs::exists(&work)? {
+            std::fs::create_dir_all(&work)?;
+        }
+
+        let a = format!(
+            "upperdir={},workdir={}",
+            upper.as_ref().display(),
+            work.as_ref().display(),
+        );
+        options.push(&a);
+        CString::new(options.join(","))?
+    } else {
+        CString::new(options.join(","))?
+    };
+
+    rustix::mount::mount(
+        SpecialFs::Overlay.as_str(),
+        target.as_ref(),
+        SpecialFs::Overlay.as_str(),
+        flags,
+        Some(options.as_c_str()),
     )
     .map_err(Into::into)
 }
