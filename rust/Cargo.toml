@@ -10,8 +10,6 @@ unused = { level = "allow", priority = -1 } # TODO: remove
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 as_conversions = "deny"
-allow_attributes_without_reason = "deny"
-allow_attributes = "deny"
 similar_names = "allow"
 missing_panics_doc = "allow"
 missing_errors_doc = "allow"

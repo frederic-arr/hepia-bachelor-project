@@ -63,9 +63,9 @@ maximum de ressources aux services déployés par l'utilisateur. De fait, il
 n'assume qu'un seul rôle: servir de plateforme d'exécution pour des services
 conteneurisés et aucun composant superflu n'est présent.
 
-Ce principe se justifie par des délpoiement sur des appareils basse consommation
+Ce principe se justifie par des déploiement sur des appareils basse consommation
 disposant de peu de resources. Cela présente en outre deux effets secondaires
-bénéfiques: une configuration plus simple en raisoin du petit nombre de
+bénéfiques: une configuration plus simple en raison du petit nombre de
 composants et une surface d'attaque plus réduite.
 
 === Sécurité par défaut
@@ -75,7 +75,7 @@ configuration supplémentaire. Les services internes et ceux déployés par
 l'utilisateur sont isolés aussi fortement que possible, afin de limiter les
 risques de mouvement latéral en cas de compromission d'un composant.
 
-L'analyse des besoins rèvle principalement un usage pour l'hébergemetn de
+L'analyse des besoins révèle principalement un usage pour l’hébergement de
 services accessible via Internet et donc soumis en permanence à des tentatives
 d'intrusion. Des mécanismes d'exception strictement contrôlés restent
 disponibles pour les cas qui le requièrent, notamment lorsque l'hôte assume un
@@ -105,7 +105,7 @@ système, et celui-ci tente alors automatiquement et continuellement de faire
 converger la configuration fournie avec l'état réel du système. Cette approche
 est déjà bien connue dans le contexte de la conteneurisation et de
 l'infrastructure, notamment au travers d'outils tels que Terraform, Kubernetes
-ou Docker Compose qui adoptent aussi le concepte de déclarativité.
+ou Docker Compose qui adoptent aussi le concept de déclarativité.
 
 // TODO: référencer GitOps et Git (?)
 Cette approche présente deux avantages principaux. D'une part, elle permet de
@@ -124,29 +124,30 @@ Ce principe est directement inspiré de la théorie du contrôle, et plus
 précisément des boucles de rétroaction en circuit fermé. Au sein du présent
 système, la configuration est décomposée en resources. Celles-ci représente une
 interface réseau, une route IP, un disque, un conteneur, etc. Chaque resource
-est associée à un controlleur qui implémente la logique nécessaire afin de la
+est associée à un contrôleur qui implémente la logique nécessaire afin de la
 réconcilier. Le processus-type de réconciliation est illustrée par la boucle de
-contrôle présentée dans la @ctrloop.
+contrôle présentée dans la @ctrlloop.
 
 #include "../diagrams/ctrlloop.typ"
 
 Par exemple, un utilisateur peut vouloir que son interface réseau soit "up", ce
-qui constitue l'état souhaité~#bref(<ctrloop-cfg>). L'état actuel de l'interface
-(statut, adresse IP, etc.) est d'abord récupéré~#bref(<ctrloop-obs>), puis
-comparé au statut désiré~#bref(<ctrloop-diff>). Dans le cas où l'interface se
-trouve dans l'état "down", la commande correspondante est exécutée afin de la
-mettre en route~#bref(<ctrloop-actions>). Ce même mécanisme s'applique à toute
-mise à jour de la ressource: une modification de la configuration déclarative se
-traduit automatiquement par les actions correctives adéquates. Le processus se
-répétant indéfiniment, le système détecte et corrige sans intervention tout
-écart causé par un facteur externe, tel que le débranchement accidentel du
-câble.
+qui constitue l'état souhaité~#bref(<ctrlloop-cfg>). L'état actuel de
+l'interface (statut, adresse IP, etc.) est d'abord récupéré~#bref(
+    <ctrlloop-obs>,
+), puis comparé au statut désiré~#bref(<ctrlloop-diff>). Dans le cas où
+l'interface se trouve dans l'état "down", la commande correspondante est
+exécutée afin de la mettre en route~#bref(<ctrlloop-actions>). Ce même mécanisme
+s'applique à toute mise à jour de la ressource: une modification de la
+configuration déclarative se traduit automatiquement par les actions correctives
+adéquates. Le processus se répétant indéfiniment, le système détecte et corrige
+sans intervention tout écart causé par un facteur externe, tel que le
+débranchement accidentel du câble.
 
 == Modèle de resource
 #todo[][
-    - Présenter un peu plus les resoruces (pas forcément exhaustif)
+    - Présenter un peu plus les resources (pas forcément exhaustif)
     - Présenter le split user vs dynamic
-    - Le concepte de manager
+    - Le concept de manager
 ]
 
 Chaque resource est uniquement identifiable par la combinaison de son type et de
@@ -156,9 +157,9 @@ chaque resource
 
 La configuration utilisateur est une liste de resources, et cette configuration
 n'est modifiable QUE par l'utilisateur. Cette configuration utilisateur donne
-lieu a une ou plusieur resources dynamiques. Par exemple, lors de la déclaration
-d'un conteneur, cela donnera lieu, d'une part a une resource "image" qui
-téléchargera l'image, et a une resource "conteneur" qui execéutra l'image.
+lieu a une ou plusieurs resources dynamiques. Par exemple, lors de la
+déclaration d'un conteneur, cela donnera lieu, d'une part a une resource "image"
+qui téléchargera l'image, et a une resource "conteneur" qui exécutera l'image.
 
 #include "../diagrams/cfgdyn.typ"
 
@@ -171,17 +172,17 @@ commandes sur la machine. Il suffit d'uploader un fichier. Compte tenu de cela,
 l'accès SSH est remplacé par une API classique, elle-même exposée via un client
 en ligne de commande ainsi qu'un provider Terraform.
 
-Outre le téléversemetn de fichiers, cette API permet aussi d'executer quelques
+Outre le téléversement de fichiers, cette API permet aussi d'executer quelques
 actions impératives (redémarrer un conteneur), récupérer et observer l'état
-d'une resource (qu'elle soti dynamique ou non), voir les lgos, et arrêter la
+d'une resource (qu'elle soit dynamique ou non), voir les logs, et arrêter la
 machine. Elle permet aussi de rentrer dans l'environnement d'exécution d'un
 conteneur (equivalent de `docker exec`), de port forward, etc. Elle permet aussi
-d'explorer le système de fichier et d'éditer certains fichier uniquemetn si
-ceux-ci ne sont aps géré par une configuration (par exemple modifier un ficheir
+d'explorer le système de fichier et d'éditer certains fichier uniquement si
+ceux-ci ne sont aps géré par une configuration (par exemple modifier un fichier
 au sein d'un volume de conteneur). Prend en charge aussi les backups.
 
-Dans le cadre du mode de maintenancs, d'autre commandes pour le diagnostic sont
-mise a disposition a travers un shell simple. Cela nécessite totuefois un
+Dans le cadre du mode de maintenance, d'autre commandes pour le diagnostic sont
+mise a disposition a travers un shell simple. Cela nécessite toutefois un
 redémarrage.
 
 == Exemple d'utilisation

@@ -1,7 +1,7 @@
 #import "../lib.typ": *
 
 #refdiagram(
-    label: <ctrloop>,
+    label: <ctrlloop>,
     caption: [Schéma conceptuel d'une boucle de contrôle déclarative],
     note: [
         Le contrôleur (encadré rouge) observe l'état actuel de la ressource,
@@ -14,11 +14,11 @@
     edge-stroke: 2pt,
     mark-scale: 60%,
     {
-        node(label: <ctrloop-obs>, num: [1], (0, 2), title: [Observe])
-        node(label: <ctrloop-diff>, num: [2], (1, 1), title: [Diff & Plan])
-        node(label: <ctrloop-act>, (2, 2), title: [Act])
+        node(label: <ctrlloop-obs>, num: [1], (0, 2), title: [Observe])
+        node(label: <ctrlloop-diff>, num: [2], (1, 1), title: [Diff & Plan])
+        node(label: <ctrlloop-act>, (2, 2), title: [Act])
         node(
-            enclose: (<ctrloop-obs>, <ctrloop-diff>, <ctrloop-act>),
+            enclose: (<ctrlloop-obs>, <ctrlloop-diff>, <ctrlloop-act>),
             inset: 5mm,
             snap: false,
             stroke: red,
@@ -27,7 +27,7 @@
             ])),
         )
         node(
-            label: <ctrloop-cfg>,
+            label: <ctrlloop-cfg>,
             num: [3],
             stroke: none,
             (1, 0),
@@ -35,20 +35,25 @@
             subtitle: [user configuration],
         )
         node(
-            label: <ctrloop-res>,
+            label: <ctrlloop-res>,
             (1, 3),
             title: [Managed Resource],
             subtitle: [actual state],
         )
 
-        edge(<ctrloop-cfg>, <ctrloop-diff>, "--|>")
-        edge(<ctrloop-obs>, <ctrloop-diff>, "-|>", bend: 30deg, title: [Current
-            state])
+        edge(<ctrlloop-cfg>, <ctrlloop-diff>, "--|>")
         edge(
-            label: <ctrloop-actions>,
+            <ctrlloop-obs>,
+            <ctrlloop-diff>,
+            "-|>",
+            bend: 30deg,
+            title: [Current state],
+        )
+        edge(
+            label: <ctrlloop-actions>,
             num: [4],
-            <ctrloop-diff>,
-            <ctrloop-act>,
+            <ctrlloop-diff>,
+            <ctrlloop-act>,
             "-|>",
             bend: 30deg,
             title: place(dx: 0.3em, box(
@@ -58,11 +63,12 @@
                 place(dy: -0.45em)[Actions to close the gap],
             )),
         )
-        edge(<ctrloop-act>, <ctrloop-obs>, "-|>", title: [Infinitely recurring])
-        edge(<ctrloop-obs>, <ctrloop-res>, "--|>", label-side: right, title: [
+        edge(<ctrlloop-act>, <ctrlloop-obs>, "-|>", title: [Infinitely
+            recurring])
+        edge(<ctrlloop-obs>, <ctrlloop-res>, "--|>", label-side: right, title: [
             Gather information
         ])
-        edge(<ctrloop-act>, <ctrloop-res>, "--|>", label-side: left, title: [
+        edge(<ctrlloop-act>, <ctrlloop-res>, "--|>", label-side: left, title: [
             Execute actions
         ])
     },

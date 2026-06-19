@@ -7,7 +7,7 @@
 
 #set page(numbering: "I")
 
-// TOOD: Acknowledgments
+// TODO: Acknowledgments
 
 #show: codly-init.with()
 #codly(languages: codly-languages)
@@ -28,7 +28,7 @@
     - Scénarios de validation
     - Benchmarking
 - Comparaison avec d'autre solutions
-- Résultats (ACADÉM + FONCTIONEL: parler de la valeur ajoutée, des limitations, etc)
+- Résultats (ACADÉMIQUE + FONCTIONNEL: parler de la valeur ajoutée, des limitations, etc)
 - Discussion (TECHNIQUE: parler des bon et mauvais choix, limitations, etc)
 - Conclusion
 */
@@ -61,7 +61,7 @@
 = *NON CATÉGORISÉ*
 - Parler des dépendances (crates)
 - Coordination des resources
-    - Décrire la gestion de l'état désiré/courrant
+    - Décrire la gestion de l'état désiré/courant
         - Scheduling (c.f. l'ADR 1)
     - gRPC
     - Décrire les API/services internes
@@ -98,7 +98,7 @@ Comparer à Talos Linux et NixOS par rapport aux benchmarks et aux scénarios.
 
 = Discussion
 - Parler des bon et mauvais choix techniques
-- Parler des dificutlé technique
+- Parler des difficulté technique
 
 = Perspectives
 - Boite à idée
