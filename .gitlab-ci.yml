@@ -9,10 +9,7 @@ workflow:
 stages:
   - check
   - build
-  - test-doc
-  - test-unit
-  - test-integration
-  # - test-e2e
+  - test
 
 variables:
   NIX_CONFIG: "experimental-features = nix-command flakes"
@@ -47,22 +44,22 @@ check-rust:
   script: nix develop -c just rust check
 
 test-rust-doc:
-  stage: test-doc
+  stage: test
   script: nix develop -c just rust test-doc
   needs: [check-rust]
 
 test-rust-unit:
-  stage: test-unit
+  stage: test
   script: nix develop -c just rust test-unit
   needs: [check-rust]
 
 test-rust-integration:
-  stage: test-integration
+  stage: test
   script: nix develop -c just rust test-integration
   needs: [check-proto, test-rust-unit]
 
 # test-e2e:
-#   stage: test-e2e
+#   stage: test
 #   script: nix develop -c just test-e2e
 #   needs: [test-rust-integration]
 
