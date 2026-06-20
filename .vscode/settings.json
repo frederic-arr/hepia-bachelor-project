@@ -15,5 +15,18 @@
     },
     "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
     "nixEnvSelector.flakeShell": "default",
-    "rust-analyzer.check.command": "clippy"
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.runnables.test.overrideCommand": [
+        "cargo",
+        "nextest",
+        "run",
+        "--package",
+        "${package}",
+        "${target_arg}",
+        "${target}",
+        "--",
+        "${test_name}",
+        "${exact}",
+        "${include_ignored}"
+    ]
 }
