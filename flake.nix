@@ -154,6 +154,20 @@
           url  = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.19.9.tar.xz";
           hash = "sha256-wWBoo68S45Q97jse71fKcCKcBpEov6EYT7P0iyGdVb8=";
         };
+
+        cspellDictFr = pkgs.stdenvNoCC.mkDerivation {
+          name = "cspell-dict-fr-fr";
+          src = pkgs.fetchurl {
+            url = "https://registry.npmjs.org/@cspell/dict-fr-fr/-/dict-fr-fr-2.3.2.tgz";
+            hash = "sha256-zOsyxv7XQBucK6m93JaOrT56qo5m0IHRq+qMrDVXXEw=";
+          };
+          dontBuild = true;
+          dontConfigure = true;
+          installPhase = ''
+            mkdir -p $out
+            cp -r . $out/
+          '';
+        };
       in
       {
         formatter = pkgs.nixfmt-tree;
@@ -213,12 +227,24 @@
               python3Minimal
               kmod
               hexdump
+              cspell
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
             CPATH = "${pkgs.linuxHeaders}/include";
             BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.linuxHeaders}/include";
             NIX_CFLAGS_COMPILE = "-I${pkgs.linuxHeaders}/include";
+
+            shellHook = ''
+              cat > .config/.cspell.json <<EOF
+              {
+                "import": [
+                  "${cspellDictFr}/cspell-ext.json",
+                  ".config/cspell.yaml"
+                ]
+              }
+              EOF
+            '';
           };
         };
       }

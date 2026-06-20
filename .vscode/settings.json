@@ -14,26 +14,5 @@
         "buf.yaml": "yaml"
     },
     "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
-    "nixEnvSelector.flakeShell": "default",
-    "cSpell.language": "en,fr",
-    "cSpell.userWords": [
-        // Typst
-        "pagebreak",
-        "emph",
-        // Typst packages
-        "codly",
-        "linguify",
-        "glossarium",
-        "touying",
-        // Typst helpers
-        "ctrlloop",
-        "refdiagram",
-        "cfgdyn",
-        "sbref",
-        // Words
-        "HEPIA",
-        "clusterisés",
-        "déclarativité",
-        "multinœuds"
-    ],
+    "nixEnvSelector.flakeShell": "default"
 }

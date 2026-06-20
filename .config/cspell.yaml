@@ -1,0 +1,57 @@
+---
+version: "0.2"
+useGitignore: true
+languageSettings:
+  - languageId: "*"
+    locale: fr
+    allowCompoundWords: true
+    words:
+      - clusterisés
+      - déclarativité
+      - multinœuds
+      - bénéfiques
+      - impératives
+      - contrôleur
+  - languageId: typst
+    ignoreRegExpList:
+      - string
+      - /@[a-zA-Z0-9_-]+/g
+    words:
+      - rustc
+      - typst
+      - cntr
+      - Alegreya
+      - ctrlloop
+      - pagebreak
+      - emph
+      - codly
+      - linguify
+      - glossarium
+      - touying
+      - refdiagram
+      - cfgdyn
+      - sbref
+      - dhcpd
+overrides:
+  - filename: "docs/**/*.typ"
+    languageId: typst
+    language: en,fr
+  - filename: "docs/internal/**/*.md"
+    language: en,fr
+ignorePaths:
+  - docs/internal/lib
+  - docs/internal/notes
+  - docs/internal/project
+  - docs/internal/thesis/scratchpad.typ
+files:
+  - README.md
+  - docs/**/*.typ
+  - docs/**/*.md
+words:
+  - Gradechelor
+  - Frédéric
+  - Arroyo
+  - Florent
+  - Glück
+  - HEPIA
+  - Codeberg
