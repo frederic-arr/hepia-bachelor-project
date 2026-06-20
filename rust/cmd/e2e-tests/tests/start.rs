@@ -16,7 +16,8 @@ pub struct Vm {
 }
 
 impl Vm {
-    pub fn new() -> Self {
+    #[must_use]
+    pub fn start() -> Self {
         let vm = Self::create();
         Self::wait_for_str(
             &vm.console_socket,
@@ -129,5 +130,5 @@ impl Drop for Vm {
 
 #[test]
 fn bob() {
-    let vm = Vm::new();
+    let vm = Vm::start();
 }

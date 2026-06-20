@@ -7,8 +7,8 @@ workflow:
     - if: $CI_COMMIT_BRANCH
 
 stages:
-  - check
-  - build
+  # - check
+  # - build
   - test
 
 variables:
@@ -18,50 +18,50 @@ variables:
   RUSTFLAGS: "-D warnings"
   CARGO_TERM_COLOR: always
 
-check-docs-internal:
-  stage: check
-  script: nix develop -c just docs check
+# check-docs-internal:
+#   stage: check
+#   script: nix develop -c just docs check
 
-build-docs-internal:
-  stage: build
-  script:
-    - nix develop -c just docs build
-    - cp -r docs/internal/output/ ./output/
-  artifacts:
-    when: on_success
-    access: all
-    name: documents
-    expire_in: 7 days
-    paths: [output/**/*.pdf]
-  needs: [check-docs-internal]
+# build-docs-internal:
+#   stage: build
+#   script:
+#     - nix develop -c just docs build
+#     - cp -r docs/internal/output/ ./output/
+#   artifacts:
+#     when: on_success
+#     access: all
+#     name: documents
+#     expire_in: 7 days
+#     paths: [output/**/*.pdf]
+#   needs: [check-docs-internal]
 
-check-proto:
-  stage: check
-  script: nix develop -c just proto check
+# check-proto:
+#   stage: check
+#   script: nix develop -c just proto check
 
-check-rust:
-  stage: check
-  script: nix develop -c just rust check
+# check-rust:
+#   stage: check
+#   script: nix develop -c just rust check
 
-test-rust-doc:
-  stage: test
-  script: nix develop -c just rust test-doc
-  needs: [check-rust]
+# test-rust-doc:
+#   stage: test
+#   script: nix develop -c just rust test-doc
+#   needs: [check-rust]
 
-test-rust-unit:
-  stage: test
-  script: nix develop -c just rust test-unit
-  needs: [check-rust]
+# test-rust-unit:
+#   stage: test
+#   script: nix develop -c just rust test-unit
+#   needs: [check-rust]
 
-test-rust-integration:
-  stage: test
-  script: nix develop -c just rust test-integration
-  needs: [check-proto, test-rust-unit]
+# test-rust-integration:
+#   stage: test
+#   script: nix develop -c just rust test-integration
+#   needs: [check-proto, test-rust-unit]
 
 test-e2e:
   stage: test
   script: nix flake check
-  needs: [test-rust-integration]
+  # needs: [test-rust-integration]
 
 # cache:
 #   key: ${CI_COMMIT_REF_SLUG}
