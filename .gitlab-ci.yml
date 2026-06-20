@@ -58,10 +58,10 @@ test-rust-integration:
   script: nix develop -c just rust test-integration
   needs: [check-proto, test-rust-unit]
 
-# test-e2e:
-#   stage: test
-#   script: nix develop -c just test-e2e
-#   needs: [test-rust-integration]
+test-e2e:
+  stage: test
+  script: nix flake check
+  needs: [test-rust-integration]
 
 # cache:
 #   key: ${CI_COMMIT_REF_SLUG}

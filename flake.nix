@@ -34,6 +34,11 @@
           fragments = [ ./kernel/shared/common.conf ];
         };
 
+        e2eTests = pkgs.callPackage ./rust/e2e.nix {
+          inherit crane rustToolchain;
+          inherit (pkgs) lib protobuf;
+        } { inherit iso; };
+
         initrd = pkgs.makeInitrdNG {
           contents = [
             {
@@ -100,7 +105,7 @@
 
         netmgr = rustFn {
           package = "network-manager";
-          deps = [ "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-server" ];
+          deps = [ "isolation" "isolation-macros" "linux-utils" "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-server" ];
         };
 
         conmgr = rustFn {
@@ -188,6 +193,8 @@
             program = "${x86_64-generic.menuconfig}/bin/menuconfig";
           };
         };
+
+        checks.e2e = e2eTests;
 
         devShells = {
           default = pkgs.mkShellNoCC {
