@@ -17,7 +17,7 @@ This Bachelor project is a continuation of the [Container OS semester project](h
 
 **Title**: Operating System for the Deployment of Containerized Workloads
 
-**Studdent**: ARROYO Frédéric
+**Student**: ARROYO Frédéric
 
 **Professor**: GLÜCK Florent
 

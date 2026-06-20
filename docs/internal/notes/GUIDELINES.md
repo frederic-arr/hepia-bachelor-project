@@ -1,6 +1,6 @@
 # Guidelines
 
-## Commit style
+## Commit Style
 
 See [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
 

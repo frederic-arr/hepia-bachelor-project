@@ -21,7 +21,7 @@ struct Resource {
 ```
 
 A resource represents *something* on the system, such as a file, a network interface, a container, etc. It contains the following fields:
-- `identity`: uniquely identifies the resource accross the entire system.
+- `identity`: uniquely identifies the resource across the entire system.
 - `children`: a list of identities that references the resources that this one created.
 - `depends_on`:
 - `spec`: the desired state
@@ -30,7 +30,7 @@ A resource represents *something* on the system, such as a file, a network inter
 
 ### Resource Ownership
 
-A resource can own zero or more sub-resources. While not strictly necessary to implement a declarative system, this allows to derive dynamic resources from static configuration files.
+A resource can own zero or more sub-resources. While not strictly necessary to implement a declarative system, this allows deriving dynamic resources from static configuration files.
 
 For example, the following "master" resource:
 ```yaml
@@ -65,9 +65,9 @@ A config is a user-defined manifests. It behaves much like resources with two ma
 
 ### Identity
 
-Objects accros the system are uniquely identified by 2 components: the schema and the name.
+Objects across the system are uniquely identified by 2 components: the schema and the name.
 
-The schema is an URI to a JSON schema.
+The schema is a URI to a JSON schema.
 
 ### Resource
 
