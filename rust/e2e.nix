@@ -11,6 +11,7 @@ let
     root = ./.;
     fileset = lib.fileset.unions ([
       ./.cargo
+      ./.config
       ./Cargo.toml
       ./Cargo.lock
       (craneLib.fileset.commonCargoSources ./cmd/e2e-tests)

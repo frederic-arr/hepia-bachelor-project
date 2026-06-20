@@ -52,16 +52,28 @@ test-rust-unit:
   stage: test
   script: nix develop -c just rust test-unit
   needs: [check-rust]
+  artifacts:
+    when: always
+    reports:
+      junit: rust/target/nextest/default/junit.xml
 
 test-rust-integration:
   stage: test
   script: nix develop -c just rust test-integration
   needs: [check-proto, test-rust-unit]
+  artifacts:
+    when: always
+    reports:
+      junit: rust/target/nextest/default/junit.xml
 
 test-e2e:
   stage: test
   script: nix flake -L check
   needs: [test-rust-integration]
+  artifacts:
+    when: always
+    reports:
+      junit: rust/target/nextest/default/junit.xml
 
 # cache:
 #   key: ${CI_COMMIT_REF_SLUG}
