@@ -10,5 +10,6 @@
         "bbenoist.nix",
         "streetsidesoftware.code-spell-checker",
         "streetsidesoftware.code-spell-checker-french",
+        "nefrob.vscode-just-syntax",
     ]
 }

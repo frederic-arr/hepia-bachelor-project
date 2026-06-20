@@ -46,7 +46,7 @@
             }
             # {
             #   target = "/root.squashfs";
-            #   source  = rootfs;
+            #   source = rootfs;
             # }
           ];
         };
@@ -54,7 +54,6 @@
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
           paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox pkgs.cacert ];
-          # paths  = [ supervisor pkgs.podman pkgs.busybox pkgs.cacert ];
           pathsToLink = [ "/bin" "/lib" "/etc" ];
         };
 
@@ -73,7 +72,7 @@
 
           cp "$closureInfo/registration" source/nix/store/
 
-          # store-paths is a file containting all the paths. In the original script
+          # store-paths is a file containing all the paths. In the original script
           # they `cat` it while calling mksquashfs which uh... "destructures"
           # the filepath and gives them to squash, but since we don't want them
           # directly at the root, that's how we'll do
@@ -155,6 +154,32 @@
           hash = "sha256-wWBoo68S45Q97jse71fKcCKcBpEov6EYT7P0iyGdVb8=";
         };
 
+        harper-cli = pkgs.rustPlatform.buildRustPackage {
+          pname = "harper-cli";
+          version = "unstable";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "Automattic";
+            repo = "harper";
+            rev = "v2.5.0";
+            hash = "sha256-D92Ung7nYFVUKH7SiLKf8fsoLGZkl+zVZV2/DGoWfnI=";
+          };
+
+          # cargoHash = pkgs.lib.fakeHash;
+          cargoHash = "sha256-a1ATDCCZcXn9B1Ryx2oufFSvzECdH3+mXpojvW4/8nw=";
+          cargoBuildFlags = [ "-p" "harper-cli" ];
+
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+          ];
+          buildInputs = with pkgs; [
+            glib
+            gtk3
+            libsoup_3
+            webkitgtk_4_1
+          ];
+        };
+
         cspellDictFr = pkgs.stdenvNoCC.mkDerivation {
           name = "cspell-dict-fr-fr";
           src = pkgs.fetchurl {
@@ -227,6 +252,7 @@
               python3Minimal
               kmod
               hexdump
+              harper-cli
               cargo-nextest
               cspell
             ];
@@ -241,7 +267,7 @@
               {
                 "import": [
                   "${cspellDictFr}/cspell-ext.json",
-                  ".config/cspell.yaml"
+                  "./cspell.yaml"
                 ]
               }
               EOF
