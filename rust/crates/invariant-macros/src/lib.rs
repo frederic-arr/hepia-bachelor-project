@@ -204,3 +204,20 @@ pub macro invariant_matches {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic = "INVARIANT VIOLATION"]
+    fn fails_without_details() {
+        invariant!(false);
+    }
+
+    #[test]
+    #[should_panic = "INVARIANT VIOLATION: test"]
+    fn fails_with_details() {
+        invariant!(false, "test");
+    }
+}
