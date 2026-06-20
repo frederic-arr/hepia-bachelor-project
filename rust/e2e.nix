@@ -52,4 +52,9 @@ craneLib.cargoNextest (commonArgs // {
 
   cargoExtraArgs = "--offline -p e2e-tests";
   E2E_DISK_IMAGE = iso;
+
+  postInstall = ''
+    mkdir -p $out
+    cp target/nextest/default/junit.xml $out/junit.xml || true
+  '';
 })

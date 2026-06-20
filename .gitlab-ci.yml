@@ -68,12 +68,12 @@ test-rust-integration:
 
 test-e2e:
   stage: test
-  script: nix flake -L check
+  script: nix build -L .#checks.x86_64-linux.e2e
   needs: [test-rust-integration]
   artifacts:
     when: always
     reports:
-      junit: rust/target/nextest/default/junit.xml
+      junit: result/junit.xml
 
 # cache:
 #   key: ${CI_COMMIT_REF_SLUG}
