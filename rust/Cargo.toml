@@ -89,3 +89,17 @@ bollard = { version = "0.21.0", default-features = false, features = [
     "pipe",
 ] }
 loopdev = { package = "loopdev-3", version = "0.5.3", default-features = false }
+nix = { version = "0.31.3", default-features = false, features = [
+    "sched",
+    "process",
+    "user",
+    "fs",
+] }
+tempfile = { version = "3.27.0", default-features = false }
+quote = { version = "1.0.45", default-features = false, features = [
+    "proc-macro",
+] }
+syn = { version = "2.0.118", default-features = false, features = [
+    "proc-macro",
+    "parsing",
+] }

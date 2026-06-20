@@ -227,6 +227,7 @@
               python3Minimal
               kmod
               hexdump
+              cargo-nextest
               cspell
             ];
 
