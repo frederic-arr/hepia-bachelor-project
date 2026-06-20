@@ -24,6 +24,8 @@ use nix::unistd::{
 use rustix::mount::{MountFlags, MountPropagationFlags, mount, mount_change};
 use rustix::process::chroot;
 
+const STACK_SIZE: usize = 1024 * 1024;
+
 /// Run a function as root in an isolated network namespace and an empty `/`.
 ///
 /// # SHOULD ONLY BE USED IN INTEGRATIONS TESTS
@@ -40,7 +42,6 @@ where
     let mut tmpdir = tempfile::tempdir_in(root).unwrap();
     let tmpdir_path = tmpdir.path();
 
-    const STACK_SIZE: usize = 1024 * 1024;
     let mut stack = vec![0u8; STACK_SIZE];
 
     let mut f = Some(f);
@@ -78,11 +79,11 @@ where
                         let rt = tokio::runtime::Runtime::new().unwrap();
                         rt.block_on(async {
                             f().await;
-                        })
+                        });
                     }),
                 );
                 match result {
-                    Ok(_) => 0,
+                    Ok(()) => 0,
                     Err(_) => 1,
                 }
             }),
@@ -91,6 +92,7 @@ where
                 | CloneFlags::CLONE_NEWNS
                 | CloneFlags::CLONE_NEWPID
                 | CloneFlags::CLONE_NEWNET,
+            #[expect(clippy::as_conversions)]
             Some(Signal::SIGCHLD as i32),
         )
     }
@@ -101,13 +103,13 @@ where
 
     std::fs::write(
         format!("/proc/{child_pid}/uid_map"),
-        format!("0 {} 1\n", uid),
+        format!("0 {uid} 1\n"),
     )
     .unwrap();
     std::fs::write(format!("/proc/{child_pid}/setgroups"), "deny").unwrap();
     std::fs::write(
         format!("/proc/{child_pid}/gid_map"),
-        format!("0 {} 1\n", gid),
+        format!("0 {gid} 1\n"),
     )
     .unwrap();
 

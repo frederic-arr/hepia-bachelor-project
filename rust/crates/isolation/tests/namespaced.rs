@@ -28,6 +28,7 @@ fn test_full() {
 }
 
 #[test]
+#[expect(clippy::assertions_on_constants)]
 fn test_a() {
     namespaced(env!("CARGO_TARGET_TMPDIR"), || async {
         assert!(true);
@@ -35,7 +36,8 @@ fn test_a() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic = "we assert!(false)"]
+#[expect(clippy::assertions_on_constants)]
 fn test_b() {
     namespaced(env!("CARGO_TARGET_TMPDIR"), || async {
         assert!(false);

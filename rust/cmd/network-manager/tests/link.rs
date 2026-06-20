@@ -25,11 +25,11 @@ fn test_full() {
         state: None,
         children: vec![],
         owner: Identity {
-            schema: "".to_string(),
-            name: "".to_string(),
+            schema: String::new(),
+            name: String::new(),
         },
     };
 
     let output = Link::reconcile(&mut ctx, &request).await.unwrap();
-    assert!(output.state.len() > 0);
+    assert!(!output.state.is_empty());
 }

@@ -14,5 +14,6 @@
         "buf.yaml": "yaml"
     },
     "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
-    "nixEnvSelector.flakeShell": "default"
+    "nixEnvSelector.flakeShell": "default",
+    "rust-analyzer.check.command": "clippy"
 }
