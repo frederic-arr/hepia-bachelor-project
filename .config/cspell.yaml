@@ -12,16 +12,17 @@ languageSettings:
       - bénéfiques
       - impératives
       - contrôleur
+      - péjorer
   - languageId: typst
     ignoreRegExpList:
       - string
       - /@[a-zA-Z0-9_-]+/g
+      - /\<[a-zA-Z0-9_-]+\>/g
     words:
       - rustc
       - typst
       - cntr
       - Alegreya
-      - ctrlloop
       - pagebreak
       - emph
       - codly
@@ -29,7 +30,6 @@ languageSettings:
       - glossarium
       - touying
       - refdiagram
-      - cfgdyn
       - sbref
       - dhcpd
 overrides:

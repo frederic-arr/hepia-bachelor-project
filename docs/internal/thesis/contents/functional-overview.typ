@@ -1,16 +1,6 @@
-// #import "@preview/codly:1.3.0": *
-// #import "@preview/codly-languages:0.1.1": *
-
-// #set text(lang: "fr", hyphenate: false)
-// #set par(justify: true)
-// #set page(numbering: "1")
-
 #import "../lib.typ": *
 
-// #show: codly-init.with()
-// #codly(languages: codly-languages)
-
-= Conception du système
+= Présentation du système <functional-overview>
 // Contient tout ce qui est important pour l'utilisateur final.
 
 // Objectifs du chapitre
@@ -95,7 +85,7 @@ procédures opérationnelles transférables sans friction.
 
 #show heading.where(level: 3): set heading(outlined: true)
 
-== Gestion déclarative
+== Gestion déclarative <functional-overview-declarative-model>
 
 // TODO: référencer Terraform, Docker, et K8s
 La gestion et la configuration du système reposent sur le principe de
@@ -143,7 +133,7 @@ adéquates. Le processus se répétant indéfiniment, le système détecte et co
 sans intervention tout écart causé par un facteur externe, tel que le
 débranchement accidentel du câble.
 
-== Modèle de resource
+== Modèle de resource <functional-overview-resource-model>
 #todo[][
     - Présenter un peu plus les resources (pas forcément exhaustif)
     - Présenter le split user vs dynamic
@@ -165,7 +155,7 @@ qui téléchargera l'image, et a une resource "conteneur" qui exécutera l'image
 
 // TODO: commenter le schéma ci-dessus
 
-== Interface d'administration
+== Interface d'administration <functional-overview-admin-api>
 
 Étant donné le model de configuration, il n'est plus nécessaire d'executer des
 commandes sur la machine. Il suffit d'uploader un fichier. Compte tenu de cela,
@@ -185,9 +175,7 @@ Dans le cadre du mode de maintenance, d'autre commandes pour le diagnostic sont
 mise a disposition a travers un shell simple. Cela nécessite toutefois un
 redémarrage.
 
-== Exemple d'utilisation
+== Exemple d'utilisation <functional-overview-example>
 #todo[][
     Un exemple simple et concret pour bien cerner
 ]
-
-= Architecture et sécurité

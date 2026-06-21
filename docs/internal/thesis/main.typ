@@ -40,14 +40,19 @@
 #include "/subject-statement/main.typ"
 #include "/abstract/main.typ"
 
+= Utilisation de l'intelligence artificielle
+= Abréviations, termes et définitions
+= Conventions utilisées dans le document
+
 #include "contents/introduction.typ"
 
 #set page(numbering: "1")
 #counter(page).update(1)
 #set heading(numbering: "1.")
+#show heading.where(level: 1): pagebreak(weak: true)
 
-#include "contents/overview.typ"
-#include "contents/architecture.typ"
+#include "contents/functional-overview.typ"
+#include "contents/system-design.typ"
 #include "contents/implementation.typ"
 #include "contents/validation.typ"
 #include "contents/comparison.typ"

@@ -9,7 +9,7 @@
         align(start)[#text(style: "italic", it)]
     }
 
-    set par(justify: true, first-line-indent: 0em, spacing: 1em)
+    set par(justify: false, first-line-indent: 0em, spacing: 1em)
 
     show std.figure.where(kind: raw): set std.figure(supplement: "Code")
     block(
@@ -22,7 +22,7 @@
             [
                 #std.figure(
                     caption: caption,
-                    block(width: 100%)[#body],
+                    [#body],
                 ) #label
             ]
 
