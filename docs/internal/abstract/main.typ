@@ -5,6 +5,9 @@
     title: [Résumé],
 )
 
+#lorem(300)
+
+/*
 L'approche DevOps et la conteneurisation sont devenu omniprésentes dans le
 déploiement d'application et d'infrastructure. Pourtant, les systèmes
 d'exploitation sous-jacents sont restés en retrait de cette évolution: les
@@ -23,3 +26,4 @@ permettant l'adoption des méthodologies DevOps. #highlight(text(
 )[
     TODO: suite du résumé une fois le projet terminé
 ])
+*/

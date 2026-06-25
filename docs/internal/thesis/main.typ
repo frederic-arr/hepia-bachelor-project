@@ -8,12 +8,8 @@
 
 #set page(numbering: "I")
 
-// TODO: Acknowledgments
-
 #show: codly-init.with()
 #codly(languages: codly-languages)
-
-// TODO: AI usage declaration
 
 // TODO: Table of contents
 // TODO: Acronyms list
@@ -37,9 +33,9 @@
 #outline()
 #pagebreak()
 
-#include "extra/acknowledgements.typ"
+// #include "extra/acknowledgements.typ"
 #include "/subject-statement/main.typ"
-#include "/abstract/main.typ"
+// #include "/abstract/main.typ"
 
 // = Utilisation de l'intelligence artificielle
 // = Abréviations, termes et définitions
