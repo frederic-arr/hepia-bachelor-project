@@ -1,3 +1,10 @@
+#let outline-figure() = {
+    let in-outline = state("in-outline", false)
+    in-outline.update(true)
+    outline(title: [Figures], target: figure)
+    in-outline.update(false)
+}
+
 #let figure(
     body,
     label: none,
@@ -5,6 +12,11 @@
     source: none,
     note: none,
 ) = {
+    let in-outline = state("in-outline", false)
+    let flex-caption(short, long) = context if in-outline.get() { short } else {
+        long
+    }
+
     show std.figure.caption: it => {
         align(start)[#text(style: "italic", it)]
     }
@@ -12,32 +24,30 @@
     set par(justify: false, first-line-indent: 0em, spacing: 1em)
 
     show std.figure.where(kind: raw): set std.figure(supplement: "Code")
+
+
     block(
         breakable: false,
         above: 2em,
         below: 2em,
         width: 100%,
         inset: (left: 0.5cm, right: 0.5cm),
-        {
-            [
-                #std.figure(
-                    caption: caption,
-                    [#body],
-                ) #label
-            ]
-
-            if note != none {
-                text(style: "italic")[#note]
-                v(1em, weak: true)
-            }
-
-            if source != none {
-                text(style: "italic")[Source: #if type(source) == label [
-                        tiré de #cite(source, form: "prose")
-                    ] else { source }]
-                v(1em, weak: true)
-            }
-        },
+        [
+            #std.figure(
+                caption: flex-caption(caption, [
+                    #caption \
+                    #note \
+                    #if source != none {
+                        text(style: "italic")[Source: #if (
+                                type(source) == label
+                            ) [
+                                tiré de #cite(source, form: "prose")
+                            ] else { source }]
+                    }
+                ]),
+                [#body],
+            ) #label
+        ],
     )
 }
 

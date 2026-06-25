@@ -87,6 +87,7 @@
         ])
 
         node(
+            label: <cfgdyn-dyn>,
             num: [2],
             enclose: (<cfgdyn-link>, <cfgdyn-addr>, <cfgdyn-rte>),
             inset: 2mm,

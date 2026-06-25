@@ -3,6 +3,11 @@
     [\<PLACEHOLDER> #body \</PLACEHOLDER>],
 ))
 
+#let todo-inline(body) = highlight(fill: rgb("#fff091"), text(
+    fill: red,
+    [\<TODO> #body \</TODO>],
+))
+
 #let todo(content, ..body, label: "TODO", color: rgb("#0fb9b1")) = {
     import "../conf.typ"
 

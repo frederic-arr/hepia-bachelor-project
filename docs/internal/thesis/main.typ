@@ -1,4 +1,5 @@
-#import "/packages.typ": *;
+#import "/packages.typ": *
+#import "lib.typ": *
 #import packages.codly: *
 #import packages.codly-languages: *
 
@@ -40,16 +41,19 @@
 #include "/subject-statement/main.typ"
 #include "/abstract/main.typ"
 
-= Utilisation de l'intelligence artificielle
-= Abréviations, termes et définitions
-= Conventions utilisées dans le document
+// = Utilisation de l'intelligence artificielle
+// = Abréviations, termes et définitions
+// = Conventions utilisées dans le document
 
 #include "contents/introduction.typ"
 
 #set page(numbering: "1")
 #counter(page).update(1)
 #set heading(numbering: "1.")
-#show heading.where(level: 1): pagebreak(weak: true)
+#show heading.where(level: 1): it => {
+    pagebreak(weak: true)
+    it
+}
 
 #include "contents/functional-overview.typ"
 #include "contents/system-design.typ"

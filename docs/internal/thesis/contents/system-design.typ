@@ -1,5 +1,9 @@
 #import "../lib.typ": *
 
+// TODO: parler des dépendances cycliques
+
+#set heading(numbering: "1.")
+
 = Conception du système
 
 == Architecture générale
@@ -286,7 +290,170 @@ Afin d'illustrer la problématique de ces resources, l'exemple des images de
 conteneurs.
 
 #set page(flipped: true)
-#include "../diagrams/cfgshared.typ"
+
+#refdiagram(
+    label: <cfgshared>,
+    caption: [Problème de resources partagées],
+    note: [
+        Deux configuration utilisateur indépendantes, agissent au final sur une
+        resource partagée au niveau du système en raison du fonctionnement de la
+        resource réel.
+
+        Note: la configuration est abrégée a des fins d'illustration
+    ],
+    source: made-by-self,
+
+    spacing: 1cm,
+    edge-stroke: 2pt,
+    mark-scale: 60%,
+    {
+        node(label: <cfgshared-cfga>, (0.875, 0), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: Container
+            name: container-a
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgshared-imga>, (0.875, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: Image
+            name: container-a-img
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgshared-runa>, (0, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: ContainerRun
+            name: container-a-run
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgshared-cfgb>, (1.85, 0), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: Container
+            name: container-b
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgshared-imgb>, (1.85, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: Image
+            name: container-b-img
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgshared-runb>, (2.825, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: ContainerRun
+            name: container-b-run
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgshared-podimg>, (1.5, 3), stroke: 2pt, title: [
+            /var/lib/container/image/alpine/latest
+        ])
+
+        node(label: <cfgshared-podruna>, (0, 3), stroke: 2pt, title: [
+            Running Container A
+        ])
+
+        node(label: <cfgshared-podrunb>, (2.875, 3), stroke: 2pt, title: [
+            Running Container A
+        ])
+
+        node(
+            label: <cfgshared-cfg>,
+            num: [1],
+            enclose: (
+                <cfgshared-cfga>,
+                <cfgshared-cfgb>,
+            ),
+            inset: 2mm,
+            snap: false,
+            stroke: blue,
+            title: align(top + left, place(dx: 5cm, dy: 2.5cm, text(
+                fill: blue,
+            )[
+                *User Configurations*
+            ])),
+        )
+
+        node(
+            label: <cfgshared-dyn>,
+            num: [2],
+            enclose: (
+                <cfgshared-imga>,
+                <cfgshared-runa>,
+                <cfgshared-imgb>,
+                <cfgshared-runb>,
+            ),
+            inset: 2mm,
+            snap: false,
+            stroke: red,
+            title: align(top + left, place(dx: -5mm, dy: -10mm, text(
+                fill: red,
+            )[
+                *Dynamic Resources*
+            ])),
+        )
+
+        node(
+            label: <cfgshared-real>,
+            num: [3],
+            enclose: (
+                <cfgshared-podruna>,
+                <cfgshared-podrunb>,
+                <cfgshared-podimg>,
+            ),
+            inset: 2mm,
+            snap: false,
+            stroke: orange,
+        )
+
+        node(
+            label: <cfgshared-reallabel>,
+            (rel: (0mm, -1cm), to: <cfgshared-real>),
+            title: text(fill: orange)[*Physical Resources*],
+        )
+
+        edge(<cfgshared-cfga>, <cfgshared-imga>, "-|>")
+        edge(<cfgshared-cfga>, <cfgshared-runa>, "-|>")
+        edge(<cfgshared-runa>, <cfgshared-podruna>, "-|>")
+        edge(
+            <cfgshared-imga>,
+            <cfgshared-podimg>,
+            "-|>",
+            label: <cfgshared-conflict>,
+            num: [4],
+        )
+
+        edge(<cfgshared-cfgb>, <cfgshared-imgb>, "-|>")
+        edge(<cfgshared-cfgb>, <cfgshared-runb>, "-|>")
+        edge(<cfgshared-runb>, <cfgshared-podrunb>, "-|>")
+        edge(<cfgshared-imgb>, <cfgshared-podimg>, "-|>")
+
+        edge(<cfgshared-podruna>, <cfgshared-podimg>, "--|>")
+        edge(<cfgshared-podrunb>, <cfgshared-podimg>, "--|>")
+    },
+)
 
 La @cfgshared montre que, dans le cas où l'utilisateur souhaite configurer deux
 conteneurs reposant sur l'image~`alpine:latest`~#bref(<cfgshared-cfg>). Chaque
@@ -343,7 +510,200 @@ comme suit:
 Comme illustré dans la @cfgjoint.
 
 #set page(flipped: true)
-#include "../diagrams/cfgjoint.typ"
+
+#refdiagram(
+    label: <cfgjoint>,
+    caption: [Solution aux resources partagées],
+    note: [
+        Deux configuration utilisateur indépendantes, agissent au final sur une
+        resource partagée au niveau du système en raison du fonctionnement de la
+        resource réel.
+
+        Note: la configuration est abrégée a des fins d'illustration
+    ],
+    source: made-by-self,
+
+    spacing: 1cm,
+    edge-stroke: 2pt,
+    mark-scale: 60%,
+    {
+        node(label: <cfgjoint-cfga>, (0.875, 0), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: Container
+            name: container-a
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgjoint-imga>, (0.875, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: ImageRef
+            name: container-a-img
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgjoint-runa>, (0, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: ContainerRun
+            name: container-a-run
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgjoint-cfgb>, (1.85, 0), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: Container
+            name: container-b
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgjoint-imgb>, (1.85, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: ImageRef
+            name: container-b-img
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgjoint-runb>, (2.825, 2), title: box(
+            width: 6cm,
+        )[
+            ```yaml
+            kind: ContainerRun
+            name: container-b-run
+            image: alpine:latest
+            ```
+        ])
+
+        node(label: <cfgjoint-img>, (1.5, 3), title: box(
+            width: 8cm,
+        )[
+            ```yaml
+            kind: Image
+            name: alpine:latest@sha256:AAAAA
+            ```
+        ])
+
+        node(label: <cfgjoint-podimg>, (1.5, 4), stroke: 2pt, title: [
+            /var/lib/container/image/alpine/latest
+        ])
+
+        node(label: <cfgjoint-podruna>, (0, 4), stroke: 2pt, title: [
+            Running Container A
+        ])
+
+        node(label: <cfgjoint-podrunb>, (2.875, 4), stroke: 2pt, title: [
+            Running Container A
+        ])
+
+        node(
+            label: <cfgjoint-cfg>,
+            enclose: (
+                <cfgjoint-cfga>,
+                <cfgjoint-cfgb>,
+            ),
+            inset: 2mm,
+            snap: false,
+            stroke: blue,
+            title: align(top + left, place(dx: 5cm, dy: 2.5cm, text(
+                fill: blue,
+            )[
+                *User Configurations*
+            ])),
+        )
+
+        node(
+            label: <cfgjoint-dyn>,
+            enclose: (
+                <cfgjoint-imga>,
+                <cfgjoint-runa>,
+                <cfgjoint-imgb>,
+                <cfgjoint-runb>,
+            ),
+            inset: 2mm,
+            snap: false,
+            stroke: red,
+            title: align(top + left, place(dx: -5mm, dy: -10mm, text(
+                fill: red,
+            )[
+                *Dynamic Resources*
+            ])),
+        )
+
+        node(
+            label: <cfgjoint-real>,
+            enclose: (
+                <cfgjoint-podruna>,
+                <cfgjoint-podrunb>,
+                <cfgjoint-podimg>,
+            ),
+            inset: 2mm,
+            snap: false,
+            stroke: orange,
+        )
+
+        node(
+            label: <cfgjoint-reallabel>,
+            (rel: (0mm, -1cm), to: <cfgjoint-real>),
+            title: text(fill: orange)[*Physical Resources*],
+        )
+
+        node(
+            label: <cfgjoint-joint>,
+            num: [2],
+            enclose: (
+                <cfgjoint-img>,
+            ),
+            inset: 2mm,
+            snap: false,
+            stroke: fuchsia,
+            title: align(top + left, place(dx: -3.5cm, dy: 0cm, text(
+                fill: fuchsia,
+            )[
+                *Mutual Resources*
+            ])),
+        )
+
+        edge(<cfgjoint-cfga>, <cfgjoint-imga>, "-|>")
+        edge(<cfgjoint-cfga>, <cfgjoint-runa>, "-|>")
+        edge(<cfgjoint-runa>, <cfgjoint-podruna>, "-|>")
+        edge(
+            <cfgjoint-imga>,
+            <cfgjoint-img>,
+            "-|>",
+            num: [1],
+            label: <cfgjoint-imgref>,
+        )
+
+        edge(<cfgjoint-cfgb>, <cfgjoint-imgb>, "-|>")
+        edge(<cfgjoint-cfgb>, <cfgjoint-runb>, "-|>")
+        edge(<cfgjoint-runb>, <cfgjoint-podrunb>, "-|>")
+        edge(<cfgjoint-imgb>, <cfgjoint-img>, "-|>")
+
+        edge(
+            <cfgjoint-img>,
+            <cfgjoint-podimg>,
+            "-|>",
+            num: [3],
+            label: <cfgjoint-noconflict>,
+        )
+
+        edge(<cfgjoint-podruna>, <cfgjoint-podimg>, "--|>")
+        edge(<cfgjoint-podrunb>, <cfgjoint-podimg>, "--|>")
+    },
+)
 
 Dans la @cfgjoint, les deux conteneurs vont, à travers une `ImageRef`~#bref(
     <cfgjoint-imgref>,
@@ -356,3 +716,147 @@ résolution concrète vient du fait que la resource mutualisé~#bref(
 une resource change le nom, cela va simplement crée une nouvelle resource.
 
 #set page(flipped: false)
+
+=== Synthèse du model de resource
+
+// En somme, deux liens existent entre les resources: le lien de parenté, qui
+// permet de modifier et lire une resource, et le lien de dépendance, qui permet de
+// lire une resource sans pouvoir y modifier. En outre, le lien de dépendance a un
+// effet bloquant, empêchant la resource cible d'être supprimée tant qu'une autre
+// resource dépend sur elle.
+
+// En somme, les resources sont décomposée en 3 catégories: statiques, dynamiques,
+// et mutualisées. Deux liens existent entre les resources: le lien de parenté, et le lien de dépendance: le
+
+Ces catégories régissent qui peut executer quelles actions sur ces dernières, en
+particulier une resource statique ne peut être crée et modifiée que par
+l'administrateur système, une resource dynamique peut être crée par n'importe
+quelle autre resource et modifiée uniquement par celle qui l'a crée, et enfin
+
+#let static(..args) = node(stroke: blue, ..args)
+#let dyn(..args) = node(stroke: red, ..args)
+#let shared(..args) = node(stroke: fuchsia, ..args)
+#let rel-rwd(parent, child, ..args) = edge(
+    parent,
+    child,
+    "-|>",
+    stroke: red,
+    ..args,
+)
+#let rel-r(from, to, ..args) = edge(from, to, "--|>", stroke: green, ..args)
+#let rel-rw(from, to, ..args) = edge(from, to, "-x-|>", stroke: fuchsia, ..args)
+
+#refdiagram(
+    label: <cfgtree>,
+    caption: [Dérivation de ressources dynamiques depuis une configuration
+        réseau],
+    note: [
+        À partir d'une unique configuration réseau, le contrôleur dérive
+        automatiquement trois ressources dynamiques correspondant aux objets
+        qu'il manipule au sein du noyau Linux.
+    ],
+    source: made-by-self,
+
+    spacing: 1.2cm,
+    node-stroke: 1pt,
+    edge-stroke: 2pt,
+    mark-scale: 60%,
+    {
+        static(label: <cfgtree-dns>, (0, -1), title: [dns])
+        dyn(label: <cfgtree-dnsfile>, (0, -2), title: [file:/etc/resolv.conf])
+
+        static(
+            label: <cfgtree-neta>,
+            (0, 0),
+            title: [interface:eth0],
+        )
+        dyn(
+            label: <cfgtree-neta-addr>,
+            (rel: (0, 1), to: <cfgtree-neta>),
+            title: [address],
+        )
+        dyn(
+            label: <cfgtree-neta-route>,
+            (rel: (-0.75, 1), to: <cfgtree-neta>),
+            title: [route],
+        )
+        dyn(
+            label: <cfgtree-neta-link>,
+            (rel: (0.75, 1), to: <cfgtree-neta>),
+            title: [link],
+        )
+
+        static(
+            label: <cfgtree-cona>,
+            (2, 0),
+            title: [container:test-a],
+        )
+        dyn(
+            label: <cfgtree-cona-run>,
+            (rel: (-0.5, 1), to: <cfgtree-cona>),
+            title: [container-instance],
+        )
+        dyn(
+            label: <cfgtree-cona-img>,
+            (rel: (0.75, 1), to: <cfgtree-cona>),
+            title: [image-ref],
+        )
+
+        static(
+            label: <cfgtree-conb>,
+            (2, -1),
+            title: [container:test-b],
+        )
+        dyn(
+            label: <cfgtree-conb-run>,
+            (rel: (-0.5, -1), to: <cfgtree-conb>),
+            title: [container-instance],
+        )
+        dyn(
+            label: <cfgtree-conb-img>,
+            (rel: (0.75, -1), to: <cfgtree-conb>),
+            title: [image-ref],
+        )
+
+        shared(
+            label: <cfgtree-img>,
+            (3, -0.5),
+            title: [image],
+        )
+
+        rel-rwd(<cfgtree-dns>, <cfgtree-dnsfile>)
+
+        rel-rwd(<cfgtree-neta>, <cfgtree-neta-link>)
+        rel-rwd(<cfgtree-neta>, <cfgtree-neta-addr>)
+        rel-rwd(<cfgtree-neta>, <cfgtree-neta-route>)
+
+        rel-r(<cfgtree-neta-addr>, <cfgtree-neta-link>)
+        rel-r(<cfgtree-neta-route>, <cfgtree-neta-addr>)
+
+        rel-rwd(<cfgtree-cona>, <cfgtree-cona-run>)
+        rel-rwd(<cfgtree-cona>, <cfgtree-cona-img>)
+        rel-r(<cfgtree-cona-run>, <cfgtree-cona-img>)
+
+        rel-rwd(<cfgtree-conb>, <cfgtree-conb-run>)
+        rel-rwd(<cfgtree-conb>, <cfgtree-conb-img>)
+        rel-r(<cfgtree-conb-run>, <cfgtree-conb-img>)
+
+        rel-rw(<cfgtree-cona-img>, <cfgtree-img>)
+        rel-rw(<cfgtree-conb-img>, <cfgtree-img>)
+
+        rel-rwd(
+            (3, 2.5),
+            (4, 2.5),
+            title: [Crée, modifier, lire, supprimer],
+            floating: true,
+        )
+        rel-r((3, 3), (4, 3), title: [Lire], floating: true)
+        rel-rw((3, 3.5), (4, 3.5), title: [Crée, lire])
+
+        static((2, 2.5), title: [Resource statique])
+        dyn((2, 3), title: [Resource dynamique])
+        shared((2, 3.5), title: [Resource mutualisée])
+    },
+)
+
+== Installation du système
