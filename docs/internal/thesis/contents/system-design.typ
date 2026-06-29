@@ -1,11 +1,332 @@
 #import "../lib.typ": *
 
 // TODO: parler des dépendances cycliques
-
-#set heading(numbering: "1.")
+#set page(numbering: "1/1")
 
 = Conception du système
 
+== Contrôleurs et Ressources
+// === Contrôleur
+// Les contrôleurs, abordé brièvement dans le chapitre précédent, encapsulent toute
+// la logique permettant de configurer une partie du système suivant les
+// spécification fournie par une ressource. Un contrôleur supporte plusieurs type
+// de ressources, dont il définit lui-même le type, le schéma de la spécification,
+// et une partie du schéma de l'état de la ressource. En outre, il implémente la
+// logique permettant de vérifier qu'un champ se conforme aux schéma.
+
+=== Modèle de ressource
+Les ressources sont les données centrales du système; elle représente l'état
+désiré ainsi que l'état actuel d'une entité au sein du système (par exemple une
+interface réseau, un conteneur, etc.). Ces ressources sont composées de
+plusieurs information principales: leur type, leur nom, leur spécification
+(l'état désiré), leur status, l'état actuel persistant et l'état actuel
+éphémère. Le type, le nom, et le status sont des champs standardisés au sein du
+système, avec un schéma et des contraintes commune à toute les ressources. En
+revanche, les autres informations (la spécification et les états) sont définit
+par type de ressource. Outre permettre d'identifié quel schéma doit être
+appliqué pour valider la spécification ou les états, le type peut être combiné
+avec le nom afin d'identifier de manière unique et stable une ressource au sein
+du système. S'agissant d'un identifiant stable, il n'est pas possible de
+modifier le nom ou le type d'une ressource, cela reviendrait a totalement
+supprimer celle portant l'ancien nom, et en créer une nouvelle.
+
+Le status
+
+
+La spécification et l'état actuel doivent corresponde à un schéma, et chaque
+type de ressource a son propre schéma pour chacune de ces deux informations.
+
+Les ressources représentent tout d'abord un modèle de configuration, avec des
+schémas de données et une logique de validation. Ce schéma peut être concrétisé
+en fournissant un ensemble de valeur à ce schéma, et en nommant cet ensemble. La
+ressource devient alors une entité au sein du système
+
+
+La ressource est la donnée centrale du système et représente deux choses: d'une
+part un ensemble de schémas et les valeurs acceptables de ceux-ci, et d'autre
+part, la logique permettant, sur la base d'une spécification conforme aux
+schémas, de configurer le système de manière adéquate.
+
+Le système est organisé autour de ressources. Pour rappel une ressource contient
+un type, un nom, une spécification et un état. De surcroit, chaque type de
+ressource est géré par un contrôleur. Ce concept, brièvement introduit dans le
+chapitre précédent, est le processus qui implémente toute la logique nécessaire
+afin de configurer le système en respectant la spécification d'une ressource. Le
+fonctionnement exacte d'un contrôleur sera détaillé dans #todo-inline[réf. ch.].
+
+
+
+
+Bien que la majorité du contenu de l'état soit défini indépendamment entre
+chaque ressource, il existe un contenu commun: #todo-inline[À faire].
+
+Les ressources du système ont naturellement des liens entre elles. Il existe en
+l'occurrence trois liens:
++ le lien de création
++ le lien de détention
++ le lien de dépendance
+
+Le lien de création, à lui seul, n'a pas de sémantique particulière au sein du
+système, il permet plutôt de tracer l'origine du ressource à travers l'arbre de
+création. Toutefois, dans la majorité des cas, le lien de création implique un
+lien de détention dans le même sens. Au sein du système, seul le détenteur peut
+modifier une ressource. En outre, le lien de détention permet au détenteur de
+recevoir, avec son propre état, l'état des ressources qu'il détient. Il est
+aussi souhaitable de pouvoir consulter l'état de ressources qui ne sont pas
+directement détenu, afin d'effectuer cela, le lien de dépendance est introduit.
+Celui-ci a deux propriété, d'une part, il donne accès a celui qui dépend d'une
+cible, à l'état de ses cibles lors d'une réconciliation, et en second lieu, tant
+qu'une ressource est une dépendance d'autres ressources, celle-ci ne peut pas
+être supprimée.
+
+Sur cette base, il est possible d'identifier trois types de ressources qui se
+distingue par leur liens:
++ les ressources statique
++ les ressources dynamique
++ les ressources mutualisée
+
+#include "../diagrams/restypes.typ"
+
+Le @restypev présente les différentes ressources avec leur liens. Dans le cadre
+des ressources statiques, celles-ci sont détenu par l'administrateur, et
+naturellement, seul celui-ci peut les modifier ou les supprimer. Une entité
+n'étant pas une ressource, il n'existe pas de lien de dépendance (il serait
+illogique de posséder un "état de l'administrateur"). Les ressources dynamiques
+sont aussi un lien naturel: le créateur détient la ressource qu'il a crée, et
+cette ressource dépend de son créateur. De cette manière, une ressource ne peut
+pas devenir orpheline, et il est toujours possible de tracer son existence a une
+ressource qui existe elle-aussi. Enfin les ressources mutualisée présentes des
+particularité: d'une part, une seule et même ressource mutualisée peut être crée
+par plusieurs ressources. Afin d'éviter les conflits de modification, tout champ
+modifiable est simplement absent de ces ressources (elles n'ont donc qu'un type
+et un nom; la spécification étant vide). Dans ce cas spécial, l'orchestrateur
+est le détenteur de la ressource, cela est nécessaire pour la suppression. En
+effet, celui-ci va, à chaque itération, tenter de supprimer la ressource, or,
+compte tenu du fait que lorsqu'une ressource mutualisée est crée, la ressource
+l'ayant crée dépend automatiquement de cette ressource mutualisée, la
+suppression n'est possible que lorsque cette ressource créatrice est supprimée.
+
+Ce mécanisme est introduit pour faire face à une problématique bien précise:
+représenter une ressource qui est partagée de manière implicite. Une ressource
+est considérée comme partagée dès lors que d'autres ressources dépendent sur
+elle. Par exemple, un réseau de conteneur est une dépendance des conteneurs s'y
+trouvant, et dans ce cas, il est naturel que l'administrateur définisse
+explicitement une telle ressource. Toutefois, il existe deux cas ou une
+ressource est partagée, mais est crée implicitement:
++ les dossiers au sein d'un système de fichier
++ les images de conteneurs
+
+#set page(flipped: true)
+#include "../diagrams/cfgshared.typ"
+#set page(flipped: false)
+
+#set page(flipped: true)
+#include "../diagrams/cfgjoint.typ"
+#set page(flipped: false)
+
+
+En résumé, les dépendances (graph illustra les 3 cas)
+#include "../diagrams/rels.typ"
+
+=== Contrôleurs de ressources
+- Réseau
+- Conteneurisation (interaction avec le runtime, injection de secrets)
+- Stockage et volumes
+
+=== Orchestration de la réconciliation
+- Boucle de contrôle (séquence, parallélisme/backoff, tâches longues)
+- Ordonnancement et dépendances
+- Gestion des erreurs et retry
+- Suppression d'une ressource (ordre inverse, nettoyage)
+
+=== Résolution des ressources concrètes
+- Association interface physique / disque via attributs (MAC, nom, etc.)
+
+=== Réaction aux événements
+- Événements internes (changement d'état d'une sous-ressource)
+- Événements externes (déclencheurs matériels, signaux)
+
+== Composants
+=== Vue d'ensemble des composants
+Il existe cinq composants principaux dans le système:
++ l'init
++ le superviseur (_supervisor_)
++ le contrôleur principal (_core controller_)
++ l'api
++ les différents contrôleurs
+
+L'init, qui est inclut dans le _initrd_ est simplement chargé de trouver le
+disque système racine et de le monter puis passe la main au superviseur
+#todo-inline[Expliquer pourquoi ça existe].
+
+Le supervisor est chargé de mettre en place l'environement initial du système
+(systèmes de fichier, arborescence, etc) et le chargement de la configuration de
+démarrage #todo-inline[Référencer l'explication des différentes config]. En
+outre il s'occupe du _process reaping_ et de la gestion des pannes du système
+#todo-inline[Expliquer ce que c'est le _process reaping_]. Une fois tout cela
+fait, il démarre le contrôleur principal (_core controller_).
+
+Le contrôleur principal à plusieur tâches: d'une part il s'occupe de charger et
+déchiffrer la configuration ainsi que l'état. Une fois cela fait, il sait
+quelles fonctionalités sont disponible sur le système et démarrage tout d'abord
+le contrôleur réseau puis l'API (pour autant que tout cela soit activé). Une
+fois cela fait, il démarre les autres contrôleur et attends que tous soient
+prêt. Une fois qu'ils sont tous prêt, la réconciliation peut démarrer.
+
+Dans la réconciliation, chaque contrôleur va s'adonner à ses tâches, par exemple
+monter les volumes persistents, monter les interfaces réseau, etc.
+
+// Diagram de qui lance quoi
+#include "../diagrams/procstart.typ"
+
+// Diagram de la séquence de démarrage (qui est un peu expliquée au dessus)
+#include "../diagrams/sysinit.typ"
+
+=== Communication entre les composants
+Les composants sont strictement isolés. En particulier, le superviseur et l'API
+ne communiquent qu'avec le gestionnaire d'état. De même, chaque contrôleur ne
+communique qu'avec le gestionnaire d'état et les processus qu'ils auraient
+éventuellement lancés.
+
+
+#todo[Schéma de qui communique avec quoi]
+
+== Configuration
+=== Sources de configuration
+- disque, cloud-init, réseau, priorité
+
+=== Validation de la configuration
+- schéma, dépendances cycliques
+
+== Administration
+=== API et authentification
+- Protocole (TLS, mTLS, token)
+- Amorçage de l'authentification sur système vierge (cloud-init, clé USB)
+
+=== Gestion des secrets
+- stockage, chiffrement, injection dans les conteneurs
+
+=== Observabilité
+- Collecte et exposition des métriques (hôte et conteneurs)
+- Agrégation et export des logs
+
+== Cycle de vie du système
+=== Immutabilité du système de base
+=== Installation initiale
+- partitionnement automatique, push de configuration
+
+=== Mise à jour A/B et retour arrière
+=== Mode maintenance
+- shell restreint, accès réseau, bascule
+=== Personnalisation de l'image
+=== Méthodes de démarrage
+=== Sauvegarde et restauration
+
+== Persistence
+=== Partitionnement des disques
+- système, cache, données
+
+=== Chiffrement des partitions
+- TPM, FIDO2, passphrase, déverrouillage automatique/manuel
+
+== Sécurité
+=== Isolation
+- conteneurs, composants internes, moindre privilège
+
+=== Surface d'attaque et réduction
+=== Menaces et contre-mesures
+
+/*
+= Conception du système
+
+== Composants
+=== Vue d'ensemble des composants
+=== Communication entre les composants
+=== Cycle de vie des composants
+
+== Ressources
+=== Modèle de ressource
+=== Contrôleurs de ressources
+=== Orchestration de la réconciliation
+=== Boucle de contrôle
+=== Suppression d'une ressource
+=== Réaction à un événement interne
+=== Réaction à un événement externe
+=== Persistence de l'état
+=== Résolution des ressources concrètes
+
+== Configuration
+=== Sources de configuration
+=== Validation des ressources
+
+== Administration
+=== Authentication et permissions
+=== Authentication sur un système non-initialisé
+=== Collecte et exposition des métriques et des logs
+=== Streaming d'information via l'API
+
+== Cycle de vie du système
+=== Immutabilité
+=== Installation initiale
+=== Mises à jour A/B
+=== Mode maintenance
+
+== Persistence
+=== Partitionnement des disques
+=== Chiffrement des données
+
+== Sécurité
+=== Isolation
+=== Surface d'attaque
+=== Menaces et contre-mesures
+*/
+
+/*
+= Conception du système
+
+== Composants
+=== Communication entre les composants
+=== Cycle de vie des composants
+
+== Ressources
+=== Modèle de ressource
+=== Orchestration de la réconciliation
+=== Suppression d'une ressource
+=== Boucle de contrôle
+=== Réaction à un événement interne
+=== Réaction à un événement externe
+=== Persistence de l'état
+=== Résolution des ressources concrètes
+=== Contrôleurs de ressources
+
+== Gestion de la configuration
+=== Sources de configuration
+=== Validation des ressources
+
+== Administration
+=== Authentication et permissions
+=== Authentication sur un système non-initialisé
+=== Collecte et exposition des métriques et des logs
+=== Streaming d'information via l'API
+
+== Cycle de vie du système
+=== Immutabilité
+=== Mises à jour A/B
+=== Installation initiale
+=== Mode maintenance
+
+== Persistence
+=== Chiffrement et des données
+=== Partitionnement des disques
+
+== Sécurité
+=== Isolation
+=== Surface d'attaque
+=== Menaces
+*/
+
+
+/*
 == Architecture générale
 #todo[Architecture générale][
     Le schéma C4 mais en mieux
@@ -70,110 +391,7 @@ grande robustesse, car la panne est limitée à un nombre limité de ressources.
 Cela est toutefois sans importance, car les contrôleurs sont primordiaux et leur
 panne, mais en péril le système entier, donc tout s'arrête.
 
-#let row-label(body) = {
-    set par(justify: false)
-    body
-}
-
-#let row(criterion: [], pertinence: "", faveur: [], justification: []) = {
-    (
-        row-label(criterion),
-        row-label(pertinence),
-        row-label(faveur),
-        justification,
-    )
-}
-
-#set page(flipped: true)
-#figure(
-    label: <scheduling>,
-    caption: [Comparaison des modèles centralisés et décentralisés],
-    // TODO: ajouter note: [],
-    source: made-by-self,
-    {
-        show table.cell.where(x: 0).or(table.cell.where(y: 0)): set text(
-            weight: "bold",
-        )
-
-        table(
-            columns: (7em, auto, auto, 1fr),
-            row-gutter: (2.2pt, auto),
-            align: start,
-            table.header[Critère][Pertinence][Faveur][Justification],
-            ..row(
-                criterion: [Contrôle global de la planification],
-                pertinence: [Moyenne],
-                faveur: [Centralisé],
-                justification: [Une boucle unique peut optimiser la
-                    réconciliation en tenant compte des dépendances et de la
-                    hiérarchie des ressources.],
-            ),
-            ..row(
-                criterion: [Flexibilité de planification],
-                pertinence: [Moyenne],
-                faveur: [Décentralisé],
-                justification: [Chaque contrôleur peut régler son propre
-                    intervalle d'exécution, son backoff et sa concurrence sans
-                    coordination centrale.],
-            ),
-            ..row(
-                criterion: [Réaction aux événements internes],
-                pertinence: [Moyenne],
-                faveur: [Centralisé],
-                justification: [Déclencher une réconciliation sur changement
-                    d'état est trivial dans une boucle centrale; dans un modèle
-                    décentralisé, chaque contrôleur devrait gérer ses propres
-                    souscriptions.],
-            ),
-            ..row(
-                criterion: [Réaction aux événements externes],
-                pertinence: [Moyenne],
-                faveur: [Décentralisé],
-                justification: [Les événements externes (ex. arrêt d'un
-                    conteneur) peuvent être traités directement par le
-                    contrôleur concerné. Dans le modèle centralisé, ces signaux
-                    doivent transiter par l'orchestrateur.],
-            ),
-            ..row(
-                criterion: [Détection d'un contrôleur bloqué],
-                pertinence: [Faible],
-                faveur: [Centralisé],
-                justification: [L'orchestrateur central peut détecter un
-                    contrôleur bloqué via un timeout sur l'appel de
-                    réconciliation. Les contrôleurs décentralisés échouent
-                    silencieusement.],
-            ),
-            ..row(
-                criterion: [Assignation automatique du parent],
-                pertinence: [Faible],
-                faveur: [Centralisé],
-                justification: [La réponse de `reconcile()` contient les
-                    demandes de création, ce qui permet d'associer trivialement
-                    la relation parent-enfant.],
-            ),
-            ..row(
-                criterion: [Nombre d'appels API],
-                pertinence: [Non retenu],
-                faveur: [Centralisé],
-                justification: [`reconcile()` regroupe l'état en un seul appel,
-                    contre plusieurs requêtes par itération en mode
-                    décentralisé. Non pertinent étant donné le faible nombre de
-                    ressources et l'absence de contrainte de débit.],
-            ),
-            ..row(
-                criterion: [Périmètre d'une panne],
-                pertinence: [Non retenu],
-                faveur: [Décentralisé],
-                justification: [Une panne de l'orchestrateur central arrête
-                    toutes les réconciliations. En mode décentralisé, la panne
-                    est isolée au contrôleur concerné. Non pertinent car la
-                    panne de n'importe quel contrôleur met en péril le système
-                    entier.],
-            ),
-        )
-    },
-)
-#set page(flipped: false)
+<diagram>
 
 Au regard du @scheduling, le modèle centralisé a été retenu comme modèle
 d'orchestration. Les avantages en termes de coordination des dépendances, de
@@ -187,60 +405,39 @@ vue de lancer une nouvelle réconciliation.
 
 === Structure d'une resource
 Chaque resource est composée d'un identifiant unique, d'une spécification (=
-l'état désiré), et d'un état (= l'état actuel). En outre, une resource peut un
-parent, des enfants, ou des dépendances. L'ensemble de ces données est stockées
-et permet de constituer une resource.
+l'état désiré), et d'un état (= l'état actuel). En outre, une resource peut
+avoir, des enfants, ou des dépendances. L'ensemble de ces données est stockées
+et permet de constituer une resource. Les relations inverses (parent et
+dépendants) sont calculés dynamiquement.
 
 La mise à jour de la spécification est décrite dans le @sub-restype. En ce qui
 concerne la mise à jour de l'état, celui-ci est géré par un contrôleur qui
 implémente la logique de réconciliation.
 
+Il est nécessaire de séparer le lien de parenté du lien de dépendance: le lien
+de parenté permet de créer, modifier, ou supprimer une ressource enfant, tandis
+que le lien de dépendance permet d'empêcher la ressource sur cible d'être
+supprimée tant que d'autres ressources dépendent sur elle. Dans la pluspart des
+cas, lorsqu'un parent crée un enfant, l'enfant est considéré automatiquement
+comme dépendant du parent.
+
+=== Liens entre les ressources
+Trois liens entre les ressources, et bien entendu les liens réciproques:
+- le lien de création: c'est simplement la ou les ressources qui ont donné la
+    spécification initiale.
+- le lien de détention: ce lien permet au détenteur de modifier et supprimer la
+    ressource.
+- le lien de dépendance: lorsqu'une ressource dépend sur une autre ressource, la
+    ressource cible (celle sur laquelle la ressource dépend) ne peut pas être
+    supprimée tant qu'il existe au moins une ressource qui dépend sur elle.
+    Outre cela, le lien de dépendance permet d'accèder à l'état de la ressource
+    cible lors de la réconciliation de la ressource source.
+
 === Types de resources <sub-restype>
-Les resources réconciliables du système sont séparées en trois types, ce qui
-permet de distinguer qui peut crée, modifier, ou supprimer une resource. Dans le
-cadre de la création, le propriétaire est celui qui va ordonner la création de
-la resource et qui en devient donc naturellement sont propriétaire. Un
-propriétaire peut être interne au système, en particulier, il s'agit d'une autre
-resource, ou externe au système, en particulier, l'administrateur du système,
-via l'API. La @restype illustre les différents types de ressources ainsi que les
-règles régissant leur création, leur modification et leur suppression selon la
-nature de leur propriétaire.
+Sur la base de ces liens, il est possible de séparer les ressources en trois
+catégories: statique, dynamique et mutualisée.
 
-#figure(
-    label: <restype>,
-    caption: [Types de resources et leur propriétés],
-    note: [
-        Les différents types de resources avec qui peut les créer ou les
-        modifier, qui peut les supprimer, et ou se situe le propriétaire dans le
-        système.
-    ],
-    source: made-by-self,
-    {
-        show table.cell.where(x: 0).or(table.cell.where(y: 0)): set text(
-            weight: "bold",
-        )
-
-        table(
-            columns: (auto, auto, 1fr, auto),
-            rows: 1.5em,
-            align: center + horizon,
-            table.header(
-                [Type],
-                [Création et modification],
-                [Suppression],
-                [Nature du propriétaire],
-            ),
-            ..(
-                [Statique],
-                table.cell(colspan: 2, rowspan: 2)[Propriétaire],
-                [Externe au système],
-            ),
-            [Dynamique],
-            table.cell(rowspan: 2)[Interne au système],
-            ..([Mutualisée], [Les propriétaires], [L'orchestrateur]),
-        )
-    },
-)
+<diagram>
 
 === Dépendances et hiérarchie
 Une resource peut dépendre d'autres resources. Ce lien de dépendance implique
@@ -289,171 +486,7 @@ mutualisé.
 Afin d'illustrer la problématique de ces resources, l'exemple des images de
 conteneurs.
 
-#set page(flipped: true)
-
-#refdiagram(
-    label: <cfgshared>,
-    caption: [Problème de resources partagées],
-    note: [
-        Deux configuration utilisateur indépendantes, agissent au final sur une
-        resource partagée au niveau du système en raison du fonctionnement de la
-        resource réel.
-
-        Note: la configuration est abrégée a des fins d'illustration
-    ],
-    source: made-by-self,
-
-    spacing: 1cm,
-    edge-stroke: 2pt,
-    mark-scale: 60%,
-    {
-        node(label: <cfgshared-cfga>, (0.875, 0), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: Container
-            name: container-a
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgshared-imga>, (0.875, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: Image
-            name: container-a-img
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgshared-runa>, (0, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: ContainerRun
-            name: container-a-run
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgshared-cfgb>, (1.85, 0), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: Container
-            name: container-b
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgshared-imgb>, (1.85, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: Image
-            name: container-b-img
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgshared-runb>, (2.825, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: ContainerRun
-            name: container-b-run
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgshared-podimg>, (1.5, 3), stroke: 2pt, title: [
-            /var/lib/container/image/alpine/latest
-        ])
-
-        node(label: <cfgshared-podruna>, (0, 3), stroke: 2pt, title: [
-            Running Container A
-        ])
-
-        node(label: <cfgshared-podrunb>, (2.875, 3), stroke: 2pt, title: [
-            Running Container A
-        ])
-
-        node(
-            label: <cfgshared-cfg>,
-            num: [1],
-            enclose: (
-                <cfgshared-cfga>,
-                <cfgshared-cfgb>,
-            ),
-            inset: 2mm,
-            snap: false,
-            stroke: blue,
-            title: align(top + left, place(dx: 5cm, dy: 2.5cm, text(
-                fill: blue,
-            )[
-                *User Configurations*
-            ])),
-        )
-
-        node(
-            label: <cfgshared-dyn>,
-            num: [2],
-            enclose: (
-                <cfgshared-imga>,
-                <cfgshared-runa>,
-                <cfgshared-imgb>,
-                <cfgshared-runb>,
-            ),
-            inset: 2mm,
-            snap: false,
-            stroke: red,
-            title: align(top + left, place(dx: -5mm, dy: -10mm, text(
-                fill: red,
-            )[
-                *Dynamic Resources*
-            ])),
-        )
-
-        node(
-            label: <cfgshared-real>,
-            num: [3],
-            enclose: (
-                <cfgshared-podruna>,
-                <cfgshared-podrunb>,
-                <cfgshared-podimg>,
-            ),
-            inset: 2mm,
-            snap: false,
-            stroke: orange,
-        )
-
-        node(
-            label: <cfgshared-reallabel>,
-            (rel: (0mm, -1cm), to: <cfgshared-real>),
-            title: text(fill: orange)[*Physical Resources*],
-        )
-
-        edge(<cfgshared-cfga>, <cfgshared-imga>, "-|>")
-        edge(<cfgshared-cfga>, <cfgshared-runa>, "-|>")
-        edge(<cfgshared-runa>, <cfgshared-podruna>, "-|>")
-        edge(
-            <cfgshared-imga>,
-            <cfgshared-podimg>,
-            "-|>",
-            label: <cfgshared-conflict>,
-            num: [4],
-        )
-
-        edge(<cfgshared-cfgb>, <cfgshared-imgb>, "-|>")
-        edge(<cfgshared-cfgb>, <cfgshared-runb>, "-|>")
-        edge(<cfgshared-runb>, <cfgshared-podrunb>, "-|>")
-        edge(<cfgshared-imgb>, <cfgshared-podimg>, "-|>")
-
-        edge(<cfgshared-podruna>, <cfgshared-podimg>, "--|>")
-        edge(<cfgshared-podrunb>, <cfgshared-podimg>, "--|>")
-    },
-)
+<diagram>
 
 La @cfgshared montre que, dans le cas où l'utilisateur souhaite configurer deux
 conteneurs reposant sur l'image~`alpine:latest`~#bref(<cfgshared-cfg>). Chaque
@@ -509,201 +542,7 @@ comme suit:
 
 Comme illustré dans la @cfgjoint.
 
-#set page(flipped: true)
-
-#refdiagram(
-    label: <cfgjoint>,
-    caption: [Solution aux resources partagées],
-    note: [
-        Deux configuration utilisateur indépendantes, agissent au final sur une
-        resource partagée au niveau du système en raison du fonctionnement de la
-        resource réel.
-
-        Note: la configuration est abrégée a des fins d'illustration
-    ],
-    source: made-by-self,
-
-    spacing: 1cm,
-    edge-stroke: 2pt,
-    mark-scale: 60%,
-    {
-        node(label: <cfgjoint-cfga>, (0.875, 0), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: Container
-            name: container-a
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgjoint-imga>, (0.875, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: ImageRef
-            name: container-a-img
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgjoint-runa>, (0, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: ContainerRun
-            name: container-a-run
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgjoint-cfgb>, (1.85, 0), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: Container
-            name: container-b
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgjoint-imgb>, (1.85, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: ImageRef
-            name: container-b-img
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgjoint-runb>, (2.825, 2), title: box(
-            width: 6cm,
-        )[
-            ```yaml
-            kind: ContainerRun
-            name: container-b-run
-            image: alpine:latest
-            ```
-        ])
-
-        node(label: <cfgjoint-img>, (1.5, 3), title: box(
-            width: 8cm,
-        )[
-            ```yaml
-            kind: Image
-            name: alpine:latest@sha256:AAAAA
-            ```
-        ])
-
-        node(label: <cfgjoint-podimg>, (1.5, 4), stroke: 2pt, title: [
-            /var/lib/container/image/alpine/latest
-        ])
-
-        node(label: <cfgjoint-podruna>, (0, 4), stroke: 2pt, title: [
-            Running Container A
-        ])
-
-        node(label: <cfgjoint-podrunb>, (2.875, 4), stroke: 2pt, title: [
-            Running Container A
-        ])
-
-        node(
-            label: <cfgjoint-cfg>,
-            enclose: (
-                <cfgjoint-cfga>,
-                <cfgjoint-cfgb>,
-            ),
-            inset: 2mm,
-            snap: false,
-            stroke: blue,
-            title: align(top + left, place(dx: 5cm, dy: 2.5cm, text(
-                fill: blue,
-            )[
-                *User Configurations*
-            ])),
-        )
-
-        node(
-            label: <cfgjoint-dyn>,
-            enclose: (
-                <cfgjoint-imga>,
-                <cfgjoint-runa>,
-                <cfgjoint-imgb>,
-                <cfgjoint-runb>,
-            ),
-            inset: 2mm,
-            snap: false,
-            stroke: red,
-            title: align(top + left, place(dx: -5mm, dy: -10mm, text(
-                fill: red,
-            )[
-                *Dynamic Resources*
-            ])),
-        )
-
-        node(
-            label: <cfgjoint-real>,
-            enclose: (
-                <cfgjoint-podruna>,
-                <cfgjoint-podrunb>,
-                <cfgjoint-podimg>,
-            ),
-            inset: 2mm,
-            snap: false,
-            stroke: orange,
-        )
-
-        node(
-            label: <cfgjoint-reallabel>,
-            (rel: (0mm, -1cm), to: <cfgjoint-real>),
-            title: text(fill: orange)[*Physical Resources*],
-        )
-
-        node(
-            label: <cfgjoint-joint>,
-            num: [2],
-            enclose: (
-                <cfgjoint-img>,
-            ),
-            inset: 2mm,
-            snap: false,
-            stroke: fuchsia,
-            title: align(top + left, place(dx: -3.5cm, dy: 0cm, text(
-                fill: fuchsia,
-            )[
-                *Mutual Resources*
-            ])),
-        )
-
-        edge(<cfgjoint-cfga>, <cfgjoint-imga>, "-|>")
-        edge(<cfgjoint-cfga>, <cfgjoint-runa>, "-|>")
-        edge(<cfgjoint-runa>, <cfgjoint-podruna>, "-|>")
-        edge(
-            <cfgjoint-imga>,
-            <cfgjoint-img>,
-            "-|>",
-            num: [1],
-            label: <cfgjoint-imgref>,
-        )
-
-        edge(<cfgjoint-cfgb>, <cfgjoint-imgb>, "-|>")
-        edge(<cfgjoint-cfgb>, <cfgjoint-runb>, "-|>")
-        edge(<cfgjoint-runb>, <cfgjoint-podrunb>, "-|>")
-        edge(<cfgjoint-imgb>, <cfgjoint-img>, "-|>")
-
-        edge(
-            <cfgjoint-img>,
-            <cfgjoint-podimg>,
-            "-|>",
-            num: [3],
-            label: <cfgjoint-noconflict>,
-        )
-
-        edge(<cfgjoint-podruna>, <cfgjoint-podimg>, "--|>")
-        edge(<cfgjoint-podrunb>, <cfgjoint-podimg>, "--|>")
-    },
-)
+<diagram>
 
 Dans la @cfgjoint, les deux conteneurs vont, à travers une `ImageRef`~#bref(
     <cfgjoint-imgref>,
@@ -733,130 +572,5 @@ particulier une resource statique ne peut être crée et modifiée que par
 l'administrateur système, une resource dynamique peut être crée par n'importe
 quelle autre resource et modifiée uniquement par celle qui l'a crée, et enfin
 
-#let static(..args) = node(stroke: blue, ..args)
-#let dyn(..args) = node(stroke: red, ..args)
-#let shared(..args) = node(stroke: fuchsia, ..args)
-#let rel-rwd(parent, child, ..args) = edge(
-    parent,
-    child,
-    "-|>",
-    stroke: red,
-    ..args,
-)
-#let rel-r(from, to, ..args) = edge(from, to, "--|>", stroke: green, ..args)
-#let rel-rw(from, to, ..args) = edge(from, to, "-x-|>", stroke: fuchsia, ..args)
-
-#refdiagram(
-    label: <cfgtree>,
-    caption: [Dérivation de ressources dynamiques depuis une configuration
-        réseau],
-    note: [
-        À partir d'une unique configuration réseau, le contrôleur dérive
-        automatiquement trois ressources dynamiques correspondant aux objets
-        qu'il manipule au sein du noyau Linux.
-    ],
-    source: made-by-self,
-
-    spacing: 1.2cm,
-    node-stroke: 1pt,
-    edge-stroke: 2pt,
-    mark-scale: 60%,
-    {
-        static(label: <cfgtree-dns>, (0, -1), title: [dns])
-        dyn(label: <cfgtree-dnsfile>, (0, -2), title: [file:/etc/resolv.conf])
-
-        static(
-            label: <cfgtree-neta>,
-            (0, 0),
-            title: [interface:eth0],
-        )
-        dyn(
-            label: <cfgtree-neta-addr>,
-            (rel: (0, 1), to: <cfgtree-neta>),
-            title: [address],
-        )
-        dyn(
-            label: <cfgtree-neta-route>,
-            (rel: (-0.75, 1), to: <cfgtree-neta>),
-            title: [route],
-        )
-        dyn(
-            label: <cfgtree-neta-link>,
-            (rel: (0.75, 1), to: <cfgtree-neta>),
-            title: [link],
-        )
-
-        static(
-            label: <cfgtree-cona>,
-            (2, 0),
-            title: [container:test-a],
-        )
-        dyn(
-            label: <cfgtree-cona-run>,
-            (rel: (-0.5, 1), to: <cfgtree-cona>),
-            title: [container-instance],
-        )
-        dyn(
-            label: <cfgtree-cona-img>,
-            (rel: (0.75, 1), to: <cfgtree-cona>),
-            title: [image-ref],
-        )
-
-        static(
-            label: <cfgtree-conb>,
-            (2, -1),
-            title: [container:test-b],
-        )
-        dyn(
-            label: <cfgtree-conb-run>,
-            (rel: (-0.5, -1), to: <cfgtree-conb>),
-            title: [container-instance],
-        )
-        dyn(
-            label: <cfgtree-conb-img>,
-            (rel: (0.75, -1), to: <cfgtree-conb>),
-            title: [image-ref],
-        )
-
-        shared(
-            label: <cfgtree-img>,
-            (3, -0.5),
-            title: [image],
-        )
-
-        rel-rwd(<cfgtree-dns>, <cfgtree-dnsfile>)
-
-        rel-rwd(<cfgtree-neta>, <cfgtree-neta-link>)
-        rel-rwd(<cfgtree-neta>, <cfgtree-neta-addr>)
-        rel-rwd(<cfgtree-neta>, <cfgtree-neta-route>)
-
-        rel-r(<cfgtree-neta-addr>, <cfgtree-neta-link>)
-        rel-r(<cfgtree-neta-route>, <cfgtree-neta-addr>)
-
-        rel-rwd(<cfgtree-cona>, <cfgtree-cona-run>)
-        rel-rwd(<cfgtree-cona>, <cfgtree-cona-img>)
-        rel-r(<cfgtree-cona-run>, <cfgtree-cona-img>)
-
-        rel-rwd(<cfgtree-conb>, <cfgtree-conb-run>)
-        rel-rwd(<cfgtree-conb>, <cfgtree-conb-img>)
-        rel-r(<cfgtree-conb-run>, <cfgtree-conb-img>)
-
-        rel-rw(<cfgtree-cona-img>, <cfgtree-img>)
-        rel-rw(<cfgtree-conb-img>, <cfgtree-img>)
-
-        rel-rwd(
-            (3, 2.5),
-            (4, 2.5),
-            title: [Crée, modifier, lire, supprimer],
-            floating: true,
-        )
-        rel-r((3, 3), (4, 3), title: [Lire], floating: true)
-        rel-rw((3, 3.5), (4, 3.5), title: [Crée, lire])
-
-        static((2, 2.5), title: [Resource statique])
-        dyn((2, 3), title: [Resource dynamique])
-        shared((2, 3.5), title: [Resource mutualisée])
-    },
-)
-
-== Installation du système
+<diagram>
+*/

@@ -1,6 +1,5 @@
 #import "/packages.typ": *
 #import "../lib.typ": *
-
 #import packages.codly: *
 
 #refdiagram(
@@ -18,9 +17,9 @@
     edge-stroke: 2pt,
     mark-scale: 60%,
     {
-        node(label: <cfgdyn-cfg>, num: [1], (0, 0), title: box(width: 6cm)[
+        node(label: <cfgdyn-cfg>, num: [1], (1, 0), title: box(width: 6cm)[
             #codly(
-                header: [User Configuration],
+                header: [Original resource],
                 highlighted-lines: (
                     (2, aqua.lighten(60%)),
                     (3, green.lighten(60%)),
@@ -35,7 +34,7 @@
             ```
         ])
 
-        node(label: <cfgdyn-link>, (1, 1), title: box(
+        node(label: <cfgdyn-link>, (0, 1), title: box(
             width: 6cm,
         )[
             #codly(
@@ -94,7 +93,7 @@
             snap: false,
             stroke: red,
             title: align(top + left, place(dx: -5mm, dy: -10mm, text(fill: red)[
-                *Dynamic Resources*
+                *Sub-Resources*
             ])),
         )
 

@@ -25,7 +25,6 @@
 
     show std.figure.where(kind: raw): set std.figure(supplement: "Code")
 
-
     block(
         breakable: false,
         above: 2em,
@@ -51,42 +50,56 @@
     )
 }
 
-
-#let badge(n) = context {
+#let badge(n, fill: yellow, color: black) = context {
     import "../conf.typ": is-color
-    let size = measure("A").height
+    let body = text(
+        size: 8pt,
+        fill: color,
+        weight: "bold",
+        font: "Liberation Mono",
+        n,
+    )
+    let dims = measure(body)
+    let w = dims.width
+    let h = dims.height
+
+    let is-single = body.child.text.len() == 1
+
+    let pad-x = 0.6em
+    let height = 1.2em
+    let width = if is-single { height } else { w + 2 * pad-x }
+
     box(
-        width: size * 2,
-        height: size,
-        place(
-            center + horizon,
-            box(
-                fill: is-color(yellow, white),
-                stroke: is-color(none, 1pt),
-                radius: 50%,
-                width: 1.2em,
-                height: 1.2em,
-                align(center + horizon, text(
-                    fill: black,
-                    weight: "bold",
-                    size: 8pt,
-                    n,
-                )),
-            ),
-        ),
+        width: width,
+        height: height,
+        fill: fill,
+        stroke: none,
+        radius: 50%,
+        align(center + horizon, body),
     )
 }
 
 
-#let node(label: none, num: none, title: none, subtitle: none, ..args) = {
+#let node(
+    label: none,
+    num: none,
+    title: none,
+    subtitle: none,
+    badge-x: -1.3em,
+    badge-y: -1.3em,
+    badge-fill: yellow,
+    badge-color: black,
+    ..args,
+) = {
     import "/packages.typ": *
     import packages.fletcher: node
 
     node(name: label, ..args, {
         if num != none {
             context {
-                let els = state("badge")
-                els.update(_ => num)
+                state("badge-fill").update(_ => badge-fill)
+                state("badge-color").update(_ => badge-color)
+                state("badge").update(_ => num)
             }
         }
 
@@ -99,18 +112,25 @@
         if num != none {
             place(
                 top + left,
-                dx: -1.2em,
-                dy: -1em,
-                context {
-                    let els = state("badge")
-                    badge(num)
-                },
+                dx: badge-x,
+                dy: badge-y,
+                badge(num, color: badge-color, fill: badge-fill),
             )
         }
     })
 }
 
-#let edge(label: none, num: none, title: none, subtitle: none, ..args) = {
+#let edge(
+    label: none,
+    num: none,
+    title: none,
+    subtitle: none,
+    badge-x: -1.2em,
+    badge-y: -1em,
+    badge-fill: yellow,
+    badge-color: black,
+    ..args,
+) = {
     import "/packages.typ": *
     import packages.fletcher: edge
 
@@ -118,8 +138,9 @@
     edge(..args, {
         if num != none {
             context {
-                let els = state("badge")
-                els.update(_ => num)
+                state("badge-fill").update(_ => badge-fill)
+                state("badge-color").update(_ => badge-color)
+                state("badge").update(_ => num)
             }
         }
 
@@ -132,20 +153,24 @@
         if num != none {
             place(
                 top + left,
-                dx: -1.2em,
-                dy: -1em,
-                context {
-                    let els = state("badge")
-                    badge(num)
-                },
+                dx: badge-x,
+                dy: badge-y,
+                badge(num, color: badge-color, fill: badge-fill),
             )
         }
     })
 }
 
 #let bref(l) = context {
-    let els = state("badge")
-    badge(els.at(query(l).first().location()))
+    let badge-num = state("badge").at(query(l).first().location())
+    let badge-fill = state("badge-fill").at(query(l).first().location())
+    let badge-color = state("badge-color").at(query(l).first().location())
+    let b = badge(badge-num, color: badge-color, fill: badge-fill)
+    let width = measure(b).width
+    box(
+        width: width,
+        place(dy: -0.3em, center + horizon, b),
+    )
 }
 
 #let sbref(l) = context {

@@ -4,7 +4,9 @@
 #import packages.codly-languages: *
 
 #set text(lang: "fr", hyphenate: false)
-#set par(justify: true)
+#set par(justify: true, first-line-indent: 1cm)
+#show link: set text(blue)
+#show link: underline
 
 #set page(numbering: "I")
 
@@ -51,16 +53,18 @@
     it
 }
 
-#include "contents/functional-overview.typ"
-#include "contents/system-design.typ"
-#include "contents/implementation.typ"
-#include "contents/validation.typ"
-#include "contents/comparison.typ"
-#include "contents/results.typ"
-#include "contents/discussion.typ"
+#include "intermedita.typ"
 
-#set heading(numbering: none)
-#include "contents/conclusion.typ"
+// #include "contents/functional-overview.typ"
+// #include "contents/system-design.typ"
+// #include "contents/implementation.typ"
+// #include "contents/validation.typ"
+// #include "contents/comparison.typ"
+// #include "contents/results.typ"
+// #include "contents/discussion.typ"
+
+// #set heading(numbering: none)
+// #include "contents/conclusion.typ"
 
 /*
 = *NON CATÉGORISÉ*

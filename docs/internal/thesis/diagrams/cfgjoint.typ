@@ -95,7 +95,7 @@
         ])
 
         node(label: <cfgjoint-podrunb>, (2.875, 4), stroke: 2pt, title: [
-            Running Container A
+            Running Container B
         ])
 
         node(
@@ -107,10 +107,10 @@
             inset: 2mm,
             snap: false,
             stroke: blue,
-            title: align(top + left, place(dx: 5cm, dy: 2.5cm, text(
+            title: align(top + left, place(dx: 5cm, dy: 2cm, text(
                 fill: blue,
             )[
-                *User Configurations*
+                *Static Resources*
             ])),
         )
 
@@ -147,12 +147,12 @@
         node(
             label: <cfgjoint-reallabel>,
             (rel: (0mm, -1cm), to: <cfgjoint-real>),
-            title: text(fill: orange)[*Physical Resources*],
+            title: text(fill: orange)[*Concrete Resources*],
         )
 
         node(
             label: <cfgjoint-joint>,
-            num: [2],
+            num: [1],
             enclose: (
                 <cfgjoint-img>,
             ),
@@ -162,7 +162,7 @@
             title: align(top + left, place(dx: -3.5cm, dy: 0cm, text(
                 fill: fuchsia,
             )[
-                *Mutual Resources*
+                *Shared Resources*
             ])),
         )
 
@@ -173,20 +173,24 @@
             <cfgjoint-imga>,
             <cfgjoint-img>,
             "-|>",
-            num: [1],
+            num: [2],
+            stroke: yellow,
             label: <cfgjoint-imgref>,
+            badge-x: 1em,
+            badge-y: -0.2em,
         )
 
         edge(<cfgjoint-cfgb>, <cfgjoint-imgb>, "-|>")
         edge(<cfgjoint-cfgb>, <cfgjoint-runb>, "-|>")
         edge(<cfgjoint-runb>, <cfgjoint-podrunb>, "-|>")
-        edge(<cfgjoint-imgb>, <cfgjoint-img>, "-|>")
+        edge(<cfgjoint-imgb>, <cfgjoint-img>, "-|>", stroke: yellow)
 
         edge(
             <cfgjoint-img>,
             <cfgjoint-podimg>,
             "-|>",
             num: [3],
+            stroke: yellow,
             label: <cfgjoint-noconflict>,
         )
 

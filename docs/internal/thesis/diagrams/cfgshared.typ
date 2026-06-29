@@ -77,16 +77,27 @@
             ```
         ])
 
-        node(label: <cfgshared-podimg>, (1.5, 3), stroke: 2pt, title: [
+        // Placeholder to occupy the space
+        node((1.5, 3), title: box(
+            width: 8cm,
+            hide[
+                ```yaml
+                kind: Image
+                name: alpine:latest@sha256:AAAAA
+                ```
+            ],
+        ))
+
+        node(label: <cfgshared-podimg>, (1.5, 4), stroke: 2pt, title: [
             /var/lib/container/image/alpine/latest
         ])
 
-        node(label: <cfgshared-podruna>, (0, 3), stroke: 2pt, title: [
+        node(label: <cfgshared-podruna>, (0, 4), stroke: 2pt, title: [
             Running Container A
         ])
 
-        node(label: <cfgshared-podrunb>, (2.875, 3), stroke: 2pt, title: [
-            Running Container A
+        node(label: <cfgshared-podrunb>, (2.875, 4), stroke: 2pt, title: [
+            Running Container B
         ])
 
         node(
@@ -99,16 +110,17 @@
             inset: 2mm,
             snap: false,
             stroke: blue,
-            title: align(top + left, place(dx: 5cm, dy: 2.5cm, text(
+            title: align(top + left, place(dx: 5cm, dy: 2cm, text(
                 fill: blue,
             )[
-                *User Configurations*
+                *Static Resources*
             ])),
         )
 
         node(
             label: <cfgshared-dyn>,
             num: [2],
+            stroke: red,
             enclose: (
                 <cfgshared-imga>,
                 <cfgshared-runa>,
@@ -117,7 +129,6 @@
             ),
             inset: 2mm,
             snap: false,
-            stroke: red,
             title: align(top + left, place(dx: -5mm, dy: -10mm, text(
                 fill: red,
             )[
@@ -128,6 +139,7 @@
         node(
             label: <cfgshared-real>,
             num: [3],
+            stroke: orange,
             enclose: (
                 <cfgshared-podruna>,
                 <cfgshared-podrunb>,
@@ -135,13 +147,12 @@
             ),
             inset: 2mm,
             snap: false,
-            stroke: orange,
         )
 
         node(
             label: <cfgshared-reallabel>,
             (rel: (0mm, -1cm), to: <cfgshared-real>),
-            title: text(fill: orange)[*Physical Resources*],
+            title: text(fill: orange)[*Concrete Resources*],
         )
 
         edge(<cfgshared-cfga>, <cfgshared-imga>, "-|>")
@@ -153,12 +164,15 @@
             "-|>",
             label: <cfgshared-conflict>,
             num: [4],
+            stroke: yellow,
+            badge-x: 1em,
+            badge-y: -0.2em,
         )
 
         edge(<cfgshared-cfgb>, <cfgshared-imgb>, "-|>")
         edge(<cfgshared-cfgb>, <cfgshared-runb>, "-|>")
         edge(<cfgshared-runb>, <cfgshared-podrunb>, "-|>")
-        edge(<cfgshared-imgb>, <cfgshared-podimg>, "-|>")
+        edge(<cfgshared-imgb>, <cfgshared-podimg>, "-|>", stroke: yellow)
 
         edge(<cfgshared-podruna>, <cfgshared-podimg>, "--|>")
         edge(<cfgshared-podrunb>, <cfgshared-podimg>, "--|>")

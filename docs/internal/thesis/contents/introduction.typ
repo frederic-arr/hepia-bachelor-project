@@ -1,14 +1,14 @@
 #import "../lib.typ": *
 
 #show heading.where(level: 2): set heading(outlined: false)
-#show link: set text(blue)
-#show link: underline
 
 = Introduction
 
 == Contexte et problématique
 
-#todo-inline[Ajouter les références aux divers outils mentionnés.]
+#todo[Introduction / contexte et problématique][
+    - Ajouter les références aux divers outils mentionnés.
+]
 
 La conteneurisation s'est imposée comme le mode standard de déploiement des
 applications dans les environnements modernes. Les outils qui gravitent autour
@@ -114,7 +114,7 @@ le code, elles ont principalement servi d'outil d'analyse qualitative, en
 complément des outils d'analyse de code traditionnels, afin de détecter
 d'éventuelles failles, bogues ou usages contraires aux bonnes pratiques. L'IA a
 également été employée pour conforter l'exhaustivité des recherches
-documentaires et des efforts de débugage: une fois la collecte humaine jugée
+documentaires et des efforts de débuggage: une fois la collecte humaine jugée
 suffisante ou qu'elle se heurtait à une impasse, elle a été interrogée pour
 signaler d'éventuels angles morts, en suggérant des mots-clés ou des références
 complémentaires. Ces suggestions ont toujours été vérifiées avant d'être

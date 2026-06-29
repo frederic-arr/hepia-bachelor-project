@@ -13,6 +13,8 @@ languageSettings:
       - impératives
       - contrôleur
       - péjorer
+      - débuggage
+      - débugger
   - languageId: typst
     ignoreRegExpList:
       - string
@@ -32,6 +34,7 @@ languageSettings:
       - refdiagram
       - sbref
       - dhcpd
+      - resolv
 overrides:
   - filename: "docs/**/*.typ"
     languageId: typst
