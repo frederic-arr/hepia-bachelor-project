@@ -1,8 +1,14 @@
 #let outline-figure() = {
-    let in-outline = state("in-outline", false)
-    in-outline.update(true)
-    outline(title: [Figures], target: figure)
-    in-outline.update(false)
+    state("use-short-caption", false).update(_ => true)
+    outline(
+        title: [Table des illustrations],
+        target: figure.where(kind: image),
+    )
+    outline(
+        title: none,
+        target: figure.where(kind: table),
+    )
+    state("use-short-caption", false).update(_ => false)
 }
 
 #let figure(
@@ -12,9 +18,10 @@
     source: none,
     note: none,
 ) = {
-    let in-outline = state("in-outline", false)
-    let flex-caption(short, long) = context if in-outline.get() { short } else {
-        long
+    let flex-caption(short, long) = context {
+        if state("use-short-caption", false).get() { short } else {
+            long
+        }
     }
 
     show std.figure.caption: it => {

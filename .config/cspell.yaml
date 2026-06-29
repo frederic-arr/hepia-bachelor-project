@@ -35,6 +35,7 @@ languageSettings:
       - sbref
       - dhcpd
       - resolv
+      - declarativity
 overrides:
   - filename: "docs/**/*.typ"
     languageId: typst

@@ -6,10 +6,8 @@
     label: <procstart>,
     caption: [Arbre d'exécution des processus du système],
     note: [
-        Tous les processus remontnet à l'arbre parent. Le _core-controller_
-        ayant connaissance étant le processus chargant la config, il sait quel
-        contrôleurs doivent être lancés ou non. Chaque contrôleur lance ensuite
-        les processus dont il a besoin, souvent des logiciels tiers.
+        Illustre l'ordre dans lequel les processus du système sont démarrés, et
+        qui les lance.
     ],
     source: made-by-self,
 

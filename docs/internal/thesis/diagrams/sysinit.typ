@@ -5,7 +5,10 @@
 #refdiagram(
     label: <sysinit>,
     caption: [Démarrage du système],
-    note: [TODO],
+    note: [
+        Illustre les étapes principales du démarrage du système, avant que
+        celui-ci n'entame la réconciliation.
+    ],
     source: made-by-self,
 
     spacing: 1.2cm,

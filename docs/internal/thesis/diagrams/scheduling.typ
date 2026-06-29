@@ -17,8 +17,13 @@
 #set page(flipped: true)
 #figure(
     label: <scheduling>,
-    caption: [Comparaison des modèles centralisés et décentralisés],
-    note: [TODO],
+    caption: [
+        Comparaison des modèles d'orchestration centralisés et décentralisés
+    ],
+    note: [
+        Compare et synthétise les avantages et inconvénients de chaque modèle
+        d'orchestration.
+    ],
     source: made-by-self,
     {
         show table.cell.where(x: 0).or(table.cell.where(y: 0)): set text(
@@ -26,7 +31,7 @@
         )
 
         table(
-            columns: (7em, auto, auto, 1fr),
+            columns: (3.7cm, auto, auto, 1fr),
             row-gutter: (2.2pt, auto),
             align: start,
             table.header[Critère][Pertinence][Faveur][Justification],

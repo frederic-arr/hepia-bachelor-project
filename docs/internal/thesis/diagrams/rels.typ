@@ -27,11 +27,10 @@
 
 #refdiagram(
     label: <rels>,
-    caption: [Dérivation de ressources dynamiques depuis une configuration
-        réseau],
+    caption: [Synthèse des types de ressources et des liens],
     note: [
-        Plusieurs cas sont présentés: le cas simple, le cas ou un enfant dépend
-        d'un autre enfant, puis enfin le cas des ressources mutualisées.
+        Illustre comment les différentes catégories de ressources peuvent crée
+        et interagir avec d'autres ressources.
     ],
     source: made-by-self,
 

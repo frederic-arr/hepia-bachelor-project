@@ -4,12 +4,10 @@
 
 #refdiagram(
     label: <cfgdyn>,
-    caption: [Dérivation de ressources dynamiques depuis une configuration
-        réseau],
+    caption: [Création de sous-ressources à partir d'un parent],
     note: [
-        À partir d'une unique configuration réseau, le contrôleur dérive
-        automatiquement trois ressources dynamiques correspondant aux objets
-        qu'il manipule au sein du noyau Linux.
+        Illustre comment il est possible d'abstraire la gestion complexe de
+        plusieurs ressources derrière une interface simple.
     ],
     source: made-by-self,
 

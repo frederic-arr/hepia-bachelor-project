@@ -3,7 +3,12 @@
     set v(weak: true)
     set text(size: 12pt, lang: "fr", font: "Liberation Serif", hyphenate: false)
     show smallcaps: set text(font: "Alegreya Sans SC")
-    set par(justify: true, first-line-indent: (amount: 2em, all: true))
+    set par(
+        justify: true,
+        first-line-indent: (amount: 2em, all: true),
+        leading: 0.65em,
+        spacing: 1.2em,
+    )
     set list(marker: [#sym.dash.em], indent: 1.5em)
     set enum(indent: 1.5em)
 

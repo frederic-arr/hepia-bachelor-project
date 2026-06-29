@@ -8,6 +8,11 @@
     [\<TODO> #body \</TODO>],
 ))
 
+#let todo-chapter = highlight(fill: rgb("#fff091"), text(
+    fill: red,
+    [\[RÉF. CHAPITRE\]],
+))
+
 #let todo(content, ..body, label: "TODO", color: rgb("#0fb9b1")) = {
     import "../conf.typ"
 

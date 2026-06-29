@@ -4,11 +4,11 @@
 
 #refdiagram(
     label: <ctrlloop>,
-    caption: [Orchestraion de la réconciliation dans un modèle centralisé],
+    caption: [Orchestraion de la réconciliation dans un modèle décentralisé],
     note: [
         Illustre la manière donc la réconciliation individuelle de chaque
         ressource est intégrée vis-à-vis des autres ressources au sein d'un
-        modèle de réconciliation centralisé.
+        modèle de réconciliation décentralisé.
     ],
     source: made-by-self,
 
@@ -38,10 +38,26 @@
             subtitle: [Reconciliation],
             stroke: red,
         )
-        edge(<ctrlloop-a>, <ctrlloop-b>, "-|>", title: [Then])
-        edge(<ctrlloop-b>, <ctrlloop-z>, "--|>", title: [Then])
-        edge(<ctrlloop-z>, <ctrlloop-a>, "-|>", bend: 30deg, title: [
-            Infinitely recurring
-        ])
+        edge(
+            <ctrlloop-a>,
+            <ctrlloop-a>,
+            "-|>",
+            title: [Infinitely recurring],
+            bend: 120deg,
+        )
+        edge(
+            <ctrlloop-b>,
+            <ctrlloop-b>,
+            "-|>",
+            title: [Infinitely recurring],
+            bend: 120deg,
+        )
+        edge(
+            <ctrlloop-z>,
+            <ctrlloop-z>,
+            "-|>",
+            title: [Infinitely recurring],
+            bend: 120deg,
+        )
     },
 )

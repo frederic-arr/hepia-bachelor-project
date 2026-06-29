@@ -5,9 +5,9 @@
     label: <restypes>,
     caption: [Types de resources et leur propriétés],
     note: [
-        Les différents types de resources avec qui peut les créer ou les
-        modifier, qui peut les supprimer, et ou se situe le propriétaire dans le
-        système.
+        Montre quel acteur une ressource peut-elle être crée, qu'elle lien
+        aura-t-elle avec son créateur, et qui en sera le détenteur, autrement
+        dit, qui peut la supprimer ou la modifier.
     ],
     source: made-by-self,
     {
@@ -16,7 +16,7 @@
         )
 
         table(
-            columns: (auto, 1fr, auto, 1fr),
+            columns: (auto, auto, auto, 1fr),
             rows: (auto, 1.5em, 1.5em, 1.5em),
             align: center + horizon,
             table.header(

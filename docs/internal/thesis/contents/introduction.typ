@@ -26,9 +26,9 @@ Toutefois, les systèmes d'exploitation sous-jacents reposent encore
 majoritairement sur des distributions génériques, administrées avec des outils
 de gestion de configuration dont le modèle d'exécution reste fondamentalement
 impératif, ce qui complique l'automatisation et la reproductibilité. De plus,
-ces distributions ne considèrent pas la conteneurisation comme un élément
-intégral au système et nécessitent de configurer et gérer les conteneurs de
-manière distincte du système d'exploitation. De ce fait, la complexité de la
+ces distributions n'intègrent pas la conteneurisation comme un élément de
+première classe du système et nécessitent de configurer et gérer les conteneurs
+de manière distincte du système d'exploitation. De ce fait, la complexité de la
 configuration et du maintien en état repose entièrement sur l'administrateur.
 
 Certaines solutions plus spécialisées existent, alliant déclarativité et support
@@ -58,7 +58,7 @@ les forces et les faiblesses des différentes solutions disponibles. Il a
 débouché sur la présentation d'une architecture de très haut niveau, explorant
 les concepts fondamentaux et les briques techniques nécessaires à
 l'implémentation d'une solution adaptée. Le présent travail reprend ces
-conclusions afin de concevoir une architecture détaillée, puis de l'implanter,
+conclusions afin de concevoir une architecture détaillée, puis de l'implémenter,
 de la valider et de la comparer à Talos Linux et NixOS.
 
 L'objectif central est de fournir un système d'exploitation entièrement
@@ -76,7 +76,8 @@ fonctionne sans surveillance constante, la sécurité est une exigence
 primordiale. Elle se concrétise par une isolation forte des composants système
 entre eux, une réduction maximale de la surface d'attaque et l'absence de tout
 accès interactif direct (notamment pas d'accès SSH). Le mode d'interaction
-entièrement déclaratif et automatisé permet de rendre cette posture viable.
+entièrement déclaratif et automatisé permet de rendre #todo-inline[Trouver un
+    mot qui va bien] viable.
 
 Pour garantir une empreinte mémoire minimale et une maîtrise complète sur le
 fonctionnement du système, la solution est construite directement au-dessus du
@@ -118,10 +119,11 @@ documentaires et des efforts de débuggage: une fois la collecte humaine jugée
 suffisante ou qu'elle se heurtait à une impasse, elle a été interrogée pour
 signaler d'éventuels angles morts, en suggérant des mots-clés ou des références
 complémentaires. Ces suggestions ont toujours été vérifiées avant d'être
-utilisées. Toute contribution de l'IA à la production de code, aux décisions
-architecturales ou organisationnelles, ainsi qu'aux recherches fondamentales,
-est explicitement exclue. Un compte rendu détaillé et exhaustif de ces usages
-figure en annexe #todo-inline[Référencer l'annexe.].
+utilisées. L'IA n'a explicitement pas été utilisée dans le cadre de la
+production de code, pour prendre décisions architecturales ou
+organisationnelles, ainsi que pour effectuer recherches et débogage initiaux. Un
+compte rendu détaillé et exhaustif de ces usages figure en annexe
+#todo-inline[Référencer l'annexe.].
 
 Le travail a été structuré en trois jalons principaux. Une première phase
 conceptuelle, jusqu'à la fin mai, a permis de poser les bases technologiques.

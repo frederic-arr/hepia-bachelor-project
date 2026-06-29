@@ -5,7 +5,10 @@
 #refdiagram(
     label: <statustrans>,
     caption: [Transition entre les différents status d'une ressource],
-    note: [TODO],
+    note: [
+        Illustre les divers status qu'une ressource peut avoir et quelles sont
+        les transitions autorisée entre deux initialisation du système.
+    ],
     source: made-by-self,
 
     spacing: 1.2cm,
@@ -61,6 +64,7 @@
         )
 
         edge(
+            label: <statustrans-to-err>,
             <statustrans-unk>,
             <statustrans-err>,
             "-|>",
@@ -78,6 +82,7 @@
         edge(<statustrans-err>, <statustrans-nrdy>, "--", stroke: gray)
         edge(<statustrans-err>, <statustrans-rdy>, "--", stroke: gray)
         edge(
+            label: <statustrans-to-rdy>,
             <statustrans-rdy>,
             <statustrans-nrdy>,
             "--",
@@ -101,6 +106,7 @@
             "-|>",
         )
         edge(
+            label: <statustrans-to-done>,
             <statustrans-err>,
             <statustrans-done>,
             stroke: 2pt + teal,
@@ -110,6 +116,7 @@
         )
 
         edge(
+            label: <statustrans-to-del>,
             <statustrans-done>,
             <statustrans-del>,
             stroke: 2pt + red,
