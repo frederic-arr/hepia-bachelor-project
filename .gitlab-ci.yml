@@ -9,6 +9,7 @@ workflow:
 stages:
   - check
   - build
+  - test
 
 variables:
   NIX_CONFIG: "experimental-features = nix-command flakes"
@@ -41,12 +42,45 @@ check-proto:
 check-rust:
   stage: check
   script: nix develop -c just rust check
-  # cache:
-  #   key: ${CI_COMMIT_REF_SLUG}
-  #   paths:
-  #     - .cargo-cache/registry
-  #     - .cargo-cache/git
-  #     - target/
+
+test-rust-doc:
+  stage: test
+  script: nix develop -c just rust test-doc
+  needs: [check-rust]
+
+test-rust-unit:
+  stage: test
+  script: nix develop -c just rust test-unit
+  needs: [check-rust]
+  artifacts:
+    when: always
+    reports:
+      junit: rust/target/nextest/default/junit.xml
+
+test-rust-integration:
+  stage: test
+  script: nix develop -c just rust test-integration
+  needs: [check-proto, test-rust-unit]
+  artifacts:
+    when: always
+    reports:
+      junit: rust/target/nextest/default/junit.xml
+
+test-e2e:
+  stage: test
+  script: nix build -L .#checks.x86_64-linux.e2e
+  needs: [test-rust-integration]
+  artifacts:
+    when: always
+    reports:
+      junit: result/junit.xml
+
+# cache:
+#   key: ${CI_COMMIT_REF_SLUG}
+#   paths:
+#     - .cargo-cache/registry
+#     - .cargo-cache/git
+#     - target/
 
 # https://rustprojectprimer.com/ci/index.html
 

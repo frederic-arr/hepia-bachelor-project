@@ -1,4 +1,5 @@
-#import "@preview/touying:0.7.1": *
+#import "/packages.typ": *
+#import packages.touying: *
 #import themes.metropolis: *
 
 #let mk-slides(ratio: "16-9", config: none) = {

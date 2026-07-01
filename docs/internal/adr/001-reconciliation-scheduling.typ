@@ -51,7 +51,7 @@ status together with any requested creations, modifications, or deletions.
 == Assumptions
 
 - The system will only managed a limited number of reconcilable resources
-- If any of the controler faults, the whole system has to fault
+- If any of the controller faults, the whole system has to fault
 
 == Constraints
 

@@ -6,6 +6,7 @@
     "tinymist.formatterPrintWidth": 80,
     "tinymist.rootPath": "${workspaceFolder}/docs/internal",
     "tinymist.systemFonts": false,
+    "tinymist.preview.partialRendering": false,
     "tinymist.fontPaths": [
         "${workspaceFolder}/docs/internal/lib/fonts/alegreya-sans",
         "${workspaceFolder}/docs/internal/lib/fonts/liberation",
@@ -14,6 +15,19 @@
         "buf.yaml": "yaml"
     },
     "nixEnvSelector.nixFile": "${workspaceFolder}/flake.nix",
-    "nixEnvSelector.useFlakes": true,
-    "nixEnvSelector.flakeShell": "default"
+    "nixEnvSelector.flakeShell": "default",
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.runnables.test.overrideCommand": [
+        "cargo",
+        "nextest",
+        "run",
+        "--package",
+        "${package}",
+        "${target_arg}",
+        "${target}",
+        "--",
+        "${test_name}",
+        "${exact}",
+        "${include_ignored}"
+    ]
 }

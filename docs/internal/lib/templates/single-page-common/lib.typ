@@ -1,5 +1,6 @@
 #let single-page(
     title: none,
+    anchor: none,
     header: image("/lib/assets/hes-so-ge-logo.svg"),
     fonts: (
         header: "Liberation Sans",
@@ -39,6 +40,7 @@
     _utils.logo-header(content-right: strong(header))
 
     align(center, {
+        place(hide(heading(anchor)))
         block(text(size: 1.3em, weight: "bold", smallcaps(title)))
         v(1.5cm)
     })

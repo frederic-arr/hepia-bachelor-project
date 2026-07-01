@@ -7,3 +7,5 @@ target/
 # Rust Internal Compiler Errors
 rustc-ice-*.txt
 result
+*.img
+.config/.cspell.json

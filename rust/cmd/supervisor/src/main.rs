@@ -14,40 +14,37 @@ fn main() {
     linux_init();
 
     // println!("Hello from supervisor!");
-    // let mut busybox = Command::new("/bin/busybox")
-    //     .arg("sh")
-    //     .arg("-c")
-    //     .arg(
-    //         "ip link set dev lo up; ip link set dev eth0 up; ip addr add \
-    //          10.0.2.15/24 dev eth0; ip route add default via 10.0.2.2",
-    //     )
-    //     .stdin(Stdio::inherit())
-    //     .stdout(Stdio::inherit())
-    //     .stderr(Stdio::inherit())
-    //     .spawn()
-    //     .unwrap();
+    let mut busybox = Command::new("/bin/busybox")
+        .arg("sh")
+        .arg("-c")
+        .arg("ip link set dev lo up")
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()
+        .unwrap();
 
-    // busybox.wait().unwrap();
+    busybox.wait().unwrap();
 
-    // let conmgr = Command::new("/bin/container-manager")
-    //     .stdout(Stdio::inherit())
-    //     .stderr(Stdio::inherit())
-    //     .spawn()
-    //     .unwrap();
+    let mut conmgr = Command::new("/bin/container-manager")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()
+        .unwrap();
 
-    // let netmgr = Command::new("/bin/network-manager")
-    //     .stdout(Stdio::inherit())
-    //     .stderr(Stdio::inherit())
-    //     .spawn()
-    //     .unwrap();
+    let mut netmgr = Command::new("/bin/network-manager")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()
+        .unwrap();
 
-    // thread::sleep(Duration::from_secs(5));
+    thread::sleep(Duration::from_secs(5));
 
-    // let sysmgr = Command::new("/bin/system-manager")
-    //     .stdout(Stdio::inherit())
-    //     .stderr(Stdio::inherit())
-    //     .spawn()
-    //     .unwrap();
+    let mut sysmgr = Command::new("/bin/system-manager")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()
+        .unwrap();
 
     // mkdir -p /sys/fs/cgroup/cpu
     // mkdir -p /sys/fs/cgroup/cpuacct
@@ -71,6 +68,9 @@ fn main() {
         .unwrap();
 
     busybox.wait().unwrap();
+    conmgr.wait().unwrap();
+    sysmgr.wait().unwrap();
+    netmgr.wait().unwrap();
 
     loop {
         std::thread::park();

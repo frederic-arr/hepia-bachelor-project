@@ -11,7 +11,8 @@ ip link set dev eth0 up
 ip addr add 10.0.2.15/24 dev eth0
 ip route add default via 10.0.2.2
 export NETAVARK_FW=nftables
-podman --log-level=trace pull --tls-verify=false docker.io/alpine/curl:latest
+podman run --rm -it docker.io/alpine/curl:latest https://example.com
+podman --log-level=trace pull docker.io/alpine/curl:latest
 podman --log-level=trace run --rm -it docker.io/alpine/curl:latest https://example.com
 podman --log-level=trace run --rm -it --network none docker.io/alpine/curl:latest https://example.com
 podman --log-level=trace run --rm -it --network bridge docker.io/alpine/curl:latest https://example.com

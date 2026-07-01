@@ -61,23 +61,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let spec = json!({
         "up": true,
+        // "ip_address": "10.0.2.15",
+        "ip_address": [10, 0, 2, 15],
+        "ip_subnet": 24,
+        "ip_gateway": [10, 0, 2, 2],
+        "link_type": "Ethernet",
     });
 
     let spec = rmp_serde::to_vec(&spec).unwrap();
     let id = Identity {
         schema: "config#containeros::net::link".to_string(),
-        name: "dummy0".to_string(),
+        name: "eth0".to_string(),
     };
 
-    // sm.state_manager.resources.insert(
-    //     id.clone(),
-    //     resources::Resource::UserConfig(UserConfig {
-    //         schema: id.schema,
-    //         name: id.name,
-    //         spec: Spec(spec),
-    //         state: ResourceState::Unset,
-    //     }),
-    // );
+    sm.state_manager.resources.insert(
+        id.clone(),
+        resources::Resource::UserConfig(UserConfig {
+            schema: id.schema,
+            name: id.name,
+            spec: Spec(spec),
+            state: ResourceState::Unset,
+        }),
+    );
 
     let spec = json!({
         "image": "docker.io/library/busybox:latest",
@@ -88,7 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let spec = rmp_serde::to_vec(&spec).unwrap();
     let id = Identity {
         schema: "config#containeros::container::container".to_string(),
-        name: "bbox3".to_string(),
+        name: "bbox".to_string(),
     };
 
     sm.state_manager.resources.insert(
@@ -102,7 +107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     tokio::time::sleep(Duration::from_millis(500)).await;
-    // sm.state_manager.reconciliation_loop().await;
+    sm.state_manager.reconciliation_loop().await;
     drop(sm);
     Ok(())
 }

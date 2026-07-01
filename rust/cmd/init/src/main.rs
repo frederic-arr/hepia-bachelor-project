@@ -1,22 +1,32 @@
 use std::ffi::CString;
 use std::os::unix::process::CommandExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use linux_utils::{SpecialFs, mount_special, mount_squashfs};
+use linux_utils::{
+    SpecialFs,
+    attach_loop,
+    mount_iso,
+    mount_overlayfs,
+    mount_special,
+    mount_squashfs,
+};
 use rustix::mount::{MountFlags, UnmountFlags, mount, mount_move, unmount};
 use rustix::process::{chdir, chroot};
 
 // https://github.com/cleverca22/not-os
 // https://artemis.sh/2023/03/07/nixos-early-boot-running-from-ram.html
 // https://github.com/util-linux/util-linux/blob/master/sys-utils/switch_root.c
-fn switch_root(new_root: &str, init: &str) -> std::io::Result<()> {
-    tracing::info!("switch_root to {new_root}");
+fn switch_root<NewRoot>(new_root: NewRoot, init: &str) -> std::io::Result<()>
+where
+    NewRoot: AsRef<Path>,
+{
+    tracing::info!("switch_root to {}", new_root.as_ref().display());
 
-    rustix::mount::mount_move("/dev", "/mnt/dev").unwrap();
-    rustix::mount::mount_move("/proc", "/mnt/proc").unwrap();
+    rustix::mount::mount_move("/dev", new_root.as_ref().join("dev")).unwrap();
+    rustix::mount::mount_move("/proc", new_root.as_ref().join("proc")).unwrap();
 
-    chdir(new_root).unwrap();
+    chdir(new_root.as_ref()).unwrap();
     chroot(".").unwrap();
     chdir("/").unwrap();
 
@@ -50,7 +60,26 @@ fn main() {
 
     assert_eq!(std::process::id(), 1, "/init must be run as PID1");
     mount_pseudofs().unwrap();
-    mount_squashfs("/mnt", "/root.squashfs", MountFlags::empty(), &[]).unwrap();
-    switch_root("/mnt", "/bin/supervisor").unwrap();
+    mount_iso("/mnt/iso", "/dev/sr0", MountFlags::empty(), &[]).unwrap();
+
+    let ld = attach_loop("/mnt/iso/root.squashfs").unwrap();
+    mount_squashfs(
+        "/mnt/rootfs",
+        ld.path().unwrap(),
+        MountFlags::empty(),
+        &[],
+    )
+    .unwrap();
+
+    mount_overlayfs(
+        &["/mnt/rootfs"],
+        Some(("/mnt/upper", "/mnt/work")),
+        // None::<(PathBuf, PathBuf)>,
+        "/mnt/merged",
+        MountFlags::empty(),
+        &[],
+    )
+    .unwrap();
+    switch_root("/mnt/merged", "/bin/supervisor").unwrap();
     unreachable!();
 }

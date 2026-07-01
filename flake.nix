@@ -34,6 +34,11 @@
           fragments = [ ./kernel/shared/common.conf ];
         };
 
+        e2eTests = pkgs.callPackage ./rust/e2e.nix {
+          inherit crane rustToolchain;
+          inherit (pkgs) lib protobuf;
+        } { inherit iso; };
+
         initrd = pkgs.makeInitrdNG {
           contents = [
             {
@@ -44,18 +49,17 @@
               target = "/busybox";
               source  = "${pkgs.busybox}/bin/busybox";
             }
-            {
-              target = "/root.squashfs";
-              source  = rootfs;
-            }
+            # {
+            #   target = "/root.squashfs";
+            #   source = rootfs;
+            # }
           ];
         };
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          # paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox ];
-          paths  = [ supervisor pkgs.podman pkgs.busybox ];
-          pathsToLink = [ "/bin" "/lib" ];
+          paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox pkgs.cacert ];
+          pathsToLink = [ "/bin" "/lib" "/etc" ];
         };
 
         # Inspired by https://github.com/NixOS/nixpkgs/blob/26.05/nixos/lib/make-squashfs.nix
@@ -73,7 +77,7 @@
 
           cp "$closureInfo/registration" source/nix/store/
 
-          # store-paths is a file containting all the paths. In the original script
+          # store-paths is a file containing all the paths. In the original script
           # they `cat` it while calling mksquashfs which uh... "destructures"
           # the filepath and gives them to squash, but since we don't want them
           # directly at the root, that's how we'll do
@@ -101,7 +105,7 @@
 
         netmgr = rustFn {
           package = "network-manager";
-          deps = [ "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-server" ];
+          deps = [ "isolation" "isolation-macros" "linux-utils" "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-server" ];
         };
 
         conmgr = rustFn {
@@ -118,17 +122,62 @@
           mkdir -p $out
           cp ${x86_64-generic.kernel}/bzImage $out/bzImage
           cp ${initrd}/initrd                 $out/initrd
+          cp ${rootfs}                        $out/root.squashfs
+        '';
+
+        iso = pkgs.runCommand "embedded-x86_64.iso" {
+          nativeBuildInputs = with pkgs; [
+            grub2
+            grub2_efi
+            xorriso
+            mtools
+          ];
+        } ''
+          mkdir -p iso/boot/grub
+
+          cp ${x86_64-generic.kernel}/bzImage iso/boot/bzImage
+          cp ${initrd}/initrd                  iso/boot/initrd
+          cp ${rootfs}                         iso/root.squashfs
+
+          cat > iso/boot/grub/grub.cfg << 'EOF'
+          set timeout=5
+
+          menuentry "ContainerOS" {
+            linux  /boot/bzImage init=/init console=ttyS0,115200
+            initrd /boot/initrd
+          }
+          EOF
+
+          grub-mkrescue \
+            --modules="linux iso9660 squash4 normal boot configfile" \
+            -o $out \
+            iso/
         '';
 
         src = pkgs.fetchurl {
           url  = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.19.9.tar.xz";
           hash = "sha256-wWBoo68S45Q97jse71fKcCKcBpEov6EYT7P0iyGdVb8=";
         };
+
+        cspellDictFr = pkgs.stdenvNoCC.mkDerivation {
+          name = "cspell-dict-fr-fr";
+          src = pkgs.fetchurl {
+            url = "https://registry.npmjs.org/@cspell/dict-fr-fr/-/dict-fr-fr-2.3.2.tgz";
+            hash = "sha256-zOsyxv7XQBucK6m93JaOrT56qo5m0IHRq+qMrDVXXEw=";
+          };
+          dontBuild = true;
+          dontConfigure = true;
+          installPhase = ''
+            mkdir -p $out
+            cp -r . $out/
+          '';
+        };
       in
       {
         formatter = pkgs.nixfmt-tree;
         packages = {
           inherit qemu-boot-x86_64;
+          inherit iso;
           inherit rootfs;
           inherit initrd;
           inherit init;
@@ -144,6 +193,8 @@
             program = "${x86_64-generic.menuconfig}/bin/menuconfig";
           };
         };
+
+        checks.e2e = e2eTests;
 
         devShells = {
           default = pkgs.mkShellNoCC {
@@ -182,12 +233,25 @@
               python3Minimal
               kmod
               hexdump
+              cargo-nextest
+              cspell
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
             CPATH = "${pkgs.linuxHeaders}/include";
             BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.linuxHeaders}/include";
             NIX_CFLAGS_COMPILE = "-I${pkgs.linuxHeaders}/include";
+
+            shellHook = ''
+              cat > .config/.cspell.json <<EOF
+              {
+                "import": [
+                  "${cspellDictFr}/cspell-ext.json",
+                  "./cspell.yaml"
+                ]
+              }
+              EOF
+            '';
           };
         };
       }

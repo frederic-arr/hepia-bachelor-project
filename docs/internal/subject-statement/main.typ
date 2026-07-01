@@ -1,6 +1,7 @@
 #import "/lib/templates/single-page-common/lib.typ"
 
 #show: lib.single-page.with(
+    anchor: "Énoncé du sujet",
     title: [
         OS pour le déploiement de services conteneurisés \
         #text(size: 0.86em, [Orientation: Informatique logicielle])

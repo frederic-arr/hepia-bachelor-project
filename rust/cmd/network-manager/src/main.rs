@@ -1,3 +1,5 @@
+#![feature(never_type)]
+
 mod resources;
 
 use std::io::Write;
@@ -15,12 +17,18 @@ use tonic::transport::Server;
 use tonic::{Request, Response, Status, async_trait};
 
 use crate::resources::{
+    Address,
+    AddressSpec,
+    AddressState,
     Link,
     LinkConfig,
     LinkConfigSpec,
     LinkConfigState,
     LinkSpec,
     LinkState,
+    Route,
+    RouteSpec,
+    RouteState,
 };
 
 struct NetworkManagerReconcilerService {
@@ -78,7 +86,9 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                         .collect(),
                 };
 
-                let response = LinkConfig::reconcile(&mut (), &request).await;
+                let response = LinkConfig::reconcile(&mut (), &request)
+                    .await
+                    .expect("not possible to have errors");
                 Ok(Response::new(response))
             }
             _ => todo!(),
@@ -120,7 +130,77 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                     };
 
                 let response =
-                    Link::reconcile(&mut self.rtnl.clone(), &request).await;
+                    Link::reconcile(&mut self.rtnl.clone(), &request)
+                        .await
+                        .map_err(Status::internal)?;
+                Ok(Response::new(response))
+            }
+            Address::SCHEMA => {
+                let request =
+                    ReconcileDynamicResourceRequest::<AddressSpec, AddressState> {
+                        schema: request.schema,
+                        name: request.name,
+                        spec: rmp_serde::from_slice(&request.spec).unwrap(),
+                        state: request.state.and_then(|s| match s {
+                            v1::reconcile_dynamic_resource_request::State::Unset(
+                                (),
+                            ) => None,
+                            v1::reconcile_dynamic_resource_request::State::Ready(
+                                s,
+                            ) => rmp_serde::from_slice(&request.spec).unwrap(),
+                        }),
+                        owner: request.owner.map(|o| Identity {
+                            schema: o.schema,
+                            name: o.name,
+                        }).unwrap(),
+                        children: request
+                            .children
+                            .into_iter()
+                            .map(|c| Identity {
+                                schema: c.schema,
+                                name: c.name,
+                            })
+                            .collect(),
+                    };
+
+                let response =
+                    Address::reconcile(&mut self.rtnl.clone(), &request)
+                        .await
+                        .map_err(Status::internal)?;
+                Ok(Response::new(response))
+            }
+            Route::SCHEMA => {
+                let request =
+                    ReconcileDynamicResourceRequest::<RouteSpec, RouteState> {
+                        schema: request.schema,
+                        name: request.name,
+                        spec: rmp_serde::from_slice(&request.spec).unwrap(),
+                        state: request.state.and_then(|s| match s {
+                            v1::reconcile_dynamic_resource_request::State::Unset(
+                                (),
+                            ) => None,
+                            v1::reconcile_dynamic_resource_request::State::Ready(
+                                s,
+                            ) => rmp_serde::from_slice(&request.spec).unwrap(),
+                        }),
+                        owner: request.owner.map(|o| Identity {
+                            schema: o.schema,
+                            name: o.name,
+                        }).unwrap(),
+                        children: request
+                            .children
+                            .into_iter()
+                            .map(|c| Identity {
+                                schema: c.schema,
+                                name: c.name,
+                            })
+                            .collect(),
+                    };
+
+                let response =
+                    Route::reconcile(&mut self.rtnl.clone(), &request)
+                        .await
+                        .map_err(Status::internal)?;
                 Ok(Response::new(response))
             }
             _ => todo!(),

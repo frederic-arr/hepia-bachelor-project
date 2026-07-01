@@ -306,25 +306,25 @@ where
 {
     fn into_inner(self) -> T {
         match self {
-            Self::Running(spec) => spec,
-            Self::Draining(spec) => spec,
-            Self::Deleting(spec) => spec,
+            Self::Running(spec)
+            | Self::Draining(spec)
+            | Self::Deleting(spec) => spec,
         }
     }
 
     const fn inner(&self) -> &T {
         match self {
-            Self::Running(spec) => spec,
-            Self::Draining(spec) => spec,
-            Self::Deleting(spec) => spec,
+            Self::Running(spec)
+            | Self::Draining(spec)
+            | Self::Deleting(spec) => spec,
         }
     }
 
     const fn inner_mut(&mut self) -> &mut T {
         match self {
-            Self::Running(spec) => spec,
-            Self::Draining(spec) => spec,
-            Self::Deleting(spec) => spec,
+            Self::Running(spec)
+            | Self::Draining(spec)
+            | Self::Deleting(spec) => spec,
         }
     }
 }
@@ -336,33 +336,33 @@ where
     fn into_inner(self) -> Option<T::State> {
         match self {
             Self::Unset => None,
-            Self::Pending { state, .. } => Some(state),
-            Self::Error2 { state, .. } => Some(state),
-            Self::Ready { state, .. } => Some(state),
-            Self::Completed { state, .. } => Some(state),
-            Self::RefreshError { state, .. } => Some(state),
+            Self::Pending { state, .. }
+            | Self::Error2 { state, .. }
+            | Self::Ready { state, .. }
+            | Self::Completed { state, .. }
+            | Self::RefreshError { state, .. } => Some(state),
         }
     }
 
     const fn inner(&self) -> Option<&T::State> {
         match self {
             Self::Unset => None,
-            Self::Pending { state, .. } => Some(state),
-            Self::Error2 { state, .. } => Some(state),
-            Self::Ready { state, .. } => Some(state),
-            Self::Completed { state, .. } => Some(state),
-            Self::RefreshError { state, .. } => Some(state),
+            Self::Pending { state, .. }
+            | Self::Error2 { state, .. }
+            | Self::Ready { state, .. }
+            | Self::Completed { state, .. }
+            | Self::RefreshError { state, .. } => Some(state),
         }
     }
 
     const fn inner_mut(&mut self) -> Option<&mut T::State> {
         match self {
             Self::Unset => None,
-            Self::Pending { state, .. } => Some(state),
-            Self::Error2 { state, .. } => Some(state),
-            Self::Ready { state, .. } => Some(state),
-            Self::Completed { state, .. } => Some(state),
-            Self::RefreshError { state, .. } => Some(state),
+            Self::Pending { state, .. }
+            | Self::Error2 { state, .. }
+            | Self::Ready { state, .. }
+            | Self::Completed { state, .. }
+            | Self::RefreshError { state, .. } => Some(state),
         }
     }
 }

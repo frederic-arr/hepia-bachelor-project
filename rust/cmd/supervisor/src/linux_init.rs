@@ -1,5 +1,5 @@
 use linux_utils::{SpecialFs, mount_special};
-use rustix::mount::MountFlags;
+use rustix::mount::{MountFlags, mount};
 
 const INIT_PID: u32 = 1;
 
@@ -22,7 +22,7 @@ const MFSEC: MountFlags = MountFlags::from_bits_truncate(
         | MountFlags::RELATIME.bits(),
 );
 
-#[allow(clippy::unnecessary_wraps)]
+#[expect(clippy::unnecessary_wraps, reason = "will be dealt with later")]
 fn create_rfs() -> std::io::Result<()> {
     mount_special(&SpecialFs::Sys, "/sys", MFSEC, &[]).unwrap();
     mount_special(&SpecialFs::Tmp, "/tmp", MFSEC, &[]).unwrap();
@@ -83,9 +83,19 @@ fn create_rfs() -> std::io::Result<()> {
     mount_special(&SpecialFs::Cgroup2, "/sys/fs/cgroup", MFSEC, &[]).unwrap();
 
     let tmpfs = [
-        "/etc", "/home", "/media", "/mnt", "/opt", "/run", "/sbin", "/srv",
-        "/tmp", "/usr", "/var",
+        // "/etc",
+        "/home", "/media", "/mnt", "/opt", "/run", "/sbin", "/srv", "/tmp",
+        "/usr", // "/var",
     ];
+
+    mount(
+        "/dev/vda",
+        "/var",
+        "ext4",
+        MountFlags::empty(),
+        None,
+    )
+    .unwrap();
 
     for target in tmpfs {
         mount_special(&SpecialFs::Tmp, target, MFSEC, &[]).unwrap();
@@ -125,7 +135,7 @@ fn create_rfs() -> std::io::Result<()> {
     ];
 
     for dir in dirs {
-        std::fs::create_dir(dir).unwrap();
+        std::fs::create_dir_all(dir).unwrap();
     }
 
     Ok(())
