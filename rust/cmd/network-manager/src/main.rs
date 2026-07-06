@@ -113,7 +113,7 @@ impl v1_svc::ReconcilerService for NetworkManagerReconcilerService {
                             ) => None,
                             v1::reconcile_dynamic_resource_request::State::Ready(
                                 s,
-                            ) => rmp_serde::from_slice(&request.spec).unwrap(),
+                            ) => rmp_serde::from_slice(&s).unwrap(),
                         }),
                         owner: request.owner.map(|o| Identity {
                             schema: o.schema,
