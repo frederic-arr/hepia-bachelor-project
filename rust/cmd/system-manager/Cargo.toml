@@ -9,8 +9,12 @@ workspace = true
 [dependencies]
 cos-api-reconciler.path = "../../crates/cos-api-reconciler"
 cos-api-reconciler-client.path = "../../crates/cos-api-reconciler-client"
+cos-api-api.path = "../../crates/cos-api-api"
+cos-api-api-server.path = "../../crates/cos-api-api-server"
 invariant-macros.path = "../../crates/invariant-macros"
+linux-utils.path = "../../crates/linux-utils"
 tokio.workspace = true
+rustix.workspace = true
 tonic.workspace = true
 rmpv.workspace = true
 tokio-util.workspace = true

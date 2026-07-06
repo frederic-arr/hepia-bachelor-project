@@ -6,6 +6,7 @@ use std::process::{Command, Stdio};
 use linux_utils::{
     SpecialFs,
     attach_loop,
+    is_maintenance,
     mount_iso,
     mount_overlayfs,
     mount_special,
@@ -59,27 +60,49 @@ fn main() {
         .init();
 
     assert_eq!(std::process::id(), 1, "/init must be run as PID1");
+
     mount_pseudofs().unwrap();
-    mount_iso("/mnt/iso", "/dev/sr0", MountFlags::empty(), &[]).unwrap();
+    if is_maintenance() {
+        mount_iso("/mnt/iso", "/dev/sr0", MountFlags::empty(), &[]).unwrap();
 
-    let ld = attach_loop("/mnt/iso/root.squashfs").unwrap();
-    mount_squashfs(
-        "/mnt/rootfs",
-        ld.path().unwrap(),
-        MountFlags::empty(),
-        &[],
-    )
-    .unwrap();
+        let ld = attach_loop("/mnt/iso/root.squashfs").unwrap();
+        mount_squashfs(
+            "/mnt/rootfs",
+            ld.path().unwrap(),
+            MountFlags::empty(),
+            &[],
+        )
+        .unwrap();
+    } else {
+        std::fs::create_dir_all("/mnt/boot").unwrap();
+        std::fs::create_dir_all("/mnt/rootfs").unwrap();
+        mount(
+            "/dev/vda2",
+            "/mnt/boot",
+            "vfat",
+            MountFlags::empty(),
+            None,
+        )
+        .unwrap();
 
+        let ld = attach_loop("/mnt/boot/root.squashfs").unwrap();
+        mount_squashfs(
+            "/mnt/rootfs",
+            ld.path().unwrap(),
+            MountFlags::empty(),
+            &[],
+        )
+        .unwrap();
+    }
     mount_overlayfs(
         &["/mnt/rootfs"],
         Some(("/mnt/upper", "/mnt/work")),
-        // None::<(PathBuf, PathBuf)>,
         "/mnt/merged",
         MountFlags::empty(),
         &[],
     )
     .unwrap();
+
     switch_root("/mnt/merged", "/bin/supervisor").unwrap();
     unreachable!();
 }

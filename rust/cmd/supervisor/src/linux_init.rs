@@ -1,4 +1,4 @@
-use linux_utils::{SpecialFs, mount_special};
+use linux_utils::{SpecialFs, is_maintenance, mount_special};
 use rustix::mount::{MountFlags, mount};
 
 const INIT_PID: u32 = 1;
@@ -82,20 +82,33 @@ fn create_rfs() -> std::io::Result<()> {
 
     mount_special(&SpecialFs::Cgroup2, "/sys/fs/cgroup", MFSEC, &[]).unwrap();
 
-    let tmpfs = [
-        // "/etc",
+    let mut tmpfs = vec![
         "/home", "/media", "/mnt", "/opt", "/run", "/sbin", "/srv", "/tmp",
         "/usr", // "/var",
     ];
 
-    mount(
-        "/dev/vda",
-        "/var",
-        "ext4",
-        MountFlags::empty(),
-        None,
-    )
-    .unwrap();
+    if is_maintenance() {
+        tmpfs.push("/var");
+    } else {
+        std::fs::create_dir("/config").unwrap();
+        mount(
+            "/dev/vda3",
+            "/config",
+            "vfat",
+            MountFlags::empty(),
+            None,
+        )
+        .unwrap();
+
+        mount(
+            "/dev/vda4",
+            "/var",
+            "ext4",
+            MountFlags::empty(),
+            None,
+        )
+        .unwrap();
+    }
 
     for target in tmpfs {
         mount_special(&SpecialFs::Tmp, target, MFSEC, &[]).unwrap();
