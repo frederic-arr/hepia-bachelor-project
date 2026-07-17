@@ -1,0 +1,23 @@
+[package]
+name = "system-controller"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace = true
+bitflags = { workspace = true, features = ["std", "serde"] }
+serde = { workspace = true, features = ["std", "derive"] }
+sha3 = { workspace = true, features = ["alloc"] }
+rustix = { workspace = true, features = [
+    "std",
+    "fs",
+    "mm",
+    "thread",
+    "process",
+] }
+libc.workspace = true
+cos-proto-reconciler.path = "../../crates/cos-proto-reconciler"
+tempfile.workspace = true
+
+[dev-dependencies]
+smol.workspace = true
