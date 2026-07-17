@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package containeros.reconciler.v1;
+
+service ReconcilerService {
+  rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+  rpc Reconcile(ReconcileRequest) returns (ReconcileResponse) {}
+}
+
+message ValidateRequest {
+  bytes raw = 1;
+}
+
+message ValidateResponse {
+  bytes raw = 1;
+}
+
+message ReconcileRequest {
+  bytes raw = 1;
+}
+
+message ReconcileResponse {
+  bytes raw = 1;
+}
