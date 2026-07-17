@@ -186,7 +186,12 @@ impl StaticFileReconciler {
         };
 
         let status = match new_plan {
-            StaticFilePlan::Noop => Status::Ready,
+            StaticFilePlan::Noop
+                if matches!(resource.phase, Phase::Shutdown) =>
+            {
+                Status::Deleted
+            }
+            StaticFilePlan::Noop => Status::Done,
             StaticFilePlan::Create { parent_fd: _ }
             | StaticFilePlan::Replace { parent_fd: _ }
             | StaticFilePlan::Delete { parent_fd: _ } => Status::NotReady,
@@ -492,19 +497,15 @@ impl StaticFileReconciler {
         resource: &StaticFileResource,
         parent_fd: &OwnedFd,
     ) -> Result<()> {
-        // let mut tmp_file = openat2(
-        //     &parent_fd,
-        //     ".",
-        //     OFlags::WRONLY | OFlags::TMPFILE,
-        //     Mode::WUSR,
-        //     ResolveFlags::NO_SYMLINKS | ResolveFlags::BENEATH,
-        // )
-        // .map(std::fs::File::from)
-        // .context("unable to create temporary file for atomic update")?;
-        let (mut tmp_file, _) = tempfile::NamedTempFile::new_in(&self.root)
-            .unwrap()
-            .keep()
-            .unwrap();
+        let mut tmp_file = openat2(
+            &parent_fd,
+            ".",
+            OFlags::WRONLY | OFlags::TMPFILE,
+            Mode::WUSR,
+            ResolveFlags::NO_SYMLINKS | ResolveFlags::BENEATH,
+        )
+        .map(std::fs::File::from)
+        .context("unable to create temporary file for atomic update")?;
 
         tmp_file
             .write_all(resource.spec.content.as_bytes())
@@ -897,7 +898,7 @@ mod tests {
             assert_eq!(&content, &file.spec.content);
         }
 
-        // #[test]
+        #[test]
         fn existing_should_succeed() {
             let (_root, mut reconciler, mut file) = create_ok_resource();
             let result =
@@ -914,7 +915,7 @@ mod tests {
             assert_eq!(&content, &file.spec.content);
         }
 
-        // #[test]
+        #[test]
         fn delete_should_succeed() {
             let (mut root, mut reconciler, mut file) = create_ok_resource();
             root.disable_cleanup(true);
@@ -927,7 +928,7 @@ mod tests {
             file.phase = Phase::Teardown;
             let result =
                 smol::block_on(reconciler.reconcile(file.clone())).unwrap();
-            assert_matches!(result.status, Status::Done);
+            assert_matches!(result.status, Status::Deleted);
 
             assert!(!std::fs::exists(&file.spec.path).unwrap());
         }

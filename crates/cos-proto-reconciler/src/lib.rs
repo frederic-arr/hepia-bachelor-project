@@ -15,36 +15,37 @@ pub mod v1 {
     tonic::include_proto!("containeros.reconciler.v1");
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Key {
     pub schema: String,
     pub name: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Identity {
     Static(Key),
     Dynamic(Key),
     Shared(Key),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Phase {
     Running,
     Shutdown,
     Teardown,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Status {
     Unknown,
     Error(String),
     NotReady,
     Done,
     Ready,
+    Deleted,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Resource<T, U, V> {
     pub id: Identity,
     pub phase: Phase,
@@ -57,7 +58,7 @@ pub struct Resource<T, U, V> {
     pub dependents: Vec<Identity>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ResourceResponse<V> {
     pub status: Status,
     pub state: V,
