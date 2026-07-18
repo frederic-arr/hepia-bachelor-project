@@ -26,12 +26,13 @@ impl ReconcilerService for Reconciler {
     ) -> Result<Response<ValidateResponse>, Status> {
         let req = request.into_inner();
         let resource: Resource<Value, Option<Value>, Value> =
-            serde_json::from_slice(&req.raw).unwrap();
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
 
         let key = match &resource.id {
-            Identity::Static(key) => key,
-            Identity::Dynamic(key) => key,
-            Identity::Shared(key) => key,
+            Identity::Static(key)
+            | Identity::Dynamic(key)
+            | Identity::Shared(key) => key,
         };
 
         match key.schema.as_ref() {
@@ -70,8 +71,7 @@ impl ReconcilerService for Reconciler {
                     _ => None,
                 };
 
-                let mut reconciler =
-                    StaticFileReconciler::new_in("/".into());
+                let reconciler = StaticFileReconciler::new_in("/etc".into());
                 let response = reconciler
                     .validate(spec, maybe_resource)
                     .await
@@ -92,12 +92,13 @@ impl ReconcilerService for Reconciler {
     ) -> Result<Response<ReconcileResponse>, Status> {
         let req = request.into_inner();
         let resource: Resource<Value, Value, Value> =
-            serde_json::from_slice(&req.raw).unwrap();
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
 
         let key = match &resource.id {
-            Identity::Static(key) => key,
-            Identity::Dynamic(key) => key,
-            Identity::Shared(key) => key,
+            Identity::Static(key)
+            | Identity::Dynamic(key)
+            | Identity::Shared(key) => key,
         };
 
         match key.schema.as_ref() {
@@ -119,8 +120,7 @@ impl ReconcilerService for Reconciler {
                     dependencies: resource.dependencies,
                     dependents: resource.dependents,
                 };
-                let mut reconciler =
-                    StaticFileReconciler::new_in("".into());
+                let reconciler = StaticFileReconciler::new_in("/etc".into());
                 let response = reconciler
                     .reconcile(resource)
                     .await
@@ -139,20 +139,8 @@ impl ReconcilerService for Reconciler {
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-    if std::env::var("WSL_DISTRO_NAME").is_ok() {
-        eprintln!(
-            "\x1b[1m\x1b[93m
-========================
-=     WSL DETECTED     =
-========================
-
-Reconciliation may not work when running inside WSL!
-\x1b[0m"
-        )
-    }
-
-    let addr = "[::1]:50051".parse().unwrap();
-    let reconciler = Reconciler::default();
+    let addr = "[::1]:50051".parse()?;
+    let reconciler = Reconciler;
 
     tracing::info!("system controller listening on {addr}");
 

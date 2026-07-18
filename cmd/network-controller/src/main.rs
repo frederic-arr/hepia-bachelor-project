@@ -26,12 +26,13 @@ impl ReconcilerService for Reconciler {
     ) -> Result<Response<ValidateResponse>, Status> {
         let req = request.into_inner();
         let resource: Resource<Value, Option<Value>, Value> =
-            serde_json::from_slice(&req.raw).unwrap();
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
 
         let key = match &resource.id {
-            Identity::Static(key) => key,
-            Identity::Dynamic(key) => key,
-            Identity::Shared(key) => key,
+            Identity::Static(key)
+            | Identity::Dynamic(key)
+            | Identity::Shared(key) => key,
         };
 
         match key.schema.as_ref() {
@@ -70,7 +71,7 @@ impl ReconcilerService for Reconciler {
                     _ => None,
                 };
 
-                let mut reconciler = DnsReconciler::new();
+                let reconciler = DnsReconciler::new();
                 let response = reconciler
                     .validate(spec, maybe_resource)
                     .await
@@ -90,17 +91,14 @@ impl ReconcilerService for Reconciler {
         request: Request<ReconcileRequest>,
     ) -> Result<Response<ReconcileResponse>, Status> {
         let req = request.into_inner();
-
-        let v: Value = serde_json::from_slice(&req.raw).unwrap();
-        println!("{v:#}");
-
         let resource: Resource<Value, Value, Value> =
-            serde_json::from_slice(&req.raw).unwrap();
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
 
         let key = match &resource.id {
-            Identity::Static(key) => key,
-            Identity::Dynamic(key) => key,
-            Identity::Shared(key) => key,
+            Identity::Static(key)
+            | Identity::Dynamic(key)
+            | Identity::Shared(key) => key,
         };
 
         match key.schema.as_ref() {
@@ -122,7 +120,7 @@ impl ReconcilerService for Reconciler {
                     dependencies: resource.dependencies,
                     dependents: resource.dependents,
                 };
-                let mut reconciler = DnsReconciler::new();
+                let reconciler = DnsReconciler::new();
                 let response = reconciler
                     .reconcile(resource)
                     .await
@@ -142,8 +140,8 @@ impl ReconcilerService for Reconciler {
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
 
-    let addr = "[::1]:50052".parse().unwrap();
-    let reconciler = Reconciler::default();
+    let addr = "[::1]:50052".parse()?;
+    let reconciler = Reconciler;
 
     tracing::info!("network controller listening on {addr}");
 

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["cmd/*","crates/*"]
+members = ["cmd/*", "crates/*"]
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
@@ -44,6 +44,8 @@ redundant_test_prefix = "deny"
 redundant_type_annotations = "deny"
 ref_patterns = "deny"
 rest_pat_in_fully_bound_structs = "deny"
+# unnecessary_rest_pattern = "deny"
+# rest_pattern_accessible_field = "deny"
 return_and_then = "deny"
 semicolon_inside_block = "deny"
 unseparated_literal_suffix = "deny"
@@ -57,7 +59,8 @@ try_err = "deny"
 unnecessary_safety_comment = "deny"
 unnecessary_safety_doc = "deny"
 unnecessary_self_imports = "deny"
-unneeded_field_pattern = "deny"
+# unneeded_field_pattern = "deny"
+unused_async = "allow"
 unused_result_ok = "deny"
 unused_trait_names = "deny"
 unwrap_in_result = "deny"

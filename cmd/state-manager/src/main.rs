@@ -23,7 +23,7 @@ use tonic::transport::{Channel, Endpoint};
 fn default_config() -> Vec<Resource<Value, Option<Value>, Option<Value>>> {
     vec![Resource::<Value, Option<Value>, Option<Value>> {
         id: Identity::Static(Key {
-            schema: "network:dns".to_string(),
+            schema: "network:dns".to_owned(),
             name: None,
         }),
         phase: Phase::Running,
@@ -37,26 +37,6 @@ fn default_config() -> Vec<Resource<Value, Option<Value>, Option<Value>>> {
         dependencies: vec![],
         dependents: vec![],
     }]
-    // Resource::<Value, Option<Value>, Option<Value>> {
-    //     id: Identity::Static(Key {
-    //         schema: "system:static-file".to_string(),
-    //         name: Some("dns-configuration".to_string()),
-    //     }),
-    //     phase: Phase::Running,
-    //     status: Status::Unknown,
-    //     spec: json!({
-    //         "path": "/etc/resolv.conf",
-    //         "content": "nameserver 9.9.9.9\n",
-    //         "owner_gid": 1000,
-    //         "readable_by_group": true,
-    //         "readable_by_others": true,
-    //     }),
-    //     derived_spec: None,
-    //     state: None,
-    //     children: vec![],
-    //     dependencies: vec![],
-    //     dependents: vec![],
-    // }
 }
 
 async fn get_clients()
@@ -75,25 +55,26 @@ async fn get_clients()
 
     Ok(hash_map! {
         // System resources
-        "system:static-file".to_string() => system_client.clone(),
+        "system:static-file".to_owned() => system_client,
 
         // Network resources
-        "network:dns".to_string() => network_client.clone(),
-        "network:interface".to_string() => network_client.clone(),
-        "network:link".to_string() => network_client.clone(),
-        "network:route".to_string() => network_client.clone(),
-        "network:address".to_string() => network_client.clone(),
-        "network:dhcp".to_string() => network_client.clone(),
+        "network:dns".to_owned() => network_client.clone(),
+        "network:interface".to_owned() => network_client.clone(),
+        "network:link".to_owned() => network_client.clone(),
+        "network:route".to_owned() => network_client.clone(),
+        "network:address".to_owned() => network_client.clone(),
+        "network:dhcp".to_owned() => network_client,
 
         // Container resources
-        "container:container".to_string() => container_client.clone(),
-        "container:image".to_string() => container_client.clone(),
+        "container:container".to_owned() => container_client.clone(),
+        "container:image".to_owned() => container_client,
     })
 }
 
 type StoredResource = TerminalResource<Value, Value, Value>;
 
 #[tokio::main]
+#[expect(clippy::too_many_lines)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().init();
 
@@ -245,6 +226,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         std::thread::sleep(Duration::from_millis(100));
     }
-
-    Ok(())
 }

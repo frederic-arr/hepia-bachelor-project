@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use anyhow::{Result, bail};
 use cos_proto_reconciler::{
     Identity,
@@ -54,6 +52,12 @@ impl DnsReconciler {
     }
 }
 
+impl Default for DnsReconciler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DnsReconciler {
     const MAX_ATTEMPTS: u8 = 5;
     const MAX_NDOTS: u8 = 15;
@@ -62,7 +66,7 @@ impl DnsReconciler {
     const MAX_TIMEOUT: u8 = 30;
 
     pub async fn validate(
-        &mut self,
+        &self,
         spec: DnsSpec,
         resource: Option<DnsResource>,
     ) -> Result<ValidateResponse<DnsDerivedSpec>> {
@@ -70,20 +74,20 @@ impl DnsReconciler {
             self.validate_spec_change(&resource, &spec).await?;
         } else {
             self.validate_new_spec(&spec).await?;
-        };
+        }
 
         Ok(ValidateResponse {
             derived_spec: (),
-            children: vec![self.get_child(&spec)?],
+            children: vec![Self::get_child(&spec)?],
             dependencies: vec![],
         })
     }
 
     pub async fn reconcile(
-        &mut self,
+        &self,
         resource: DnsResource,
     ) -> Result<ResourceResponse<Option<DnsState>>> {
-        let child = self.get_child(&resource.spec)?;
+        let child = Self::get_child(&resource.spec)?;
         if let Err(err) = self.validate_new_spec(&resource.spec).await {
             return Ok(ResourceResponse {
                 status: Status::Error(format!("{err:#}")),
@@ -95,7 +99,7 @@ impl DnsReconciler {
 
         if resource.children.len() > 1 {
             return Ok(ResourceResponse {
-                status: Status::Error("too many children".to_string()),
+                status: Status::Error("too many children".to_owned()),
                 state: None,
                 children: vec![child],
                 dependencies: vec![],
@@ -140,7 +144,7 @@ impl DnsReconciler {
         })
     }
 
-    async fn validate_new_spec(&mut self, spec: &DnsSpec) -> Result<()> {
+    async fn validate_new_spec(&self, spec: &DnsSpec) -> Result<()> {
         if spec.nameservers.len() > Self::MAX_NS {
             bail!(
                 "a maximum of {} name servers can be specified",
@@ -181,35 +185,32 @@ impl DnsReconciler {
     }
 
     async fn validate_spec_change(
-        &mut self,
+        &self,
         _resource: &DnsResource,
         spec: &DnsSpec,
     ) -> Result<()> {
         self.validate_new_spec(spec).await
     }
 
-    fn get_child(
-        &mut self,
-        spec: &DnsSpec,
-    ) -> Result<SubResourceCreate<Value>> {
+    fn get_child(spec: &DnsSpec) -> Result<SubResourceCreate<Value>> {
         Ok(SubResourceCreate::<Value> {
-            id: Identity::Static(Key {
-                schema: "system:static-file".to_string(),
-                name: Some("/etc/resolv.conf".to_string()),
+            id: Identity::Dynamic(Key {
+                schema: "system:static-file".to_owned(),
+                name: Some("/etc/resolv.conf".to_owned()),
             }),
             spec: serde_json::to_value(StaticFileSpec {
-                path: "/home/user/dev/bachelor/bachelor-project-v3/test.txt".into(),
-                content: self.get_content(&spec),
-                owner_gid: 1000,
+                path: "/etc/resolv.conf".into(),
+                content: Self::get_content(spec),
+                owner_gid: None,
                 readable_by_group: true,
                 readable_by_others: true,
             })?,
         })
     }
 
-    fn get_content(&mut self, spec: &DnsSpec) -> String {
+    fn get_content(spec: &DnsSpec) -> String {
         fn opt(s: &str) -> impl FnOnce(bool) -> Option<String> {
-            let s = s.to_string();
+            let s = s.to_owned();
             move |b| b.then_some(s)
         }
 
@@ -235,11 +236,11 @@ impl DnsReconciler {
             spec.trust_ad.and_then(opt("trust-ad")),
         ]
         .into_iter()
-        .filter_map(|v| v)
+        .flatten()
         .collect::<Vec<_>>()
         .join(" ");
 
-        let mut lines = Vec::with_capacity(Self::MAX_NS + 2);
+        let mut lines = Vec::with_capacity(Self::MAX_NS + 3);
         if !options.is_empty() {
             lines.push(format!("options {options}"));
         }
@@ -262,6 +263,7 @@ impl DnsReconciler {
             lines.push(format!("nameserver {ns}"));
         }
 
-        lines.join("\n") + "\n"
+        lines.push(String::new());
+        lines.join("\n")
     }
 }

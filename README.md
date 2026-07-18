@@ -1,3 +1,8 @@
+## Dev environment
+```sh
+$ rustup toolchain install
+```
+
 ## Testing
 
 > [!IMPORTANT] Running tests on WSL

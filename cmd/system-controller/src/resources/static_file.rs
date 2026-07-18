@@ -47,7 +47,7 @@ pub type StaticFileResource =
 pub struct StaticFileSpec {
     pub path: PathBuf,
     pub content: String,
-    pub owner_gid: u32,
+    pub owner_gid: Option<u32>,
     pub readable_by_group: bool,
     pub readable_by_others: bool,
 }
@@ -101,7 +101,7 @@ impl StaticFileReconciler {
 
 impl StaticFileReconciler {
     pub async fn validate(
-        &mut self,
+        &self,
         spec: StaticFileSpec,
         resource: Option<StaticFileResource>,
     ) -> Result<ValidateResponse<StaticFileDerivedSpec>> {
@@ -109,7 +109,7 @@ impl StaticFileReconciler {
             self.validate_spec_change(&resource, &spec).await?;
         } else {
             self.validate_new_spec(&spec).await?;
-        };
+        }
 
         Ok(ValidateResponse {
             derived_spec: self.derive(&spec).await?,
@@ -119,7 +119,7 @@ impl StaticFileReconciler {
     }
 
     pub async fn reconcile(
-        &mut self,
+        &self,
         resource: StaticFileResource,
     ) -> Result<ResourceResponse<FileState>> {
         if let Err(err) = self.validate_new_spec(&resource.spec).await {
@@ -164,7 +164,7 @@ impl StaticFileReconciler {
             }
         };
 
-        let _ = match self.apply(&resource, &plan).await {
+        let () = match self.apply(&resource, &plan).await {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
@@ -229,7 +229,7 @@ impl StaticFileReconciler {
         })
     }
 
-    async fn validate_new_spec(&mut self, spec: &StaticFileSpec) -> Result<()> {
+    async fn validate_new_spec(&self, spec: &StaticFileSpec) -> Result<()> {
         let mut components = spec.path.components();
         let Some(std::path::Component::RootDir) = components.next() else {
             bail!("path is not absolute");
@@ -256,7 +256,7 @@ impl StaticFileReconciler {
     }
 
     async fn validate_spec_change(
-        &mut self,
+        &self,
         _resource: &StaticFileResource,
         spec: &StaticFileSpec,
     ) -> Result<()> {
@@ -264,7 +264,7 @@ impl StaticFileReconciler {
     }
 
     async fn derive(
-        &mut self,
+        &self,
         spec: &StaticFileSpec,
     ) -> Result<StaticFileDerivedSpec> {
         let digest = sha3::Sha3_256::new()
@@ -303,7 +303,7 @@ impl StaticFileReconciler {
     }
 
     async fn refresh(
-        &mut self,
+        &self,
         resource: &StaticFileResource,
     ) -> Result<StaticFileContext> {
         let root_fd = openat2(
@@ -407,7 +407,7 @@ impl StaticFileReconciler {
     }
 
     async fn plan(
-        &mut self,
+        &self,
         resource: &StaticFileResource,
         cx: StaticFileContext,
     ) -> Result<StaticFilePlan> {
@@ -444,8 +444,17 @@ impl StaticFileReconciler {
                     return Ok(StaticFilePlan::Replace { parent_fd });
                 }
 
-                if state.gid != spec.owner_gid {
-                    return Ok(StaticFilePlan::Replace { parent_fd });
+                match spec.owner_gid {
+                    Some(v) => {
+                        if state.gid != v {
+                            return Ok(StaticFilePlan::Replace { parent_fd });
+                        }
+                    }
+                    None => {
+                        if state.gid != getgid().as_raw() {
+                            return Ok(StaticFilePlan::Replace { parent_fd });
+                        }
+                    }
                 }
 
                 if state.permissions != derived_spec.permissions {
@@ -487,7 +496,7 @@ impl StaticFileReconciler {
     }
 
     async fn apply(
-        &mut self,
+        &self,
         resource: &StaticFileResource,
         plan: &StaticFilePlan,
     ) -> Result<()> {
@@ -504,7 +513,7 @@ impl StaticFileReconciler {
     }
 
     async fn delete(
-        &mut self,
+        &self,
         resource: &StaticFileResource,
         parent_fd: &OwnedFd,
     ) -> Result<()> {
@@ -517,12 +526,12 @@ impl StaticFileReconciler {
     }
 
     async fn create_or_replace(
-        &mut self,
+        &self,
         resource: &StaticFileResource,
         parent_fd: &OwnedFd,
     ) -> Result<()> {
         let mut tmp_file = openat2(
-            &parent_fd,
+            parent_fd,
             ".",
             OFlags::WRONLY | OFlags::TMPFILE,
             Mode::WUSR,
@@ -544,7 +553,8 @@ impl StaticFileReconciler {
             .context("unable to set permissions on tempfile")?;
 
         let current_gid = getgid();
-        let target_gid = Gid::from_raw(resource.spec.owner_gid);
+        let target_gid =
+            resource.spec.owner_gid.map_or_else(getgid, Gid::from_raw);
 
         let do_change_gid = current_gid != target_gid;
 
@@ -553,7 +563,7 @@ impl StaticFileReconciler {
             std::os::unix::fs::fchown(
                 &tmp_file,
                 None,
-                do_change_gid.then_some(resource.spec.owner_gid),
+                Some(target_gid.as_raw()),
             )
             .context("unable to chown the tempfile")?;
         }
@@ -563,7 +573,7 @@ impl StaticFileReconciler {
         linkat(
             tmp_file.as_fd(),
             "",
-            &parent_fd,
+            parent_fd,
             &resource.derived_spec.file_name,
             AtFlags::EMPTY_PATH,
         )
@@ -580,7 +590,6 @@ mod tests {
     use std::path::PathBuf;
 
     use cos_proto_reconciler::{Identity, Key, assert_reconciliation_error};
-    use rustix::process::getgid;
     use tempfile::{TempDir, tempdir};
 
     use super::*;
@@ -612,7 +621,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: root.join("test.txt"),
                 content: "my-content".to_string(),
-                owner_gid: 0,
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -626,7 +635,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: PathBuf::from("foo/bar/../baz.txt"),
                 content: "my-content".to_string(),
-                owner_gid: 0,
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -640,7 +649,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/bar/../baz.txt"),
                 content: "my-content".to_string(),
-                owner_gid: 0,
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -654,7 +663,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/bar/../../../../baz.txt"),
                 content: "my-content".to_string(),
-                owner_gid: 0,
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -668,7 +677,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/./bar/./baz.txt"),
                 content: "my-content".to_string(),
-                owner_gid: 0,
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -682,7 +691,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/bar/baz.txt"),
                 content: "my-content".to_string(),
-                owner_gid: 0,
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -703,7 +712,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -722,7 +731,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: true,
                 readable_by_others: false,
             };
@@ -744,7 +753,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: true,
             };
@@ -766,7 +775,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: true,
                 readable_by_others: true,
             };
@@ -795,7 +804,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -831,7 +840,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: PathBuf::from("/dev/null"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -878,7 +887,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
@@ -904,7 +913,6 @@ mod tests {
         }
 
         #[test]
-        // #[cfg_attr(wsl, ignore)]
         fn basic_should_succeed() {
             let (_root, mut reconciler, file) = create_ok_resource();
 
@@ -920,7 +928,6 @@ mod tests {
         }
 
         #[test]
-        // #[cfg_attr(wsl, ignore)]
         fn existing_should_succeed() {
             let (_root, mut reconciler, mut file) = create_ok_resource();
             let result =
@@ -938,7 +945,6 @@ mod tests {
         }
 
         #[test]
-        // #[cfg_attr(wsl, ignore)]
         fn delete_should_succeed() {
             let (mut root, mut reconciler, mut file) = create_ok_resource();
             root.disable_cleanup(true);
@@ -964,7 +970,7 @@ mod tests {
             let spec = StaticFileSpec {
                 path: PathBuf::from("/dev/null"),
                 content: "my-content".to_string(),
-                owner_gid: getgid().as_raw(),
+                owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };

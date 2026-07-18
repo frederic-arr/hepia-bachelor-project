@@ -1,6 +1,6 @@
 #![feature(decl_macro)]
 
-use std::fmt::Write;
+use std::fmt::Write as _;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -48,7 +48,7 @@ pub enum Status {
     Deleted,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Resource<T, U, V> {
     pub id: Identity,
     pub phase: Phase,
@@ -61,7 +61,7 @@ pub struct Resource<T, U, V> {
     pub dependents: Vec<TerminalResource<Value, Value, Value>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TerminalResource<T, U, V> {
     pub id: Identity,
     pub phase: Phase,
@@ -74,7 +74,7 @@ pub struct TerminalResource<T, U, V> {
     pub dependents: Vec<Identity>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ResourceResponse<V> {
     pub status: Status,
     pub state: Option<V>,
@@ -82,13 +82,13 @@ pub struct ResourceResponse<V> {
     pub dependencies: Vec<Identity>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SubResourceCreate<T> {
     pub id: Identity,
     pub spec: T,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ValidateResponse<U> {
     pub derived_spec: U,
     pub children: Vec<SubResourceCreate<Value>>,
@@ -109,14 +109,14 @@ pub macro assert_reconciliation_error($status:expr, $pat:expr) {
 }
 
 impl Identity {
+    #[must_use]
     pub fn key(&self) -> &Key {
         match self {
-            Identity::Static(key) => key,
-            Identity::Dynamic(key) => key,
-            Identity::Shared(key) => key,
+            Self::Static(key) | Self::Dynamic(key) | Self::Shared(key) => key,
         }
     }
 
+    #[must_use]
     pub fn schema(&self) -> &String {
         &self.key().schema
     }
@@ -125,15 +125,15 @@ impl Identity {
 impl std::fmt::Display for Identity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let key = match self {
-            Identity::Static(key) => {
+            Self::Static(key) => {
                 f.write_str("cfg#")?;
                 key
             }
-            Identity::Dynamic(key) => {
+            Self::Dynamic(key) => {
                 f.write_str("dyn#")?;
                 key
             }
-            Identity::Shared(key) => {
+            Self::Shared(key) => {
                 f.write_str("sh#")?;
                 key
             }
