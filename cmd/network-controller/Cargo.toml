@@ -1,5 +1,5 @@
 [package]
-name = "system-controller"
+name = "network-controller"
 version = "0.1.0"
 edition = "2024"
 
@@ -19,6 +19,7 @@ rustix = { workspace = true, features = [
     "process",
 ] }
 libc.workspace = true
+system-controller.path = "../system-controller"
 cos-proto-reconciler.path = "../../crates/cos-proto-reconciler"
 cos-proto-reconciler-server.path = "../../crates/cos-proto-reconciler-server"
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

@@ -6,7 +6,13 @@ use std::path::PathBuf;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context as _, Result, anyhow, bail};
-use cos_proto_reconciler::{Phase, Resource, ResourceResponse, Status};
+use cos_proto_reconciler::{
+    Phase,
+    Resource,
+    ResourceResponse,
+    Status,
+    ValidateResponse,
+};
 use rustix::fs::{
     AtFlags,
     CWD,
@@ -35,7 +41,7 @@ pub struct StaticFileReconciler {
 }
 
 pub type StaticFileResource =
-    Resource<StaticFileSpec, StaticFileDerivedSpec, Option<FileState>>;
+    Resource<StaticFileSpec, StaticFileDerivedSpec, FileState>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StaticFileSpec {
@@ -94,16 +100,34 @@ impl StaticFileReconciler {
 }
 
 impl StaticFileReconciler {
+    pub async fn validate(
+        &mut self,
+        spec: StaticFileSpec,
+        resource: Option<StaticFileResource>,
+    ) -> Result<ValidateResponse<StaticFileDerivedSpec>> {
+        if let Some(resource) = resource {
+            self.validate_spec_change(&resource, &spec).await?;
+        } else {
+            self.validate_new_spec(&spec).await?;
+        };
+
+        Ok(ValidateResponse {
+            derived_spec: self.derive(&spec).await?,
+            children: vec![],
+            dependencies: vec![],
+        })
+    }
+
     pub async fn reconcile(
         &mut self,
         resource: StaticFileResource,
-    ) -> Result<ResourceResponse<Option<FileState>>> {
+    ) -> Result<ResourceResponse<FileState>> {
         if let Err(err) = self.validate_new_spec(&resource.spec).await {
             return Ok(ResourceResponse {
                 status: Status::Error(format!("{err:#}")),
                 state: resource.state,
-                children: resource.children,
-                dependencies: resource.dependencies,
+                children: vec![],
+                dependencies: vec![],
             });
         }
 
@@ -113,8 +137,8 @@ impl StaticFileReconciler {
                 return Ok(ResourceResponse {
                     status: Status::Error(format!("{err:#}")),
                     state: resource.state,
-                    children: resource.children,
-                    dependencies: resource.dependencies,
+                    children: vec![],
+                    dependencies: vec![],
                 });
             }
         };
@@ -134,8 +158,8 @@ impl StaticFileReconciler {
                 return Ok(ResourceResponse {
                     status: Status::Error(format!("{err:#}")),
                     state,
-                    children: resource.children,
-                    dependencies: resource.dependencies,
+                    children: vec![],
+                    dependencies: vec![],
                 });
             }
         };
@@ -146,8 +170,8 @@ impl StaticFileReconciler {
                 return Ok(ResourceResponse {
                     status: Status::Error(format!("{err:#}")),
                     state,
-                    children: resource.children,
-                    dependencies: resource.dependencies,
+                    children: vec![],
+                    dependencies: vec![],
                 });
             }
         };
@@ -158,8 +182,8 @@ impl StaticFileReconciler {
                 return Ok(ResourceResponse {
                     status: Status::Error(format!("{err:#}")),
                     state,
-                    children: resource.children,
-                    dependencies: resource.dependencies,
+                    children: vec![],
+                    dependencies: vec![],
                 });
             }
         };
@@ -179,15 +203,15 @@ impl StaticFileReconciler {
                 return Ok(ResourceResponse {
                     status: Status::Error(format!("{err:#}")),
                     state,
-                    children: resource.children,
-                    dependencies: resource.dependencies,
+                    children: vec![],
+                    dependencies: vec![],
                 });
             }
         };
 
         let status = match new_plan {
             StaticFilePlan::Noop
-                if matches!(resource.phase, Phase::Shutdown) =>
+                if matches!(resource.phase, Phase::Teardown) =>
             {
                 Status::Deleted
             }
@@ -200,8 +224,8 @@ impl StaticFileReconciler {
         Ok(ResourceResponse {
             status,
             state,
-            children: resource.children,
-            dependencies: resource.dependencies,
+            children: vec![],
+            dependencies: vec![],
         })
     }
 
@@ -555,7 +579,7 @@ mod tests {
     use std::assert_matches;
     use std::path::PathBuf;
 
-    use cos_proto_reconciler::{Identity, Key};
+    use cos_proto_reconciler::{Identity, Key, assert_reconciliation_error};
     use rustix::process::getgid;
     use tempfile::{TempDir, tempdir};
 
@@ -843,15 +867,11 @@ mod tests {
     }
 
     mod reconciliation {
-
-        use cos_proto_reconciler::assert_reconciliation_error;
-
         use super::*;
 
         fn create_ok_resource()
         -> (TempDir, StaticFileReconciler, StaticFileResource) {
-            let mut root = tempdir().unwrap();
-            root.disable_cleanup(true);
+            let root = tempdir().unwrap();
             let mut reconciler =
                 StaticFileReconciler::new_in(root.path().to_path_buf());
 
@@ -884,6 +904,7 @@ mod tests {
         }
 
         #[test]
+        // #[cfg_attr(wsl, ignore)]
         fn basic_should_succeed() {
             let (_root, mut reconciler, file) = create_ok_resource();
 
@@ -899,6 +920,7 @@ mod tests {
         }
 
         #[test]
+        // #[cfg_attr(wsl, ignore)]
         fn existing_should_succeed() {
             let (_root, mut reconciler, mut file) = create_ok_resource();
             let result =
@@ -916,6 +938,7 @@ mod tests {
         }
 
         #[test]
+        // #[cfg_attr(wsl, ignore)]
         fn delete_should_succeed() {
             let (mut root, mut reconciler, mut file) = create_ok_resource();
             root.disable_cleanup(true);

@@ -10,8 +10,8 @@ use cos_proto_reconciler_server::v1::{
     ReconcilerService,
     ReconcilerServiceServer,
 };
+use network_controller::{DnsReconciler, DnsResource};
 use serde_json::Value;
-use system_controller::{StaticFileReconciler, StaticFileResource};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
@@ -35,13 +35,13 @@ impl ReconcilerService for Reconciler {
         };
 
         match key.schema.as_ref() {
-            "system:static-file" => {
+            "network:dns" => {
                 let spec = serde_json::from_value(resource.spec.clone())
                     .map_err(|err| Status::from_error(err.into()))?;
 
                 let maybe_resource = match resource.derived_spec {
                     Some(derived_spec) => {
-                        let resource = StaticFileResource {
+                        let resource = DnsResource {
                             id: resource.id,
                             phase: resource.phase,
                             status: resource.status,
@@ -70,8 +70,7 @@ impl ReconcilerService for Reconciler {
                     _ => None,
                 };
 
-                let mut reconciler =
-                    StaticFileReconciler::new_in("/".into());
+                let mut reconciler = DnsReconciler::new();
                 let response = reconciler
                     .validate(spec, maybe_resource)
                     .await
@@ -91,6 +90,10 @@ impl ReconcilerService for Reconciler {
         request: Request<ReconcileRequest>,
     ) -> Result<Response<ReconcileResponse>, Status> {
         let req = request.into_inner();
+
+        let v: Value = serde_json::from_slice(&req.raw).unwrap();
+        println!("{v:#}");
+
         let resource: Resource<Value, Value, Value> =
             serde_json::from_slice(&req.raw).unwrap();
 
@@ -101,8 +104,8 @@ impl ReconcilerService for Reconciler {
         };
 
         match key.schema.as_ref() {
-            "system:static-file" => {
-                let resource = StaticFileResource {
+            "network:dns" => {
+                let resource = DnsResource {
                     id: resource.id,
                     phase: resource.phase,
                     status: resource.status,
@@ -119,8 +122,7 @@ impl ReconcilerService for Reconciler {
                     dependencies: resource.dependencies,
                     dependents: resource.dependents,
                 };
-                let mut reconciler =
-                    StaticFileReconciler::new_in("".into());
+                let mut reconciler = DnsReconciler::new();
                 let response = reconciler
                     .reconcile(resource)
                     .await
@@ -139,22 +141,11 @@ impl ReconcilerService for Reconciler {
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-    if std::env::var("WSL_DISTRO_NAME").is_ok() {
-        eprintln!(
-            "\x1b[1m\x1b[93m
-========================
-=     WSL DETECTED     =
-========================
 
-Reconciliation may not work when running inside WSL!
-\x1b[0m"
-        )
-    }
-
-    let addr = "[::1]:50051".parse().unwrap();
+    let addr = "[::1]:50052".parse().unwrap();
     let reconciler = Reconciler::default();
 
-    tracing::info!("system controller listening on {addr}");
+    tracing::info!("network controller listening on {addr}");
 
     Server::builder()
         .add_service(ReconcilerServiceServer::new(reconciler))
