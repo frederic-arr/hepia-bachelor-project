@@ -620,12 +620,12 @@ mod tests {
             let root = PathBuf::from("/tmp/test");
             let spec = StaticFileSpec {
                 path: root.join("test.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
-            let mut reconciler = StaticFileReconciler::new_in(root);
+            let reconciler = StaticFileReconciler::new_in(root);
             smol::block_on(reconciler.validate_new_spec(&spec)).unwrap();
         }
 
@@ -634,12 +634,12 @@ mod tests {
             let root = PathBuf::from("/");
             let spec = StaticFileSpec {
                 path: PathBuf::from("foo/bar/../baz.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
-            let mut reconciler = StaticFileReconciler::new_in(root);
+            let reconciler = StaticFileReconciler::new_in(root);
             smol::block_on(reconciler.validate_new_spec(&spec)).unwrap_err();
         }
 
@@ -648,12 +648,12 @@ mod tests {
             let root = PathBuf::from("/");
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/bar/../baz.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
-            let mut reconciler = StaticFileReconciler::new_in(root);
+            let reconciler = StaticFileReconciler::new_in(root);
             smol::block_on(reconciler.validate_new_spec(&spec)).unwrap_err();
         }
 
@@ -662,12 +662,12 @@ mod tests {
             let root = PathBuf::from("/");
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/bar/../../../../baz.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
-            let mut reconciler = StaticFileReconciler::new_in(root);
+            let reconciler = StaticFileReconciler::new_in(root);
             smol::block_on(reconciler.validate_new_spec(&spec)).unwrap_err();
         }
 
@@ -676,12 +676,12 @@ mod tests {
             let root = PathBuf::from("/");
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/./bar/./baz.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
-            let mut reconciler = StaticFileReconciler::new_in(root);
+            let reconciler = StaticFileReconciler::new_in(root);
             smol::block_on(reconciler.validate_new_spec(&spec)).unwrap_err();
         }
 
@@ -690,12 +690,12 @@ mod tests {
             let root = PathBuf::from("/tmp/test");
             let spec = StaticFileSpec {
                 path: PathBuf::from("/foo/bar/baz.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
             };
-            let mut reconciler = StaticFileReconciler::new_in(root);
+            let reconciler = StaticFileReconciler::new_in(root);
             smol::block_on(reconciler.validate_new_spec(&spec)).unwrap_err();
         }
     }
@@ -706,12 +706,12 @@ mod tests {
         #[test]
         fn basic_should_succeed() {
             let root = tempdir().unwrap();
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(root.path().to_path_buf());
 
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
@@ -725,12 +725,12 @@ mod tests {
         #[test]
         fn readable_by_group_should_succeed() {
             let root = tempdir().unwrap();
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(root.path().to_path_buf());
 
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: true,
                 readable_by_others: false,
@@ -747,12 +747,12 @@ mod tests {
         #[test]
         fn readable_by_other_should_succeed() {
             let root = tempdir().unwrap();
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(root.path().to_path_buf());
 
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: true,
@@ -769,12 +769,12 @@ mod tests {
         #[test]
         fn readable_by_everyone_should_succeed() {
             let root = tempdir().unwrap();
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(root.path().to_path_buf());
 
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: true,
                 readable_by_others: true,
@@ -798,12 +798,12 @@ mod tests {
         #[test]
         fn basic_should_succeed() {
             let root = tempdir().unwrap();
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(root.path().to_path_buf());
 
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
@@ -813,7 +813,7 @@ mod tests {
 
             let file = StaticFileResource {
                 id: Identity::Static(Key {
-                    schema: "".to_string(),
+                    schema: String::new(),
                     name: None,
                 }),
                 phase: Phase::Running,
@@ -829,17 +829,17 @@ mod tests {
             assert_matches!(
                 refreshed,
                 StaticFileContext::NoFile { parent_fd: _ }
-            )
+            );
         }
 
         #[test]
         fn non_regular_file_should_succeed() {
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(PathBuf::from("/"));
 
             let spec = StaticFileSpec {
                 path: PathBuf::from("/dev/null"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
@@ -849,7 +849,7 @@ mod tests {
 
             let file = StaticFileResource {
                 id: Identity::Static(Key {
-                    schema: "".to_string(),
+                    schema: String::new(),
                     name: None,
                 }),
                 phase: Phase::Running,
@@ -881,12 +881,12 @@ mod tests {
         fn create_ok_resource()
         -> (TempDir, StaticFileReconciler, StaticFileResource) {
             let root = tempdir().unwrap();
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(root.path().to_path_buf());
 
             let spec = StaticFileSpec {
                 path: root.path().join("test.txt"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
@@ -896,7 +896,7 @@ mod tests {
 
             let file = StaticFileResource {
                 id: Identity::Static(Key {
-                    schema: "".to_string(),
+                    schema: String::new(),
                     name: None,
                 }),
                 phase: Phase::Running,
@@ -914,7 +914,7 @@ mod tests {
 
         #[test]
         fn basic_should_succeed() {
-            let (_root, mut reconciler, file) = create_ok_resource();
+            let (_root, reconciler, file) = create_ok_resource();
 
             let result =
                 smol::block_on(reconciler.reconcile(file.clone())).unwrap();
@@ -929,7 +929,7 @@ mod tests {
 
         #[test]
         fn existing_should_succeed() {
-            let (_root, mut reconciler, mut file) = create_ok_resource();
+            let (_root, reconciler, mut file) = create_ok_resource();
             let result =
                 smol::block_on(reconciler.reconcile(file.clone())).unwrap();
             assert_matches!(result.status, Status::Done);
@@ -946,7 +946,7 @@ mod tests {
 
         #[test]
         fn delete_should_succeed() {
-            let (mut root, mut reconciler, mut file) = create_ok_resource();
+            let (mut root, reconciler, mut file) = create_ok_resource();
             root.disable_cleanup(true);
 
             let result =
@@ -964,12 +964,12 @@ mod tests {
 
         #[test]
         fn non_regular_file_should_fail() {
-            let mut reconciler =
+            let reconciler =
                 StaticFileReconciler::new_in(PathBuf::from("/"));
 
             let spec = StaticFileSpec {
                 path: PathBuf::from("/dev/null"),
-                content: "my-content".to_string(),
+                content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
                 readable_by_others: false,
@@ -979,7 +979,7 @@ mod tests {
 
             let file = StaticFileResource {
                 id: Identity::Static(Key {
-                    schema: "".to_string(),
+                    schema: String::new(),
                     name: None,
                 }),
                 phase: Phase::Running,
@@ -992,7 +992,7 @@ mod tests {
                 dependents: vec![],
             };
             let result =
-                smol::block_on(reconciler.reconcile(file.clone())).unwrap();
+                smol::block_on(reconciler.reconcile(file)).unwrap();
             assert_reconciliation_error!(
                 result.status,
                 "target path is occupied by a non-regular file"

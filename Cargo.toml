@@ -4,6 +4,7 @@ members = ["cmd/*", "crates/*"]
 
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
+unused_mut = "warn"
 
 [workspace.lints.clippy]
 pedantic = { level = "deny", priority = -1 }
