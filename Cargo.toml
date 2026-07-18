@@ -5,6 +5,7 @@ members = ["cmd/*", "crates/*"]
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
 unused_mut = "warn"
+dead_code = "allow" # TODO: Remove
 
 [workspace.lints.clippy]
 pedantic = { level = "deny", priority = -1 }
@@ -12,6 +13,7 @@ nursery = { level = "deny", priority = -1 }
 similar_names = "allow"
 # Restrictions
 allow_attributes = "deny"
+allow_attributes_without_reason = "deny"
 # arbitrary_source_item_ordering = "deny" # TODO: Add (?)
 arithmetic_side_effects = "deny"
 as_conversions = "deny"
@@ -65,6 +67,7 @@ unused_async = "allow"
 unused_result_ok = "deny"
 unused_trait_names = "deny"
 unwrap_in_result = "deny"
+
 unwrap_used = "deny"
 missing_const_for_fn = "allow"
 unnecessary_wraps = "allow"
@@ -111,13 +114,14 @@ libc = { version = "0.2.186", default-features = false }
 sha3 = { version = "0.12.0", default-features = false }
 # chrono = { version = "0.4.45", default-features = false }
 tokio = { version = "1.52.3", default-features = false }
-# itertools = { version = "0.15.0", default-features = false }
+itertools = { version = "0.15.0", default-features = false }
 # futures = { version = "0.3.32", default-features = false }
 prost = { version = "0.14.3", default-features = false }
 # prost-types = { version = "0.14.3", default-features = false }
 tonic = { version = "0.14.6", default-features = false }
 tonic-prost = { version = "0.14.6", default-features = false }
 tonic-prost-build = { version = "0.14.6", default-features = false }
-# tokio-util = { version = "0.7.18", default-features = false }
+tokio-util = { version = "0.7.18", default-features = false }
 tracing = { version = "0.1.44", default-features = false }
 tracing-subscriber = { version = "0.3.23", default-features = false }
+thiserror = { version = "2.0.18", default-features = false, features = ["std"] }

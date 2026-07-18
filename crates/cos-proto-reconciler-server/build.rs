@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, reason = "this is a build script")]
 
 use std::path::PathBuf;
 

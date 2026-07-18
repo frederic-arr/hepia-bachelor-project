@@ -124,7 +124,7 @@ impl StaticFileReconciler {
     ) -> Result<ResourceResponse<FileState>> {
         if let Err(err) = self.validate_new_spec(&resource.spec).await {
             return Ok(ResourceResponse {
-                status: Status::Error(format!("{err:#}")),
+                status: Status::Error(format!("{err:#}").into()),
                 state: resource.state,
                 children: vec![],
                 dependencies: vec![],
@@ -135,7 +135,7 @@ impl StaticFileReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}")),
+                    status: Status::Error(format!("{err:#}").into()),
                     state: resource.state,
                     children: vec![],
                     dependencies: vec![],
@@ -156,7 +156,7 @@ impl StaticFileReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}")),
+                    status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
                     dependencies: vec![],
@@ -168,7 +168,7 @@ impl StaticFileReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}")),
+                    status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
                     dependencies: vec![],
@@ -180,7 +180,7 @@ impl StaticFileReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}")),
+                    status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
                     dependencies: vec![],
@@ -201,7 +201,7 @@ impl StaticFileReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}")),
+                    status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
                     dependencies: vec![],
@@ -834,8 +834,7 @@ mod tests {
 
         #[test]
         fn non_regular_file_should_succeed() {
-            let reconciler =
-                StaticFileReconciler::new_in(PathBuf::from("/"));
+            let reconciler = StaticFileReconciler::new_in(PathBuf::from("/"));
 
             let spec = StaticFileSpec {
                 path: PathBuf::from("/dev/null"),
@@ -964,8 +963,7 @@ mod tests {
 
         #[test]
         fn non_regular_file_should_fail() {
-            let reconciler =
-                StaticFileReconciler::new_in(PathBuf::from("/"));
+            let reconciler = StaticFileReconciler::new_in(PathBuf::from("/"));
 
             let spec = StaticFileSpec {
                 path: PathBuf::from("/dev/null"),
@@ -991,8 +989,7 @@ mod tests {
                 dependencies: vec![],
                 dependents: vec![],
             };
-            let result =
-                smol::block_on(reconciler.reconcile(file)).unwrap();
+            let result = smol::block_on(reconciler.reconcile(file)).unwrap();
             assert_reconciliation_error!(
                 result.status,
                 "target path is occupied by a non-regular file"

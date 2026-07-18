@@ -17,7 +17,7 @@ pub struct DnsReconciler;
 
 pub type DnsResource = Resource<DnsSpec, DnsDerivedSpec, Option<DnsState>>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DnsSpec {
     pub nameservers: Vec<String>,
     pub search: Option<Vec<String>>,
@@ -90,7 +90,7 @@ impl DnsReconciler {
         let child = Self::get_child(&resource.spec)?;
         if let Err(err) = self.validate_new_spec(&resource.spec).await {
             return Ok(ResourceResponse {
-                status: Status::Error(format!("{err:#}")),
+                status: Status::Error(format!("{err:#}").into()),
                 state: None,
                 children: vec![],
                 dependencies: vec![],
@@ -99,7 +99,7 @@ impl DnsReconciler {
 
         if resource.children.len() > 1 {
             return Ok(ResourceResponse {
-                status: Status::Error("too many children".to_owned()),
+                status: Status::Error("too many children".into()),
                 state: None,
                 children: vec![child],
                 dependencies: vec![],
