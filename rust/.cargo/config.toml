@@ -1,0 +1,6 @@
+[unstable]
+cargo-lints = true
+
+[env]
+PROTO_ROOT = { value = "../proto/", relative = true }
+COS_ISO = { value = "../result", relative = true }
