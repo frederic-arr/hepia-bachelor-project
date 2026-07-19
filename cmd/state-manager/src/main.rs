@@ -22,17 +22,19 @@ use crate::state::StateManager;
 
 #[expect(clippy::unwrap_used, reason = "this is early in the program")]
 fn default_config() -> Vec<SubResourceCreate<Value>> {
-    vec![SubResourceCreate::<Value> {
-        id: Identity::Static(Key {
-            schema: "network:dns".to_owned(),
-            name: None,
-        }),
-        spec: serde_json::to_value(DnsSpec {
-            nameservers: vec!["9.9.9.9".to_owned()],
-            ..Default::default()
-        })
-        .unwrap(),
-    }]
+    vec![
+        SubResourceCreate::<Value> {
+            id: Identity::Static(Key {
+                schema: "network:dns".to_owned(),
+                name: None,
+            }),
+            spec: serde_json::to_value(DnsSpec {
+                nameservers: vec!["9.9.9.9".to_owned()],
+                ..Default::default()
+            })
+            .unwrap(),
+        },
+    ]
 }
 
 fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {

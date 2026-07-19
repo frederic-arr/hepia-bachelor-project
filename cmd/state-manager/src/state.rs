@@ -141,7 +141,7 @@ impl StateManager {
         // reconciler will behave with a partially correct state. This is the
         // last "safe" cancellation point.
         // Normally a task can be aborted at *any* await point, but we launch
-        // them in a way that make them "unabortable"
+        // them in a way that make them "unabortable".
         if cancellation_token.is_cancelled() {
             tracing::trace!("reconciliation was cancelled");
             return Ok(());
@@ -181,11 +181,45 @@ impl StateManager {
             return Ok(());
         };
 
+        let removed_deps = resource
+            .dependencies
+            .difference(&reconciled.dependencies)
+            .cloned()
+            .collect_vec();
+
+        let added_deps = reconciled
+            .dependencies
+            .difference(&resource.dependencies)
+            .cloned()
+            .collect_vec();
+
         // TODO:
         // resource.persistent_state = reconciled.persistent_state;
         // resource.ephemeral_state = reconciled.ephemeral_state;
 
         resource.state = reconciled.state;
+        let notify_dependents = matches!(
+            (&resource.status, &reconciled.status),
+            (
+                Status::NotReady | Status::Unknown | Status::Error(_),
+                Status::Ready | Status::Done,
+            ) | (Status::Ready, Status::Done)
+        );
+
+        if notify_dependents {
+            self.queue
+                .schedule_at_bulk(
+                    resource
+                        .dependents
+                        .iter()
+                        .map(|v| v.key())
+                        .cloned()
+                        .collect(),
+                    Instant::now(),
+                )
+                .await;
+        }
+
         resource.status = reconciled.status;
 
         let old_children = resource
@@ -194,6 +228,8 @@ impl StateManager {
             .map(cos_proto_reconciler::Identity::key)
             .cloned()
             .collect();
+
+        let id = resource.id.clone();
 
         Self::bulk_upsert(
             &*self.clients.read().await,
@@ -207,28 +243,21 @@ impl StateManager {
         )
         .await?;
 
-        // TODO:
-        // resource.status = match reconciled.status {
-        //     ReconciledStatus::NotReady => Status::NotReady,
-        //     ReconciledStatus::Ready => Status::Ready,
-        //     ReconciledStatus::Done => Status::Done,
-        //     ReconciledStatus::Error(err) => {
-        //         Status::Error(StatusError::Other(err))
-        //     }
-        //     ReconciledStatus::Absent => {
-        //         if resource.phase != Phase::Deleting {
-        //             tracing::info!("resource {key} deleted");
-        //             state.remove_entry(&key);
-        //             return Ok(());
-        //         }
+        for dep in removed_deps {
+            let Some(entry) = state.get_mut(dep.key()) else {
+                continue;
+            };
 
-        //         tracing::error!(
-        //             "invalid status for {key}, attempting to delete a \
-        //              resource that shouldn't be deleted"
-        //         );
-        //         Status::Error(StatusError::Invalid)
-        //     }
-        // };
+            entry.dependents.remove(&id);
+        }
+
+        for dep in added_deps {
+            let Some(entry) = state.get_mut(dep.key()) else {
+                continue;
+            };
+
+            entry.dependents.insert(id.clone());
+        }
 
         tracing::trace!("reconciliation succesfull");
         Ok(())
@@ -328,9 +357,9 @@ impl StateManager {
                     spec: resource.spec,
                     derived_spec: response.derived_spec,
                     state: None,
-                    children: vec![],
-                    dependencies: vec![],
-                    dependents: vec![],
+                    children: HashSet::new(),
+                    dependencies: HashSet::new(),
+                    dependents: HashSet::new(),
                 },
             );
         }

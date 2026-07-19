@@ -1,6 +1,6 @@
 #![feature(decl_macro)]
 
-use std::fmt::Write as _;
+use std::{collections::HashSet, fmt::Write as _};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -92,9 +92,9 @@ pub struct TerminalResource<T, U, V> {
     pub spec: T,
     pub derived_spec: U,
     pub state: Option<V>,
-    pub children: Vec<Identity>,
-    pub dependencies: Vec<Identity>,
-    pub dependents: Vec<Identity>,
+    pub children: HashSet<Identity>,
+    pub dependencies: HashSet<Identity>,
+    pub dependents: HashSet<Identity>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -102,7 +102,7 @@ pub struct ResourceResponse<V> {
     pub status: Status,
     pub state: Option<V>,
     pub children: Vec<SubResourceCreate<Value>>,
-    pub dependencies: Vec<Identity>,
+    pub dependencies: HashSet<Identity>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

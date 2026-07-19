@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs::Permissions;
 use std::io::{BufReader, Read as _, Write as _};
 use std::os::fd::{AsFd as _, OwnedFd};
@@ -127,7 +128,7 @@ impl StaticFileReconciler {
                 status: Status::Error(format!("{err:#}").into()),
                 state: resource.state,
                 children: vec![],
-                dependencies: vec![],
+                dependencies: HashSet::new(),
             });
         }
 
@@ -138,7 +139,7 @@ impl StaticFileReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state: resource.state,
                     children: vec![],
-                    dependencies: vec![],
+                    dependencies: HashSet::new(),
                 });
             }
         };
@@ -159,7 +160,7 @@ impl StaticFileReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: vec![],
+                    dependencies: HashSet::new(),
                 });
             }
         };
@@ -171,7 +172,7 @@ impl StaticFileReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: vec![],
+                    dependencies: HashSet::new(),
                 });
             }
         };
@@ -183,7 +184,7 @@ impl StaticFileReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: vec![],
+                    dependencies: HashSet::new(),
                 });
             }
         };
@@ -204,7 +205,7 @@ impl StaticFileReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: vec![],
+                    dependencies: HashSet::new(),
                 });
             }
         };
@@ -225,7 +226,7 @@ impl StaticFileReconciler {
             status,
             state,
             children: vec![],
-            dependencies: vec![],
+            dependencies: HashSet::new(),
         })
     }
 

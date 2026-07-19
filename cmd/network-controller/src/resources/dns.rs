@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anyhow::{Result, bail};
 use cos_proto_reconciler::{
     Identity,
@@ -93,7 +95,7 @@ impl DnsReconciler {
                 status: Status::Error(format!("{err:#}").into()),
                 state: None,
                 children: vec![],
-                dependencies: vec![],
+                dependencies: HashSet::new(),
             });
         }
 
@@ -102,7 +104,7 @@ impl DnsReconciler {
                 status: Status::Error("too many children".into()),
                 state: None,
                 children: vec![child],
-                dependencies: vec![],
+                dependencies: HashSet::new(),
             });
         }
 
@@ -111,7 +113,7 @@ impl DnsReconciler {
                 status: Status::NotReady,
                 state: None,
                 children: vec![child],
-                dependencies: vec![],
+                dependencies: HashSet::new(),
             });
         };
 
@@ -120,7 +122,7 @@ impl DnsReconciler {
                 status: Status::NotReady,
                 state: None,
                 children: vec![child],
-                dependencies: vec![],
+                dependencies: HashSet::new(),
             });
         }
 
@@ -129,7 +131,7 @@ impl DnsReconciler {
                 status: Status::NotReady,
                 state: None,
                 children: vec![child],
-                dependencies: vec![],
+                dependencies: HashSet::new(),
             });
         }
 
@@ -140,7 +142,7 @@ impl DnsReconciler {
             },
             state: None,
             children: vec![child],
-            dependencies: vec![],
+            dependencies: HashSet::new(),
         })
     }
 
