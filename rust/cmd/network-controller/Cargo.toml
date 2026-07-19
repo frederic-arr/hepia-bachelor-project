@@ -26,7 +26,7 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tonic = { workspace = true, features = ["transport", "router"] }
 serde_json = { workspace = true, features = ["std"] }
 tracing.workspace = true
-tracing-subscriber = { workspace = true, features = ["fmt", "ansi"] }
+tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
 
 [dev-dependencies]
 tempfile.workspace = true

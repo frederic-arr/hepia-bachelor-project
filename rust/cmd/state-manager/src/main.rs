@@ -17,24 +17,25 @@ use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
 use tokio_util::sync::CancellationToken;
 use tonic::transport::{Channel, Endpoint};
+use tracing::Level;
+use tracing_subscriber::EnvFilter;
 
+use crate::queue::Queue;
 use crate::state::StateManager;
 
 #[expect(clippy::unwrap_used, reason = "this is early in the program")]
 fn default_config() -> Vec<SubResourceCreate<Value>> {
-    vec![
-        SubResourceCreate::<Value> {
-            id: Identity::Static(Key {
-                schema: "network:dns".to_owned(),
-                name: None,
-            }),
-            spec: serde_json::to_value(DnsSpec {
-                nameservers: vec!["9.9.9.9".to_owned()],
-                ..Default::default()
-            })
-            .unwrap(),
-        },
-    ]
+    vec![SubResourceCreate::<Value> {
+        id: Identity::Static(Key {
+            schema: "network:dns".to_owned(),
+            name: None,
+        }),
+        spec: serde_json::to_value(DnsSpec {
+            nameservers: vec!["9.9.9.9".to_owned()],
+            ..Default::default()
+        })
+        .unwrap(),
+    }]
 }
 
 fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
@@ -70,7 +71,13 @@ fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt().init();
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(Level::INFO.into())
+                .parse_lossy("state_manager=trace"),
+        )
+        .init();
 
     let mut resources = HashMap::new();
     let clients = get_clients();
@@ -79,6 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     StateManager::bulk_upsert(
         &clients,
+        &Queue::new(),
         &mut resources,
         HashSet::new(),
         default_config()

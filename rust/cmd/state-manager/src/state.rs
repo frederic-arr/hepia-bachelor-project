@@ -4,8 +4,10 @@ use std::time::{Duration, Instant};
 use anyhow::{Context as _, Result, anyhow, bail};
 use cos_proto_reconciler::v1::{self, ValidateRequest};
 use cos_proto_reconciler::{
+    Identity,
     Key,
     Phase,
+    Resource,
     ResourceResponse,
     Status,
     StatusError,
@@ -16,7 +18,7 @@ use cos_proto_reconciler::{
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use itertools::Itertools as _;
 use serde_json::Value;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
 use tonic::IntoRequest as _;
@@ -33,6 +35,8 @@ pub struct StateManager {
     clients: RwLock<Clients>,
     resources: RwLock<Resources>,
     queue: Queue<Key>,
+    init_time: Instant,
+    last_state_change: Mutex<Instant>,
 }
 
 impl StateManager {
@@ -55,6 +59,8 @@ impl StateManager {
             clients: RwLock::new(clients),
             resources: RwLock::new(resources),
             queue,
+            init_time: Instant::now(),
+            last_state_change: Mutex::new(Instant::now()),
         }
     }
 
@@ -63,6 +69,13 @@ impl StateManager {
         cancellation_token: &CancellationToken,
     ) {
         loop {
+            let last = *self.last_state_change.lock().await;
+
+            let elapsed = last.duration_since(self.init_time);
+            tracing::info!(?elapsed, "first start -> current state");
+            let elapsed = last.elapsed();
+            tracing::info!(?elapsed, "time since last state change");
+
             if cancellation_token.is_cancelled() {
                 tracing::trace!("reconciliation loop was cancelled");
                 break;
@@ -76,8 +89,14 @@ impl StateManager {
         &self,
         cancellation_token: &CancellationToken,
     ) {
+        tracing::trace!("reconciliation tick");
         let expired = tokio::select! {
-            v = self.queue.drain_expired() => v,
+            // The loop is reactive but for the demo we put a 5s timeout
+            // so we can see some logs
+            v = self.queue.drain_expired().timeout_milis(5000) => match v {
+                Ok(v) => v,
+                Err(_) => return
+            },
             () = cancellation_token.cancelled() => {
                 tracing::trace!("reconciliation tick was cancelled");
                 return
@@ -98,17 +117,27 @@ impl StateManager {
                 return;
             }
 
-            if let Err(err) = self.reconcile(key, cancellation_token).await {
-                tracing::error!("{err:#}");
+            let when =
+                match self.reconcile(key.clone(), cancellation_token).await {
+                    Ok(when) => when,
+                    Err(err) => {
+                        tracing::error!("{err:#}");
+                        Some(Instant::now() + Duration::from_secs(5))
+                    }
+                };
+
+            if let Some(when) = when {
+                self.queue.schedule_at(key, when).await;
             }
         }
     }
 
+    #[expect(clippy::too_many_lines, reason = "TODO")]
     async fn reconcile(
         &self,
         key: Key,
         cancellation_token: &CancellationToken,
-    ) -> Result<()> {
+    ) -> Result<Option<Instant>> {
         tracing::trace!("attempting to reconcile {key}");
         let max_duration = Duration::from_secs(5);
         let deadline = Instant::now() + max_duration;
@@ -118,20 +147,59 @@ impl StateManager {
             bail!("failed to aquire write lock during reconciliation");
         };
 
+        let resource = state.get(&key).context("resource not found")?;
+        let raw = Resource::<Value, Value, Value> {
+            id: resource.id.clone(),
+            phase: resource.phase.clone(),
+            status: resource.status.clone(),
+            spec: resource.spec.clone(),
+            derived_spec: resource.derived_spec.clone(),
+            state: resource.state.clone(),
+            children: resource
+                .children
+                .iter()
+                .filter_map(|id| state.get(id.key()))
+                .cloned()
+                .collect(),
+            dependencies: resource
+                .dependencies
+                .iter()
+                .filter_map(|id| state.get(id.key()))
+                .cloned()
+                .collect(),
+            dependents: resource
+                .dependents
+                .iter()
+                .filter_map(|id| state.get(id.key()))
+                .cloned()
+                .collect(),
+        };
+
+        let dependents = state
+            .values()
+            .filter(|v| {
+                v.dependencies.contains(&resource.id)
+                    || v.children.contains(&resource.id)
+            })
+            .map(|v| &v.id)
+            .cloned()
+            .collect_vec();
+
         let resource = state.get_mut(&key).context("resource not found")?;
+        // resource.dependents = dependents;
 
         let Some(mut client) =
             self.clients.read().await.get(&key.schema).cloned()
         else {
             tracing::error!("no clients for {key}");
             resource.status = Status::Error(StatusError::NoClient);
-            return Ok(());
+            return Ok(None);
         };
 
-        let Ok(raw) = serde_json::to_vec(&resource) else {
+        let Ok(raw) = serde_json::to_vec(&raw) else {
             tracing::error!("unable to serialize {key}");
             resource.status = Status::Error(StatusError::Internal);
-            return Ok(());
+            return Ok(None);
         };
 
         let mut request = v1::ReconcileRequest { raw }.into_request();
@@ -144,14 +212,14 @@ impl StateManager {
         // them in a way that make them "unabortable".
         if cancellation_token.is_cancelled() {
             tracing::trace!("reconciliation was cancelled");
-            return Ok(());
+            return Ok(None);
         }
 
         let Ok(response) = client.reconcile(request).timeout_at(deadline).await
         else {
             tracing::error!("reconciliation of {key} timed-out");
             resource.status = Status::Error(StatusError::TimedOut);
-            return Ok(());
+            return Ok(None);
         };
 
         let response = match response {
@@ -169,7 +237,7 @@ impl StateManager {
                     StatusError::Transport(err.message().to_owned())
                 };
                 resource.status = Status::Error(err);
-                return Ok(());
+                return Ok(None);
             }
         };
 
@@ -178,7 +246,7 @@ impl StateManager {
         else {
             tracing::error!("failed to deserialize response for {key}");
             resource.status = Status::Error(StatusError::Invalid);
-            return Ok(());
+            return Ok(None);
         };
 
         let removed_deps = resource
@@ -206,21 +274,24 @@ impl StateManager {
             ) | (Status::Ready, Status::Done)
         );
 
+        tracing::debug!("notifying dependents of state change");
         if notify_dependents {
+            let mut last = self.last_state_change.lock().await;
+            *last = Instant::now();
+            drop(last);
             self.queue
                 .schedule_at_bulk(
-                    resource
-                        .dependents
-                        .iter()
-                        .map(|v| v.key())
-                        .cloned()
-                        .collect(),
+                    dependents.iter().map(Identity::key).cloned().collect(),
                     Instant::now(),
                 )
                 .await;
         }
 
-        resource.status = reconciled.status;
+        if let Status::Error(StatusError::Other(err)) = &reconciled.status {
+            tracing::error!("{err}");
+        }
+
+        resource.status = reconciled.status.clone();
 
         let old_children = resource
             .children
@@ -229,10 +300,15 @@ impl StateManager {
             .cloned()
             .collect();
 
+        resource.children =
+            reconciled.children.iter().map(|v| &v.id).cloned().collect();
+        resource.dependencies.clone_from(&reconciled.dependencies);
+
         let id = resource.id.clone();
 
         Self::bulk_upsert(
             &*self.clients.read().await,
+            &self.queue,
             &mut state,
             old_children,
             reconciled
@@ -260,11 +336,17 @@ impl StateManager {
         }
 
         tracing::trace!("reconciliation succesfull");
-        Ok(())
+        if reconciled.status == Status::Done {
+            return Ok(None);
+        }
+
+        Ok(Some(Instant::now() + Duration::from_secs(5)))
     }
 
+    #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn bulk_upsert(
         clients: &Clients,
+        queue: &Queue<Key>,
         self_resources: &mut Resources,
         old_keys: HashSet<Key>,
         mut updated_resources: HashMap<Key, SubResourceCreate<Value>>,
@@ -303,7 +385,10 @@ impl StateManager {
 
             added_fut.spawn(async move {
                 let request = tonic::Request::new(ValidateRequest {
-                    raw: serde_json::to_vec(&resource)?,
+                    raw: serde_json::to_vec(&(
+                        resource.clone(),
+                        None::<Resource<Value, Value, Value>>,
+                    ))?,
                 });
 
                 let response = client.validate(request).await?.into_inner();
@@ -322,7 +407,10 @@ impl StateManager {
 
             modified_fut.spawn(async move {
                 let request = tonic::Request::new(ValidateRequest {
-                    raw: serde_json::to_vec(&resource)?,
+                    raw: serde_json::to_vec(&(
+                        resource.clone(),
+                        None::<Resource<Value, Value, Value>>,
+                    ))?,
                 });
 
                 let response = client.validate(request).await?.into_inner();
@@ -346,6 +434,20 @@ impl StateManager {
 
             entry.phase = Phase::Teardown;
         }
+
+        queue
+            .schedule_at_bulk(
+                modified.iter().map(|(v, _)| v.id.key()).cloned().collect(),
+                Instant::now(),
+            )
+            .await;
+
+        queue
+            .schedule_at_bulk(
+                added.iter().map(|(v, _)| v.id.key()).cloned().collect(),
+                Instant::now(),
+            )
+            .await;
 
         for (resource, response) in added {
             self_resources.insert(

@@ -5,7 +5,7 @@ use cos_proto_reconciler::v1::{
     ValidateRequest,
     ValidateResponse,
 };
-use cos_proto_reconciler::{Identity, Resource};
+use cos_proto_reconciler::{Identity, Resource, SubResourceCreate};
 use cos_proto_reconciler_server::v1::{
     ReconcilerService,
     ReconcilerServiceServer,
@@ -25,9 +25,11 @@ impl ReconcilerService for Reconciler {
         request: Request<ValidateRequest>,
     ) -> Result<Response<ValidateResponse>, Status> {
         let req = request.into_inner();
-        let resource: Resource<Value, Option<Value>, Value> =
-            serde_json::from_slice(&req.raw)
-                .map_err(|err| Status::from_error(err.into()))?;
+        let (resource, maybe_resource): (
+            SubResourceCreate<Value>,
+            Option<Resource<Value, Value, Value>>,
+        ) = serde_json::from_slice(&req.raw)
+            .map_err(|err| Status::from_error(err.into()))?;
 
         let key = match &resource.id {
             Identity::Static(key)
@@ -40,36 +42,27 @@ impl ReconcilerService for Reconciler {
                 let spec = serde_json::from_value(resource.spec.clone())
                     .map_err(|err| Status::from_error(err.into()))?;
 
-                let maybe_resource = match resource.derived_spec {
-                    Some(derived_spec) => {
-                        let resource = StaticFileResource {
-                            id: resource.id,
-                            phase: resource.phase,
-                            status: resource.status,
-                            spec: serde_json::from_value(resource.spec)
-                                .map_err(|err| {
-                                    Status::from_error(err.into())
-                                })?,
-                            derived_spec: serde_json::from_value(derived_spec)
-                                .map_err(|err| {
-                                    Status::from_error(err.into())
-                                })?,
-                            state: resource
+                let maybe_resource = maybe_resource
+                    .map(|v| {
+                        Ok::<_, anyhow::Error>(StaticFileResource {
+                            id: v.id,
+                            phase: v.phase,
+                            status: v.status,
+                            spec: serde_json::from_value(v.spec)?,
+                            derived_spec: serde_json::from_value(
+                                v.derived_spec,
+                            )?,
+                            state: v
                                 .state
                                 .map(serde_json::from_value)
-                                .transpose()
-                                .map_err(|err| {
-                                    Status::from_error(err.into())
-                                })?,
-                            children: resource.children,
-                            dependencies: resource.dependencies,
-                            dependents: resource.dependents,
-                        };
-
-                        Some(resource)
-                    }
-                    _ => None,
-                };
+                                .transpose()?,
+                            children: v.children,
+                            dependencies: v.dependencies,
+                            dependents: v.dependents,
+                        })
+                    })
+                    .transpose()
+                    .map_err(|err| Status::from_error(err.into()))?;
 
                 let reconciler = StaticFileReconciler::new_in("/etc".into());
                 let response = reconciler

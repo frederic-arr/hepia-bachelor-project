@@ -56,7 +56,7 @@ impl<K> DerefMut for QueueInnerGuard<'_, K> {
 
 impl<K> Queue<K>
 where
-    K: Hash + Eq + Clone + Send + Sync,
+    K: Hash + Eq + Clone + Send + Sync + std::fmt::Display,
 {
     #[must_use]
     async fn write(&self) -> QueueInnerGuard<'_, K> {
@@ -92,8 +92,11 @@ where
 
     pub async fn schedule_at(&self, key: K, when: Instant) {
         let mut guard = self.write().await;
-        if guard.scheduled.contains_key(&key) {
-            return;
+        if let Some(scheduled) = guard.scheduled.get(&key).copied()
+            && scheduled > when
+            && let Some(entry) = guard.queue.get_mut(&scheduled)
+        {
+            entry.remove(&key);
         }
 
         guard.queue.entry(when).or_default().insert(key.clone());
@@ -101,11 +104,19 @@ where
     }
 
     pub async fn schedule_at_bulk(&self, keys: HashSet<K>, when: Instant) {
+        let dkeys = keys.iter().map(|v| format!("{v}")).collect_vec();
+        let dwhen = when.duration_since(Instant::now());
+        tracing::trace!(keys = ?dkeys, when = ?dwhen, "scheduling keys in bulk");
+
         let mut guard = self.write().await;
-        let keys = keys
-            .into_iter()
-            .filter(|k| !guard.scheduled.contains_key(k))
-            .collect_vec();
+        for key in &keys {
+            if let Some(scheduled) = guard.scheduled.get(key).copied()
+                && scheduled > when
+                && let Some(entry) = guard.queue.get_mut(&scheduled)
+            {
+                entry.remove(key);
+            }
+        }
 
         if keys.is_empty() {
             return;
@@ -186,15 +197,14 @@ mod tests {
     #[tokio::test]
     async fn past_deadline_executed_immediately() {
         let q = Queue::new();
-        let when = Instant::now() - Duration::from_secs(1);
+        let when = Instant::now().checked_sub(Duration::from_secs(1)).unwrap();
         q.schedule_at("task", when).await;
 
         let now = Instant::now();
         let keys = q
             .drain_expired()
             .await
-            .into_iter()
-            .map(|(_, v)| v)
+            .into_values()
             .flatten()
             .collect_vec();
 
@@ -211,8 +221,7 @@ mod tests {
         let keys = q
             .drain_expired()
             .await
-            .into_iter()
-            .map(|(_, v)| v)
+            .into_values()
             .flatten()
             .collect_vec();
 
@@ -231,8 +240,7 @@ mod tests {
         let keys = q
             .drain_expired()
             .await
-            .into_iter()
-            .map(|(_, v)| v)
+            .into_values()
             .flatten()
             .collect_vec();
 
@@ -255,12 +263,7 @@ mod tests {
 
         tokio::time::sleep(Duration::from_millis(50)).await;
 
-        let mut keys = q
-            .drain_expired()
-            .await
-            .into_iter()
-            .map(|(_, v)| v)
-            .flatten();
+        let mut keys = q.drain_expired().await.into_values().flatten();
 
         assert!(Instant::now() >= when);
         assert_matches!(keys.next(), Some(0 | 1));
@@ -281,8 +284,7 @@ mod tests {
         let first = q
             .drain_expired()
             .await
-            .into_iter()
-            .map(|(_, v)| v)
+            .into_values()
             .flatten()
             .collect_vec();
 
@@ -292,8 +294,7 @@ mod tests {
         let second = q
             .drain_expired()
             .await
-            .into_iter()
-            .map(|(_, v)| v)
+            .into_values()
             .flatten()
             .collect_vec();
 

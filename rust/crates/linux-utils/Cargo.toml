@@ -1,0 +1,13 @@
+[package]
+name = "linux-utils"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+rustix = { workspace = true, features = ["std", "mount"] }
+tracing.workspace = true
+anyhow.workspace = true
+loopdev-3.workspace = true

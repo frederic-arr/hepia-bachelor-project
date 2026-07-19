@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "myriad-dreamin.tinymist",
+        "editorconfig.editorconfig",
+        "bufbuild.vscode-buf",
+        "redhat.vscode-yaml",
+        "arrterian.nix-env-selector",
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "bbenoist.nix",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-french",
+        "nefrob.vscode-just-syntax",
+    ]
+}

@@ -1,1 +1,13 @@
 .tmp*
+
+target/
+*.pdf
+.env
+.env.*
+!.env.example
+
+# Rust Internal Compiler Errors
+rustc-ice-*.txt
+result
+*.img
+.config/.cspell.json
