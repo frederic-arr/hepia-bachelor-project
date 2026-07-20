@@ -11,7 +11,13 @@ use std::time::Instant;
 use anyhow::Result;
 use cos_proto_reconciler::{Identity, Key, SubResourceCreate};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
-use network_controller::DnsSpec;
+use network_controller::{
+    DhcpSpec,
+    DnsSpec,
+    LinkSpec,
+    LinkSpecType,
+    LinkSpecUnspec,
+};
 use serde_json::Value;
 use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
@@ -25,17 +31,41 @@ use crate::state::StateManager;
 
 #[expect(clippy::unwrap_used, reason = "this is early in the program")]
 fn default_config() -> Vec<SubResourceCreate<Value>> {
-    vec![SubResourceCreate::<Value> {
-        id: Identity::Static(Key {
-            schema: "network:dns".to_owned(),
-            name: None,
-        }),
-        spec: serde_json::to_value(DnsSpec {
-            nameservers: vec!["9.9.9.9".to_owned()],
-            ..Default::default()
-        })
-        .unwrap(),
-    }]
+    vec![
+        SubResourceCreate::<Value> {
+            id: Identity::Static(Key {
+                schema: "network:dns".to_owned(),
+                name: None,
+            }),
+            spec: serde_json::to_value(DnsSpec {
+                nameservers: vec!["9.9.9.9".to_owned()],
+                ..Default::default()
+            })
+            .unwrap(),
+        },
+        SubResourceCreate::<Value> {
+            id: Identity::Static(Key {
+                schema: "network:link".to_owned(),
+                name: Some("eth0".to_owned()),
+            }),
+            spec: serde_json::to_value(LinkSpec {
+                name: "eth0".to_owned(),
+                admin_up: true,
+                link_type: LinkSpecType::Unspec(LinkSpecUnspec {}),
+            })
+            .unwrap(),
+        },
+        SubResourceCreate::<Value> {
+            id: Identity::Static(Key {
+                schema: "network:dhcp".to_owned(),
+                name: Some("eth0".to_owned()),
+            }),
+            spec: serde_json::to_value(DhcpSpec {
+                link: "eth0".to_owned(),
+            })
+            .unwrap(),
+        },
+    ]
 }
 
 fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {

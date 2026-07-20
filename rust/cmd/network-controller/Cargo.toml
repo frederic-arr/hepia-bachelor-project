@@ -22,7 +22,7 @@ libc.workspace = true
 system-controller.path = "../system-controller"
 cos-proto-reconciler.path = "../../crates/cos-proto-reconciler"
 cos-proto-reconciler-server.path = "../../crates/cos-proto-reconciler-server"
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt"] }
 tonic = { workspace = true, features = ["transport", "router"] }
 serde_json = { workspace = true, features = ["std"] }
 tracing.workspace = true
@@ -30,6 +30,14 @@ tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
 derive_builder = { workspace = true, features = ["std"] }
 rtnetlink = { workspace = true, features = ["tokio_socket"] }
 futures.workspace = true
+tokio-util.workspace = true
+rand = { workspace = true, features = ["thread_rng"] }
+smoltcp = { workspace = true, features = [
+    "std",
+    "socket-dhcpv4",
+    "phy-raw_socket",
+    "async",
+] }
 
 [dev-dependencies]
 isolation.path = "../../crates/isolation"

@@ -5,7 +5,7 @@ members = ["cmd/*", "crates/*"]
 [workspace.lints.rust]
 ambiguous_negative_literals = "warn"
 unused_mut = "warn"
-dead_code = "allow" # TODO: Remove
+dead_code = "allow"                  # TODO: Remove
 
 [workspace.lints.clippy]
 pedantic = { level = "deny", priority = -1 }
@@ -94,7 +94,7 @@ non_kebab_case_features = "forbid"
 
 [workspace.dependencies]
 rustix = { version = "1.1.4", default-features = false }
-# rand = { version = "0.10.1", default-features = false }
+rand = { version = "0.10.2", default-features = false }
 tempfile = { version = "3.27.0", default-features = false }
 serde = { version = "1.0.228", default-features = false }
 serde_json = { version = "1.0.150", default-features = false }
@@ -125,3 +125,8 @@ tokio-util = { version = "0.7.18", default-features = false }
 tracing = { version = "0.1.44", default-features = false }
 tracing-subscriber = { version = "0.3.23", default-features = false }
 thiserror = { version = "2.0.18", default-features = false }
+
+[workspace.dependencies.smoltcp]
+git = "https://github.com/smoltcp-rs/smoltcp"
+rev = "98fd77c723b945d5dcdec6ff438569a7c9c8e625"
+default-features = false
