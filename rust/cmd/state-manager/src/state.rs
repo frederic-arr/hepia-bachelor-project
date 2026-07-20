@@ -326,7 +326,9 @@ impl StateManager {
             return Ok(None);
         }
 
-        Ok(Some(Instant::now() + DEFAULT_RECONCILIATION_TIMER))
+        Ok(Some(
+            Instant::now() + DEFAULT_RECONCILIATION_TIMER,
+        ))
     }
 
     #[expect(clippy::too_many_lines, reason = "TODO")]

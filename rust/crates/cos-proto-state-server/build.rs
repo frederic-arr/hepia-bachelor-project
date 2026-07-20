@@ -12,10 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_prost_build::configure()
         .build_client(false)
         .build_server(true)
-        .extern_path(
-            ".containeros.state.v1",
-            "::cos-proto-state::v1",
-        )
+        .extern_path(".containeros.state.v1", "::cos-proto-state::v1")
         .compile_protos(
             &[proto_root.join("containeros/state/v1/service.proto")],
             &[proto_root],
