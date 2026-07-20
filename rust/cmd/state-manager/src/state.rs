@@ -30,11 +30,13 @@ use crate::timeout::Timeout as _;
 type Clients = HashMap<String, ReconcilerServiceClient<Channel>>;
 type Resources = HashMap<Key, TerminalResource<Value, Value, Value>>;
 
+const DEFAULT_RECONCILIATION_TIMER: Duration = Duration::from_secs(30);
+
 #[derive(Debug)]
 pub struct StateManager {
     clients: RwLock<Clients>,
     resources: RwLock<Resources>,
-    queue: Queue<Key>,
+    pub queue: Queue<Key>,
     init_time: Instant,
     last_state_change: Mutex<Instant>,
 }
@@ -107,7 +109,7 @@ impl StateManager {
                     Ok(when) => when,
                     Err(err) => {
                         tracing::error!("{err:#}");
-                        Some(Instant::now() + Duration::from_secs(30))
+                        Some(Instant::now() + DEFAULT_RECONCILIATION_TIMER)
                     }
                 };
 
@@ -324,7 +326,7 @@ impl StateManager {
             return Ok(None);
         }
 
-        Ok(Some(Instant::now() + Duration::from_secs(5)))
+        Ok(Some(Instant::now() + DEFAULT_RECONCILIATION_TIMER))
     }
 
     #[expect(clippy::too_many_lines, reason = "TODO")]
@@ -357,6 +359,8 @@ impl StateManager {
             })
             .map(|(_, v)| v)
             .collect();
+
+        drop(updated_resources);
 
         let mut added_fut = JoinSet::new();
         let mut modified_fut = JoinSet::new();
@@ -446,7 +450,6 @@ impl StateManager {
             entry.derived_spec = response.derived_spec;
             entry.dependencies = response.dependencies;
         }
-
         let scheduled = added
             .iter()
             .chain(modified.iter())
@@ -465,7 +468,6 @@ impl StateManager {
             .collect();
 
         queue.schedule_at_bulk(scheduled, Instant::now()).await;
-
         Ok(())
     }
 }

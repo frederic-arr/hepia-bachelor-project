@@ -367,6 +367,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "cos-proto-state"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "tonic",
+ "tonic-prost-build",
+]
+
+[[package]]
+name = "cos-proto-state-client"
+version = "0.1.0"
+dependencies = [
+ "cos-proto-state",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
+name = "cos-proto-state-server"
+version = "0.1.0"
+dependencies = [
+ "cos-proto-state",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1124,6 +1153,8 @@ dependencies = [
  "bitflags 2.13.1",
  "cos-proto-reconciler",
  "cos-proto-reconciler-server",
+ "cos-proto-state",
+ "cos-proto-state-client",
  "derive_builder",
  "futures",
  "isolation",
@@ -1594,6 +1625,8 @@ dependencies = [
  "anyhow",
  "cos-proto-reconciler",
  "cos-proto-reconciler-client",
+ "cos-proto-state",
+ "cos-proto-state-server",
  "itertools 0.15.0",
  "network-controller",
  "serde",

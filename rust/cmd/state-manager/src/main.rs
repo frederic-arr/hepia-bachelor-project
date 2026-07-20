@@ -6,11 +6,14 @@ mod timeout;
 
 use std::collections::{HashMap, HashSet};
 use std::hash_map;
+use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Result;
 use cos_proto_reconciler::{Identity, Key, SubResourceCreate};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
+use cos_proto_state::v1::{ReconcileNowRequest, ReconcileNowResponse};
+use cos_proto_state_server::v1::{StateService, StateServiceServer};
 use network_controller::{
     DhcpSpec,
     DnsSpec,
@@ -22,7 +25,8 @@ use serde_json::Value;
 use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
 use tokio_util::sync::CancellationToken;
-use tonic::transport::{Channel, Endpoint};
+use tonic::transport::{Channel, Endpoint, Server};
+use tonic::{Request, Response, Status};
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
@@ -99,6 +103,30 @@ fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
     }
 }
 
+struct StateManagerService {
+    sm: Arc<StateManager>,
+}
+
+#[tonic::async_trait]
+impl StateService for StateManagerService {
+    async fn reconcile_now(
+        &self,
+        request: Request<ReconcileNowRequest>,
+    ) -> Result<Response<ReconcileNowResponse>, Status> {
+        let req = request.into_inner();
+        let key: Key = serde_json::from_slice(&req.raw)
+            .map_err(|err| Status::from_error(err.into()))?;
+
+        tracing::info!(%key, "reconciliation triggered from external source");
+
+        self.sm.queue.schedule_at(key, Instant::now()).await;
+
+        Ok(Response::new(ReconcileNowResponse {
+            raw: vec![],
+        }))
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
@@ -146,7 +174,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ct.cancel();
     });
 
-    sm.reconciliation_loop(&reconciliation_ct).await;
+    let sm = Arc::new(sm);
+    let addr = "[::1]:50050".parse()?;
+    let server = Server::builder()
+        .add_service(StateServiceServer::new(StateManagerService {
+            sm: Arc::clone(&sm),
+        }))
+        .serve(addr);
+
+    let rloop = sm.reconciliation_loop(&reconciliation_ct);
+
+    tokio::select! {
+        () = rloop => {},
+        _ = server => {},
+    };
 
     tracing::info!("saving data to disk");
     // TODO

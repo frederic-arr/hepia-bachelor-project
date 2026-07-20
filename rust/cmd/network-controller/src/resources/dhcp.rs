@@ -15,6 +15,8 @@ use cos_proto_reconciler::{
     SubResourceCreate,
     ValidateResponse,
 };
+use cos_proto_state::v1::ReconcileNowRequest;
+use cos_proto_state_client::v1::StateServiceClient;
 use rtnetlink::Handle;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -27,6 +29,7 @@ use tokio::sync::Mutex;
 use tokio::task::yield_now;
 use tokio::time::timeout;
 use tokio_util::sync::CancellationToken;
+use tonic::transport::{Channel, Endpoint};
 
 use crate::{AddressSpec, LinkContext, LinkReconciler, RouteSpec};
 
@@ -39,6 +42,13 @@ pub type DhcpResource = Resource<DhcpSpec, DhcpDerivedSpec, DhcpState>;
 
 static CLIENTS: LazyLock<Mutex<HashMap<String, DhcpWorkState>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
+
+static STATE_CLIENT: LazyLock<StateServiceClient<Channel>> =
+    LazyLock::new(|| {
+        StateServiceClient::new(
+            Endpoint::from_static("http://[::1]:50050").connect_lazy(),
+        )
+    });
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DhcpSpec {
@@ -120,6 +130,7 @@ impl DhcpReconciler {
 
     fn create_dhcp_client(
         addr: [u8; 6],
+        key: Key,
         dev: String,
     ) -> Result<CancellationToken> {
         let mut device = RawSocket::new(&dev, Medium::Ethernet)?;
@@ -181,6 +192,19 @@ impl DhcpReconciler {
                                     .router
                                     .unwrap_or(config.server.address),
                             });
+
+                            let mut c = (*STATE_CLIENT).clone();
+
+                            let raw = match serde_json::to_vec(&key) {
+                                Ok(v) => v,
+                                Err(err) => break Err(anyhow!(err)),
+                            };
+
+                            let _ = timeout(
+                                Duration::from_secs(1),
+                                c.reconcile_now(ReconcileNowRequest { raw }),
+                            )
+                            .await;
                         }
                     }
                 }
@@ -252,6 +276,7 @@ impl DhcpReconciler {
             .or_try_insert_with(|| {
                 Self::create_dhcp_client(
                     link.address,
+                    resource.id.key().clone(),
                     resource.spec.link.clone(),
                 )
                 .map(|v| (v, None))

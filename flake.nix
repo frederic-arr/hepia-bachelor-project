@@ -165,9 +165,37 @@
 
         init = rustFn { package = "init"; deps = [ "crates/linux-utils" ]; };
         supervisor = rustFn { package = "supervisor"; deps = [ "crates/linux-utils" ]; };
-        netctl = rustFn { package = "network-controller"; deps = [ "crates/linux-utils" "crates/cos-proto-reconciler" "crates/cos-proto-reconciler-server" "crates/isolation" "crates/isolation-macros" "cmd/system-controller" ]; };
-        sysctl = rustFn { package = "system-controller"; deps = [ "crates/cos-proto-reconciler" "crates/cos-proto-reconciler-server" "crates/isolation" "crates/isolation-macros" "crates/linux-utils" ]; };
-        statemgr = rustFn { package = "state-manager"; deps = [ "crates/cos-proto-reconciler" "crates/cos-proto-reconciler-client" "crates/cos-proto-reconciler-server" "cmd/network-controller" "cmd/system-controller" "crates/isolation" "crates/isolation-macros" "crates/linux-utils" ]; };
+        netctl = rustFn { package = "network-controller"; deps = [
+          "crates/linux-utils"
+          "crates/cos-proto-reconciler"
+          "crates/cos-proto-reconciler-server"
+          "crates/isolation"
+          "crates/isolation-macros"
+          "cmd/system-controller"
+          "crates/cos-proto-state"
+          "crates/cos-proto-state-client"
+        ]; };
+
+        sysctl = rustFn { package = "system-controller"; deps = [
+          "crates/cos-proto-reconciler"
+           "crates/cos-proto-reconciler-server"
+           "crates/isolation"
+           "crates/isolation-macros"
+           "crates/linux-utils"
+        ]; };
+
+        statemgr = rustFn { package = "state-manager"; deps = [
+          "crates/cos-proto-reconciler"
+          "crates/cos-proto-reconciler-client"
+          "crates/cos-proto-reconciler-server"
+          "crates/cos-proto-state"
+          "crates/cos-proto-state-client"
+          "crates/cos-proto-state-server"
+          "cmd/network-controller"
+          "cmd/system-controller"
+          "crates/isolation"
+          "crates/isolation-macros" "crates/linux-utils"
+        ]; };
 
         init-rpi = rustFn-rpi { package = "init"; deps = [ "crates/linux-utils" ]; };
         supervisor-rpi = rustFn-rpi { package = "supervisor"; deps = [ "crates/linux-utils" ]; };

@@ -11,6 +11,8 @@ anyhow.workspace = true
 serde = { workspace = true, features = ["std", "derive"] }
 cos-proto-reconciler.path = "../../crates/cos-proto-reconciler"
 cos-proto-reconciler-client.path = "../../crates/cos-proto-reconciler-client"
+cos-proto-state.path = "../../crates/cos-proto-state"
+cos-proto-state-server.path = "../../crates/cos-proto-state-server"
 network-controller.path = "../network-controller"
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal",] }
 tokio-util.workspace = true
