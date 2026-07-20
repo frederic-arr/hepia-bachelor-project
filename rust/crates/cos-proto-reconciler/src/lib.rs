@@ -1,6 +1,7 @@
 #![feature(decl_macro)]
 
-use std::{collections::HashSet, fmt::Write as _};
+use std::collections::HashSet;
+use std::fmt::Write as _;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

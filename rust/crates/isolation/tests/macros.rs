@@ -1,4 +1,7 @@
-#![expect(clippy::tests_outside_test_module, reason = "https://github.com/rust-lang/rust-clippy/issues/11024")]
+#![expect(
+    clippy::tests_outside_test_module,
+    reason = "https://github.com/rust-lang/rust-clippy/issues/11024"
+)]
 
 use isolation::isolate;
 
