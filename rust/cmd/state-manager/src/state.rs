@@ -91,12 +91,7 @@ impl StateManager {
     ) {
         tracing::trace!("reconciliation tick");
         let expired = tokio::select! {
-            // The loop is reactive but for the demo we put a 5s timeout
-            // so we can see some logs
-            v = self.queue.drain_expired().timeout_milis(5000) => match v {
-                Ok(v) => v,
-                Err(_) => return
-            },
+            v = self.queue.drain_expired() => v,
             () = cancellation_token.cancelled() => {
                 tracing::trace!("reconciliation tick was cancelled");
                 return

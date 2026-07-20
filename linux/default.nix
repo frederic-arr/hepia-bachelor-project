@@ -1,24 +1,37 @@
 { pkgs, lib, stdenv, linuxKernel, fetchurl, runCommand }:
-{ arch, base, fragments ? [ ], patches ? [ ] }:
+{ arch, base
+, fragments ? [ ]
+, patches ? [ ]
+, src ? fetchurl {
+    url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.19.9.tar.xz";
+    hash = "sha256-wWBoo68S45Q97jse71fKcCKcBpEov6EYT7P0iyGdVb8=";
+  }
+, version ? "6.19.9"
+}:
 
 let
-  version = "6.19.9";
-  src = fetchurl {
-    url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${version}.tar.xz";
-    hash = "sha256-wWBoo68S45Q97jse71fKcCKcBpEov6EYT7P0iyGdVb8=";
-  };
-
   storeFragments = map (f: builtins.path { path = f; name = builtins.baseNameOf f; }) fragments;
   storePatches = map (f: builtins.path { path = f; name = builtins.baseNameOf f; }) patches;
 
+  buildPkgs = pkgs.buildPackages;
+
+  prepareSrc = ''
+    if [ -d ${src} ]; then
+      cp -r ${src}/. .
+    else
+      tar -xf ${src} --strip-components=1
+    fi
+  '';
+
   mergedConfig = runCommand "kernel-config-${arch}-${base}" {
-    nativeBuildInputs = with pkgs; [
-      stdenv.cc
-      flex
-      bison
-    ];
+    nativeBuildInputs = with buildPkgs; [ stdenv.cc flex bison ];
   } ''
-    tar -xf ${src} --strip-components=1
+    export PATH="${buildPkgs.stdenv.cc}/bin:$PATH"
+    export HOSTCC="${buildPkgs.stdenv.cc}/bin/gcc"
+
+    ${prepareSrc}
+    chmod -R u+w .
+
     for p in ${toString storePatches}; do
       patch -p1 < "$p"
     done
@@ -35,34 +48,32 @@ let
 
   menuconfig = pkgs.writeShellApplication {
     name = "menuconfig";
-
-    runtimeInputs = with pkgs; [
-      bc
-      bison
-      flex
-      gnumake
-      ncurses
-      ncurses.dev
-      pkg-config
-      diffutils
-      stdenv.cc
+    runtimeInputs = with buildPkgs; [
+      bc bison flex gnumake ncurses ncurses.dev pkg-config diffutils stdenv.cc
     ];
-
     text = ''
       set -euo pipefail
 
-      export HOSTCC="${pkgs.stdenv.cc}/bin/cc"
-      export HOSTCFLAGS="-I${pkgs.ncurses.dev}/include"
-      export HOSTLDFLAGS="-L${pkgs.ncurses.out}/lib"
+      export PATH="${buildPkgs.stdenv.cc}/bin:$PATH"
+      export HOSTCC="${buildPkgs.stdenv.cc}/bin/gcc"
+      export HOSTCFLAGS="-I${buildPkgs.ncurses.dev}/include"
+      export HOSTLDFLAGS="-L${buildPkgs.ncurses.out}/lib"
 
       workdir="$PWD/kernel"
       outfull="$workdir/config.full"
       outmerged="$workdir/config.merged"
       outdiff="$workdir/config.diff"
+      mkdir -p "$workdir"
       cd "$workdir"
 
       if [ ! -d linux-${version} ]; then
-        tar -xf ${src}
+        ${prepareSrc}
+        chmod -R u+w .
+        if [ ! -d linux-${version} ]; then
+          mkdir -p linux-${version}
+          shopt -s dotglob
+          mv * linux-${version}/ 2>/dev/null || true
+        fi
       fi
 
       cd linux-${version}
@@ -75,10 +86,6 @@ let
 
       ${lib.optionalString (fragments != [ ]) ''
         KCONFIG_CONFIG=.config.custom scripts/kconfig/merge_config.sh -m ${builtins.toString fragments}
-      ''}
-
-      ${lib.optionalString (fragments != [ ]) ''
-        scripts/kconfig/merge_config.sh -m .config ${builtins.toString fragments}
       ''}
 
       make olddefconfig
