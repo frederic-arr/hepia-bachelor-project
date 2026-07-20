@@ -31,11 +31,7 @@ impl ReconcilerService for Reconciler {
         ) = serde_json::from_slice(&req.raw)
             .map_err(|err| Status::from_error(err.into()))?;
 
-        let key = match &resource.id {
-            Identity::Static(key)
-            | Identity::Dynamic(key)
-            | Identity::Shared(key) => key,
-        };
+        let key = resource.id.key();
 
         match key.schema.as_ref() {
             "system:static-file" => {
@@ -88,11 +84,7 @@ impl ReconcilerService for Reconciler {
             serde_json::from_slice(&req.raw)
                 .map_err(|err| Status::from_error(err.into()))?;
 
-        let key = match &resource.id {
-            Identity::Static(key)
-            | Identity::Dynamic(key)
-            | Identity::Shared(key) => key,
-        };
+        let key = resource.id.key();
 
         match key.schema.as_ref() {
             "system:static-file" => {

@@ -1,8 +1,9 @@
-use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use anyhow::{Context as _, Result, bail};
 use cos_proto_reconciler::{
+    Identity,
+    Key,
     Phase,
     Resource,
     ResourceResponse,
@@ -33,11 +34,13 @@ pub enum RouteSpec {
         destination: Ipv4Addr,
         prefix_len: u8,
         gateway: Ipv4Addr,
+        parent: Option<String>,
     },
     Ipv6 {
         destination: Ipv6Addr,
         prefix_len: u8,
         gateway: Ipv6Addr,
+        parent: Option<String>,
     },
 }
 
@@ -85,10 +88,36 @@ impl RouteReconciler {
         Ok(ValidateResponse {
             derived_spec: (),
             children: vec![],
-            dependencies: vec![],
+            dependencies: self.deps(spec.clone()).into_iter().collect(),
         })
     }
 
+    #[must_use]
+    pub fn deps(&self, spec: RouteSpec) -> Vec<Identity> {
+        let parent = match spec {
+            RouteSpec::Ipv4 {
+                destination: _,
+                prefix_len: _,
+                gateway: _,
+                parent,
+            }
+            | RouteSpec::Ipv6 {
+                destination: _,
+                prefix_len: _,
+                gateway: _,
+                parent,
+            } => parent,
+        };
+
+        parent.map_or_else(std::vec::Vec::new, |parent| {
+            vec![Identity::Dynamic(Key {
+                schema: "network:address".to_owned(),
+                name: Some(parent),
+            })]
+        })
+    }
+
+    #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn reconcile(
         &self,
         resource: RouteResource,
@@ -98,7 +127,10 @@ impl RouteReconciler {
                 status: Status::Error(format!("{err:#}").into()),
                 state: resource.state,
                 children: vec![],
-                dependencies: HashSet::new(),
+                dependencies: self
+                    .deps(resource.spec.clone())
+                    .into_iter()
+                    .collect(),
             });
         }
 
@@ -109,7 +141,10 @@ impl RouteReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state: resource.state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: self
+                        .deps(resource.spec.clone())
+                        .into_iter()
+                        .collect(),
                 });
             }
         };
@@ -126,7 +161,10 @@ impl RouteReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: self
+                        .deps(resource.spec.clone())
+                        .into_iter()
+                        .collect(),
                 });
             }
         };
@@ -138,7 +176,10 @@ impl RouteReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: self
+                        .deps(resource.spec.clone())
+                        .into_iter()
+                        .collect(),
                 });
             }
         };
@@ -150,7 +191,10 @@ impl RouteReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: self
+                        .deps(resource.spec.clone())
+                        .into_iter()
+                        .collect(),
                 });
             }
         };
@@ -167,7 +211,10 @@ impl RouteReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: self
+                        .deps(resource.spec.clone())
+                        .into_iter()
+                        .collect(),
                 });
             }
         };
@@ -184,7 +231,10 @@ impl RouteReconciler {
             status,
             state,
             children: vec![],
-            dependencies: HashSet::new(),
+            dependencies: self
+                .deps(resource.spec.clone())
+                .into_iter()
+                .collect(),
         })
     }
 
@@ -215,6 +265,7 @@ impl RouteReconciler {
                 destination,
                 prefix_len,
                 gateway,
+                parent: _,
             } => {
                 let mut msg =
                     RouteMessageBuilder::<Ipv4Addr>::new().gateway(gateway);
@@ -231,6 +282,7 @@ impl RouteReconciler {
                 destination,
                 prefix_len,
                 gateway,
+                parent: _,
             } => {
                 let mut msg =
                     RouteMessageBuilder::<Ipv6Addr>::new().gateway(gateway);
@@ -250,11 +302,13 @@ impl RouteReconciler {
                 destination: _,
                 prefix_len: _,
                 gateway: _,
+                parent: _,
             } => IpAddr::V4("0.0.0.0".parse()?),
             RouteSpec::Ipv6 {
                 destination: _,
                 prefix_len: _,
                 gateway: _,
+                parent: _,
             } => IpAddr::V6("::".parse()?),
         };
 
@@ -288,6 +342,7 @@ impl RouteReconciler {
                             destination,
                             prefix_len,
                             gateway,
+                            parent: _,
                         } => (
                             IpAddr::V4(destination),
                             prefix_len,
@@ -297,6 +352,7 @@ impl RouteReconciler {
                             destination,
                             prefix_len,
                             gateway,
+                            parent: _,
                         } => (
                             IpAddr::V6(destination),
                             prefix_len,
@@ -354,6 +410,7 @@ impl RouteReconciler {
                         destination,
                         prefix_len: destination_prefix_len,
                         gateway,
+                        parent: _,
                     } => RouteMessageBuilder::<Ipv4Addr>::new()
                         .destination_prefix(destination, destination_prefix_len)
                         .gateway(gateway)
@@ -362,6 +419,7 @@ impl RouteReconciler {
                         destination,
                         prefix_len: destination_prefix_len,
                         gateway,
+                        parent: _,
                     } => RouteMessageBuilder::<Ipv6Addr>::new()
                         .destination_prefix(destination, destination_prefix_len)
                         .gateway(gateway)
@@ -377,6 +435,7 @@ impl RouteReconciler {
                         destination,
                         prefix_len: destination_prefix_len,
                         gateway,
+                        parent: _,
                     } => RouteMessageBuilder::<Ipv4Addr>::new()
                         .destination_prefix(destination, destination_prefix_len)
                         .gateway(gateway)
@@ -385,6 +444,7 @@ impl RouteReconciler {
                         destination,
                         prefix_len: destination_prefix_len,
                         gateway,
+                        parent: _,
                     } => RouteMessageBuilder::<Ipv6Addr>::new()
                         .destination_prefix(destination, destination_prefix_len)
                         .gateway(gateway)
@@ -475,10 +535,11 @@ mod tests {
                 destination: "0.0.0.0".parse().unwrap(),
                 prefix_len: 0,
                 gateway: "10.0.0.1".parse().unwrap(),
+                parent: None,
             };
 
             let addr = RouteResource {
-                id: Identity::Static(Key {
+                id: Identity::Dynamic(Key {
                     schema: String::new(),
                     name: None,
                 }),

@@ -40,21 +40,11 @@ pub struct StateManager {
 }
 
 impl StateManager {
-    pub async fn new(clients: Clients, resources: Resources) -> Self {
-        let queue = Queue::new();
-
-        queue
-            .schedule_at_bulk(
-                resources
-                    .values()
-                    .filter(|&v| v.dependencies.is_empty())
-                    .map(|v| v.id.key())
-                    .cloned()
-                    .collect(),
-                Instant::now(),
-            )
-            .await;
-
+    pub async fn new(
+        clients: Clients,
+        resources: Resources,
+        queue: Queue<Key>,
+    ) -> Self {
         Self {
             clients: RwLock::new(clients),
             resources: RwLock::new(resources),
@@ -72,9 +62,9 @@ impl StateManager {
             let last = *self.last_state_change.lock().await;
 
             let elapsed = last.duration_since(self.init_time);
-            tracing::info!(?elapsed, "first start -> current state");
+            tracing::debug!(?elapsed, "first start -> current state");
             let elapsed = last.elapsed();
-            tracing::info!(?elapsed, "time since last state change");
+            tracing::debug!(?elapsed, "time since last state change");
 
             if cancellation_token.is_cancelled() {
                 tracing::trace!("reconciliation loop was cancelled");
@@ -117,7 +107,7 @@ impl StateManager {
                     Ok(when) => when,
                     Err(err) => {
                         tracing::error!("{err:#}");
-                        Some(Instant::now() + Duration::from_secs(5))
+                        Some(Instant::now() + Duration::from_secs(30))
                     }
                 };
 
@@ -133,7 +123,7 @@ impl StateManager {
         key: Key,
         cancellation_token: &CancellationToken,
     ) -> Result<Option<Instant>> {
-        tracing::trace!("attempting to reconcile {key}");
+        tracing::info!("attempting to reconcile {key}");
         let max_duration = Duration::from_secs(5);
         let deadline = Instant::now() + max_duration;
 
@@ -300,7 +290,6 @@ impl StateManager {
         resource.dependencies.clone_from(&reconciled.dependencies);
 
         let id = resource.id.clone();
-
         Self::bulk_upsert(
             &*self.clients.read().await,
             &self.queue,
@@ -430,21 +419,7 @@ impl StateManager {
             entry.phase = Phase::Teardown;
         }
 
-        queue
-            .schedule_at_bulk(
-                modified.iter().map(|(v, _)| v.id.key()).cloned().collect(),
-                Instant::now(),
-            )
-            .await;
-
-        queue
-            .schedule_at_bulk(
-                added.iter().map(|(v, _)| v.id.key()).cloned().collect(),
-                Instant::now(),
-            )
-            .await;
-
-        for (resource, response) in added {
+        for (resource, response) in added.clone() {
             self_resources.insert(
                 resource.id.key().clone(),
                 TerminalResource {
@@ -455,13 +430,13 @@ impl StateManager {
                     derived_spec: response.derived_spec,
                     state: None,
                     children: HashSet::new(),
-                    dependencies: HashSet::new(),
+                    dependencies: response.dependencies,
                     dependents: HashSet::new(),
                 },
             );
         }
 
-        for (resource, response) in modified {
+        for (resource, response) in modified.clone() {
             let Some(entry) = self_resources.get_mut(resource.id.key()) else {
                 continue;
             };
@@ -469,7 +444,27 @@ impl StateManager {
             entry.status = Status::Unknown;
             entry.spec = resource.spec;
             entry.derived_spec = response.derived_spec;
+            entry.dependencies = response.dependencies;
         }
+
+        let scheduled = added
+            .iter()
+            .chain(modified.iter())
+            .filter(|(_, b)| {
+                b.dependencies
+                    .iter()
+                    .map(|v| self_resources.get(v.key()))
+                    .all(|v| {
+                        v.is_some_and(|v| {
+                            matches!(v.status, Status::Done | Status::Ready)
+                        })
+                    })
+            })
+            .map(|(v, _)| v.id.key())
+            .cloned()
+            .collect();
+
+        queue.schedule_at_bulk(scheduled, Instant::now()).await;
 
         Ok(())
     }

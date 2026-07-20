@@ -33,7 +33,7 @@ use crate::state::StateManager;
 fn default_config() -> Vec<SubResourceCreate<Value>> {
     vec![
         SubResourceCreate::<Value> {
-            id: Identity::Static(Key {
+            id: Identity::Dynamic(Key {
                 schema: "network:dns".to_owned(),
                 name: None,
             }),
@@ -44,7 +44,7 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             .unwrap(),
         },
         SubResourceCreate::<Value> {
-            id: Identity::Static(Key {
+            id: Identity::Dynamic(Key {
                 schema: "network:link".to_owned(),
                 name: Some("eth0".to_owned()),
             }),
@@ -56,7 +56,7 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             .unwrap(),
         },
         SubResourceCreate::<Value> {
-            id: Identity::Static(Key {
+            id: Identity::Dynamic(Key {
                 schema: "network:dhcp".to_owned(),
                 name: Some("eth0".to_owned()),
             }),
@@ -105,18 +105,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_env_filter(
             EnvFilter::builder()
                 .with_default_directive(Level::INFO.into())
-                .parse_lossy("state_manager=trace"),
+                .parse_lossy("state_manager=info"),
         )
         .init();
 
     let mut resources = HashMap::new();
     let clients = get_clients();
+    let queue = Queue::new();
 
     tracing::info!("creating default config");
     let start = Instant::now();
     StateManager::bulk_upsert(
         &clients,
-        &Queue::new(),
+        &queue,
         &mut resources,
         HashSet::new(),
         default_config()
@@ -127,7 +128,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
     tracing::info!(elapsed = ?start.elapsed(), "default config created");
 
-    let sm = StateManager::new(clients, resources).await;
+    let sm = StateManager::new(clients, resources, queue).await;
     let ct = CancellationToken::new();
     let reconciliation_ct = ct.clone();
 

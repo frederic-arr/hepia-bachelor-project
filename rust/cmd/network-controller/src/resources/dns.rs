@@ -82,7 +82,7 @@ impl DnsReconciler {
         Ok(ValidateResponse {
             derived_spec: (),
             children: vec![Self::get_child(&spec)?],
-            dependencies: vec![],
+            dependencies: HashSet::new(),
         })
     }
 

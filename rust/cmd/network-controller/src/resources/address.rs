@@ -3,6 +3,8 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use anyhow::{Context as _, Result, bail};
 use cos_proto_reconciler::{
+    Identity,
+    Key,
     Phase,
     Resource,
     ResourceResponse,
@@ -84,8 +86,16 @@ impl AddressReconciler {
         Ok(ValidateResponse {
             derived_spec: (),
             children: vec![],
-            dependencies: vec![],
+            dependencies: HashSet::from(self.deps(spec)),
         })
+    }
+
+    #[must_use]
+    pub fn deps(&self, spec: AddressSpec) -> [Identity; 1] {
+        [Identity::Dynamic(Key {
+            schema: "network:link".to_owned(),
+            name: Some(spec.dev),
+        })]
     }
 
     pub async fn reconcile(
@@ -97,7 +107,7 @@ impl AddressReconciler {
                 status: Status::Error(format!("{err:#}").into()),
                 state: resource.state,
                 children: vec![],
-                dependencies: HashSet::new(),
+                dependencies: HashSet::from(self.deps(resource.spec)),
             });
         }
 
@@ -108,7 +118,7 @@ impl AddressReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state: resource.state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: HashSet::from(self.deps(resource.spec)),
                 });
             }
         };
@@ -128,7 +138,7 @@ impl AddressReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: HashSet::from(self.deps(resource.spec)),
                 });
             }
         };
@@ -140,7 +150,7 @@ impl AddressReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: HashSet::from(self.deps(resource.spec)),
                 });
             }
         };
@@ -152,7 +162,7 @@ impl AddressReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: HashSet::from(self.deps(resource.spec)),
                 });
             }
         };
@@ -172,7 +182,7 @@ impl AddressReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: HashSet::from(self.deps(resource.spec)),
                 });
             }
         };
@@ -189,7 +199,7 @@ impl AddressReconciler {
             status,
             state,
             children: vec![],
-            dependencies: HashSet::new(),
+            dependencies: HashSet::from(self.deps(resource.spec)),
         })
     }
 
@@ -409,7 +419,7 @@ mod tests {
             };
 
             let addr = AddressResource {
-                id: Identity::Static(Key {
+                id: Identity::Dynamic(Key {
                     schema: String::new(),
                     name: None,
                 }),

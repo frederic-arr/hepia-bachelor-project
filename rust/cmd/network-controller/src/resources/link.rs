@@ -160,7 +160,7 @@ impl LinkReconciler {
         Ok(ValidateResponse {
             derived_spec: (),
             children: vec![],
-            dependencies: vec![],
+            dependencies: HashSet::new(),
         })
     }
 
@@ -627,7 +627,7 @@ mod tests {
             };
 
             let link = LinkResource {
-                id: Identity::Static(Key {
+                id: Identity::Dynamic(Key {
                     schema: String::new(),
                     name: None,
                 }),

@@ -121,12 +121,7 @@ impl ReconcilerService for Reconciler {
         ) = serde_json::from_slice(&req.raw)
             .map_err(|err| Status::from_error(err.into()))?;
 
-        let key = match &resource.id {
-            Identity::Static(key)
-            | Identity::Dynamic(key)
-            | Identity::Shared(key) => key,
-        };
-
+        let key = resource.id.key();
         match key.schema.as_ref() {
             "network:dns" => {
                 validate!(
@@ -177,12 +172,7 @@ impl ReconcilerService for Reconciler {
             serde_json::from_slice(&req.raw)
                 .map_err(|err| Status::from_error(err.into()))?;
 
-        let key = match &resource.id {
-            Identity::Static(key)
-            | Identity::Dynamic(key)
-            | Identity::Shared(key) => key,
-        };
-
+        let key = resource.id.key();
         match key.schema.as_ref() {
             "network:dns" => {
                 reconcile!(resource, DnsResource, DnsReconciler::new());
@@ -220,7 +210,7 @@ impl ReconcilerService for Reconciler {
     }
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "local")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
 

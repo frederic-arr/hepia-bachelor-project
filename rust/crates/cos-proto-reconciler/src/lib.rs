@@ -27,7 +27,6 @@ pub struct Key {
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Identity {
-    Static(Key),
     Dynamic(Key),
     Shared(Key),
 }
@@ -116,7 +115,7 @@ pub struct SubResourceCreate<T> {
 pub struct ValidateResponse<U> {
     pub derived_spec: U,
     pub children: Vec<SubResourceCreate<Value>>,
-    pub dependencies: Vec<Identity>,
+    pub dependencies: HashSet<Identity>,
 }
 
 pub macro assert_reconciliation_error($status:expr, $pat:expr) {
@@ -137,7 +136,7 @@ impl Identity {
     #[must_use]
     pub fn key(&self) -> &Key {
         match self {
-            Self::Static(key) | Self::Dynamic(key) | Self::Shared(key) => key,
+            Self::Dynamic(key) | Self::Shared(key) => key,
         }
     }
 
@@ -150,10 +149,6 @@ impl Identity {
 impl std::fmt::Display for Identity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let key = match self {
-            Self::Static(key) => {
-                f.write_str("cfg#")?;
-                key
-            }
             Self::Dynamic(key) => {
                 f.write_str("dyn#")?;
                 key

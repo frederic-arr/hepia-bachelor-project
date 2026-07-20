@@ -115,7 +115,7 @@ impl StaticFileReconciler {
         Ok(ValidateResponse {
             derived_spec: self.derive(&spec).await?,
             children: vec![],
-            dependencies: vec![],
+            dependencies: HashSet::new(),
         })
     }
 
@@ -813,7 +813,7 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Static(Key {
+                id: Identity::Dynamic(Key {
                     schema: String::new(),
                     name: None,
                 }),
@@ -848,7 +848,7 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Static(Key {
+                id: Identity::Dynamic(Key {
                     schema: String::new(),
                     name: None,
                 }),
@@ -895,7 +895,7 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Static(Key {
+                id: Identity::Dynamic(Key {
                     schema: String::new(),
                     name: None,
                 }),
@@ -980,7 +980,7 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Static(Key {
+                id: Identity::Dynamic(Key {
                     schema: String::new(),
                     name: None,
                 }),

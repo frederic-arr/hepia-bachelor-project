@@ -53,7 +53,7 @@ type DhcpWorkState = (CancellationToken, Option<DhcpState>);
 pub struct DhcpState {
     pub address: Ipv4Addr,
     pub prefix_len: u8,
-    pub router: Option<Ipv4Addr>,
+    pub router: Ipv4Addr,
 }
 
 impl DhcpReconciler {
@@ -84,7 +84,10 @@ impl DhcpReconciler {
         Ok(ValidateResponse {
             derived_spec: (),
             children: vec![],
-            dependencies: vec![],
+            dependencies: HashSet::from([Identity::Dynamic(Key {
+                schema: "network:link".to_owned(),
+                name: Some(spec.link),
+            })]),
         })
     }
 
@@ -174,7 +177,9 @@ impl DhcpReconciler {
                             *client = Some(DhcpState {
                                 address: config.address.address(),
                                 prefix_len: config.address.prefix_len(),
-                                router: config.router,
+                                router: config
+                                    .router
+                                    .unwrap_or(config.server.address),
                             });
                         }
                     }
@@ -284,8 +289,7 @@ impl DhcpReconciler {
 
         let rtr = cfg
             .clone()
-            .and_then(|v| v.router)
-            .map(|addr| {
+            .map(|v| {
                 anyhow::Ok(SubResourceCreate::<Value> {
                     id: Identity::Dynamic(Key {
                         schema: "network:route".to_owned(),
@@ -294,7 +298,8 @@ impl DhcpReconciler {
                     spec: serde_json::to_value(RouteSpec::Ipv4 {
                         destination: "0.0.0.0".parse()?,
                         prefix_len: 0,
-                        gateway: addr,
+                        gateway: v.router,
+                        parent: Some(format!("{}-dhcp", resource.spec.link)),
                     })?,
                 })
             })
