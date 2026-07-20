@@ -17,7 +17,7 @@ use system_controller::StaticFileSpec;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DnsReconciler;
 
-pub type DnsResource = Resource<DnsSpec, DnsDerivedSpec, Option<DnsState>>;
+pub type DnsResource = Resource<DnsSpec, DnsDerivedSpec, DnsState>;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DnsSpec {

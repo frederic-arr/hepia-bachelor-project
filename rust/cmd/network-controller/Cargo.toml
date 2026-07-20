@@ -27,7 +27,11 @@ tonic = { workspace = true, features = ["transport", "router"] }
 serde_json = { workspace = true, features = ["std"] }
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
+derive_builder = { workspace = true, features = ["std"] }
+rtnetlink = { workspace = true, features = ["tokio_socket"] }
+futures.workspace = true
 
 [dev-dependencies]
+isolation.path = "../../crates/isolation"
 tempfile.workspace = true
 smol.workspace = true

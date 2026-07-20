@@ -28,5 +28,6 @@ tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
 
 [dev-dependencies]
+isolation.path = "../../crates/isolation"
 tempfile.workspace = true
 smol.workspace = true

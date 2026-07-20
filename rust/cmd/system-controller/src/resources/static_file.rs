@@ -591,7 +591,7 @@ mod tests {
     use std::path::PathBuf;
 
     use cos_proto_reconciler::{Identity, Key, assert_reconciliation_error};
-    use tempfile::{TempDir, tempdir};
+    use tempfile::tempdir;
 
     use super::*;
 
@@ -876,16 +876,16 @@ mod tests {
     }
 
     mod reconciliation {
+        use isolation::isolate;
+
         use super::*;
 
-        fn create_ok_resource()
-        -> (TempDir, StaticFileReconciler, StaticFileResource) {
-            let root = tempdir().unwrap();
-            let reconciler =
-                StaticFileReconciler::new_in(root.path().to_path_buf());
+        fn create_ok_resource() -> (StaticFileReconciler, StaticFileResource) {
+            std::fs::create_dir("/etc").unwrap();
+            let reconciler = StaticFileReconciler::new_in("/etc".into());
 
             let spec = StaticFileSpec {
-                path: root.path().join("test.txt"),
+                path: "/etc/test.txt".into(),
                 content: "my-content".to_owned(),
                 owner_gid: None,
                 readable_by_group: false,
@@ -909,12 +909,13 @@ mod tests {
                 dependents: vec![],
             };
 
-            (root, reconciler, file)
+            (reconciler, file)
         }
 
         #[test]
+        #[isolate]
         fn basic_should_succeed() {
-            let (_root, reconciler, file) = create_ok_resource();
+            let (reconciler, file) = create_ok_resource();
 
             let result =
                 smol::block_on(reconciler.reconcile(file.clone())).unwrap();
@@ -928,8 +929,9 @@ mod tests {
         }
 
         #[test]
+        #[isolate]
         fn existing_should_succeed() {
-            let (_root, reconciler, mut file) = create_ok_resource();
+            let (reconciler, mut file) = create_ok_resource();
             let result =
                 smol::block_on(reconciler.reconcile(file.clone())).unwrap();
             assert_matches!(result.status, Status::Done);
@@ -945,9 +947,9 @@ mod tests {
         }
 
         #[test]
+        #[isolate]
         fn delete_should_succeed() {
-            let (mut root, reconciler, mut file) = create_ok_resource();
-            root.disable_cleanup(true);
+            let (reconciler, mut file) = create_ok_resource();
 
             let result =
                 smol::block_on(reconciler.reconcile(file.clone())).unwrap();
@@ -963,6 +965,7 @@ mod tests {
         }
 
         #[test]
+        #[isolate]
         fn non_regular_file_should_fail() {
             let reconciler = StaticFileReconciler::new_in(PathBuf::from("/"));
 
