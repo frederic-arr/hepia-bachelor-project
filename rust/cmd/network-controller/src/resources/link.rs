@@ -58,7 +58,7 @@ pub struct LinkState {
     pub admin_up: bool,
     pub oper_state: LinkOperState,
 
-    // #[builder(default)]
+    #[builder(default)]
     pub link_type: LinkStateType,
 
     pub mtu: u32,
@@ -99,7 +99,7 @@ pub struct LinkStateDummy {}
 pub struct LinkStateUnspec {}
 
 #[derive(Debug)]
-enum LinkContext {
+pub enum LinkContext {
     NoLink,
     Link(LinkState),
 }
@@ -278,12 +278,14 @@ impl LinkReconciler {
     }
 
     async fn refresh(&self, resource: &LinkResource) -> Result<LinkContext> {
-        let mut links = self
-            .rtnl
-            .link()
-            .get()
-            .match_name(resource.spec.name.clone())
-            .execute();
+        Self::get_link_info(&self.rtnl, resource.spec.name.clone()).await
+    }
+
+    pub async fn get_link_info(
+        rtnl: &Handle,
+        name: String,
+    ) -> Result<LinkContext> {
+        let mut links = rtnl.link().get().match_name(name).execute();
 
         let link = links
             .next()

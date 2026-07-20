@@ -20,6 +20,7 @@ pub struct DnsReconciler;
 pub type DnsResource = Resource<DnsSpec, DnsDerivedSpec, DnsState>;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+/// Resolver configuration (see [`resolv.conf(5)`](https://www.man7.org/linux/man-pages/man5/resolv.conf.5.html)).
 pub struct DnsSpec {
     pub nameservers: Vec<String>,
     pub search: Option<Vec<String>>,
