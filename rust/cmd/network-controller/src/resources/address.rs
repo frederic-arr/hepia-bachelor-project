@@ -26,7 +26,7 @@ pub struct AddressReconciler {
 pub type AddressResource =
     Resource<AddressSpec, AddressDerivedSpec, AddressState>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AddressSpec {
     pub dev: String,
     pub address: IpAddr,
@@ -54,13 +54,7 @@ enum AddressContext {
 
 #[derive(Debug, Clone)]
 enum AddressPlan {
-    Create {
-        link_index: u32,
-    },
-    Replace {
-        link_index: u32,
-        msg: AddressMessage,
-    },
+    Create(u32),
     Delete(AddressMessage),
     Noop,
 }
@@ -188,12 +182,7 @@ impl AddressReconciler {
                 Status::Deleted
             }
             AddressPlan::Noop => Status::Ready,
-            AddressPlan::Create { link_index: _ }
-            | AddressPlan::Replace {
-                link_index: _,
-                msg: _,
-            }
-            | AddressPlan::Delete(_) => Status::NotReady,
+            AddressPlan::Create(_) | AddressPlan::Delete(_) => Status::NotReady,
         };
 
         Ok(ResourceResponse {
@@ -210,9 +199,13 @@ impl AddressReconciler {
 
     async fn validate_spec_change(
         &self,
-        _resource: &AddressResource,
+        resource: &AddressResource,
         spec: &AddressSpec,
     ) -> Result<()> {
+        if spec != &resource.spec {
+            bail!("cannot change address specification");
+        }
+
         self.validate_new_spec(spec).await
     }
 
@@ -294,36 +287,11 @@ impl AddressReconciler {
             }
 
             (Phase::Running, AddressContext::NoAddress { link_index }) => {
-                Ok(AddressPlan::Create { link_index })
+                Ok(AddressPlan::Create(link_index))
             }
 
             (
-                Phase::Running,
-                AddressContext::Address {
-                    link_index: _,
-                    state,
-                },
-            ) => {
-                let _msg = match resource.spec.address {
-                    IpAddr::V4(address) => {
-                        AddressMessageBuilder::<Ipv4Addr>::new()
-                            .index(state.index)
-                            .address(address, resource.spec.prefix_len)
-                            .build()
-                    }
-                    IpAddr::V6(address) => {
-                        AddressMessageBuilder::<Ipv6Addr>::new()
-                            .index(state.index)
-                            .address(address, resource.spec.prefix_len)
-                            .build()
-                    }
-                };
-
-                // Ok(AddressPlan::Replace { link_index, msg })
-                Ok(AddressPlan::Noop)
-            }
-            (
-                Phase::Shutdown | Phase::Teardown,
+                Phase::Running | Phase::Shutdown | Phase::Teardown,
                 AddressContext::NoAddress { link_index: _ }
                 | AddressContext::Address {
                     link_index: _,
@@ -339,7 +307,7 @@ impl AddressReconciler {
         plan: &AddressPlan,
     ) -> Result<()> {
         match plan {
-            AddressPlan::Create { link_index } => self
+            AddressPlan::Create(link_index) => self
                 .rtnl
                 .address()
                 .add(
@@ -350,25 +318,6 @@ impl AddressReconciler {
                 .execute()
                 .await
                 .context("unable to create address"),
-            AddressPlan::Replace { link_index, msg } => {
-                self.rtnl
-                    .address()
-                    .del(msg.clone())
-                    .execute()
-                    .await
-                    .context("unable to delete address")?;
-
-                self.rtnl
-                    .address()
-                    .add(
-                        *link_index,
-                        resource.spec.address,
-                        resource.spec.prefix_len,
-                    )
-                    .execute()
-                    .await
-                    .context("unable to create address")
-            }
             AddressPlan::Delete(msg) => self
                 .rtnl
                 .address()
@@ -491,6 +440,9 @@ mod tests {
             let count = smol::block_on(
                 reconciler.rtnl.address().get().execute().count(),
             );
+
+            // 0: IPv6 LLA
+            // 1: *our* address
             assert_eq!(count, 2);
         }
 
@@ -513,6 +465,8 @@ mod tests {
             let count = smol::block_on(
                 reconciler.rtnl.address().get().execute().count(),
             );
+
+            // See [`create_address_should_succeed`] for an explanation
             assert_eq!(count, 2);
         }
 
@@ -534,6 +488,7 @@ mod tests {
                 reconciler.rtnl.address().get().execute().count(),
             );
 
+            // See [`create_address_should_succeed`] for an explanation
             assert_eq!(count, 1);
         }
     }

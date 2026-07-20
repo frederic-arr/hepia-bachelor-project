@@ -660,6 +660,9 @@ mod tests {
 
             let count =
                 smol::block_on(reconciler.rtnl.link().get().execute().count());
+
+            // 0: the default lo link
+            // 1: *our* link
             assert_eq!(count, 2);
         }
 
@@ -683,6 +686,8 @@ mod tests {
 
             let count =
                 smol::block_on(reconciler.rtnl.link().get().execute().count());
+
+            // See [`create_dummy_should_succeed`] for an explanation
             assert_eq!(count, 2);
         }
 
@@ -706,6 +711,8 @@ mod tests {
 
             let count =
                 smol::block_on(reconciler.rtnl.link().get().execute().count());
+
+            // See [`create_dummy_should_succeed`] for an explanation
             assert_eq!(count, 2);
         }
 
@@ -725,6 +732,8 @@ mod tests {
 
             let count =
                 smol::block_on(reconciler.rtnl.link().get().execute().count());
+
+            // See [`create_dummy_should_succeed`] for an explanation
             assert_eq!(count, 1);
         }
     }
