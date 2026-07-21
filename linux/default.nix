@@ -54,26 +54,18 @@ let
     text = ''
       set -euo pipefail
 
-      export PATH="${buildPkgs.stdenv.cc}/bin:$PATH"
-      export HOSTCC="${buildPkgs.stdenv.cc}/bin/gcc"
-      export HOSTCFLAGS="-I${buildPkgs.ncurses.dev}/include"
-      export HOSTLDFLAGS="-L${buildPkgs.ncurses.out}/lib"
+      export HOSTCC="${pkgs.stdenv.cc}/bin/cc"
+      export HOSTCFLAGS="-I${pkgs.ncurses.dev}/include"
+      export HOSTLDFLAGS="-L${pkgs.ncurses.out}/lib"
 
-      workdir="$PWD/kernel"
+      workdir="$PWD/linux"
       outfull="$workdir/config.full"
       outmerged="$workdir/config.merged"
       outdiff="$workdir/config.diff"
-      mkdir -p "$workdir"
       cd "$workdir"
 
       if [ ! -d linux-${version} ]; then
-        ${prepareSrc}
-        chmod -R u+w .
-        if [ ! -d linux-${version} ]; then
-          mkdir -p linux-${version}
-          shopt -s dotglob
-          mv ./* linux-${version}/ 2>/dev/null || true
-        fi
+        tar -xf ${src}
       fi
 
       cd linux-${version}
@@ -86,6 +78,10 @@ let
 
       ${lib.optionalString (fragments != [ ]) ''
         KCONFIG_CONFIG=.config.custom scripts/kconfig/merge_config.sh -m ${builtins.toString fragments}
+      ''}
+
+      ${lib.optionalString (fragments != [ ]) ''
+        scripts/kconfig/merge_config.sh -m .config ${builtins.toString fragments}
       ''}
 
       make olddefconfig

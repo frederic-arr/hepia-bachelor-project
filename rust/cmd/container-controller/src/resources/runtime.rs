@@ -79,7 +79,7 @@ impl RuntimeReconciler {
                 port: 42345,
                 // port: rand::random_range(32768..60999),
             },
-            children: vec![Self::get_child(&spec)?],
+            children: Self::get_children(&spec)?,
             dependencies: spec.depends_on,
         })
     }
@@ -104,7 +104,6 @@ impl RuntimeReconciler {
             });
         }
 
-        let child = Self::get_child(&resource.spec)?;
         if let Err(err) = self.validate_new_spec(&resource.spec).await {
             return Ok(ResourceResponse {
                 status: Status::Error(format!("{err:#}").into()),
@@ -114,49 +113,43 @@ impl RuntimeReconciler {
             });
         }
 
-        if resource.children.len() > 1 {
+        let children = Self::get_children(&resource.spec)?;
+        if resource.children.len() != 3 {
             return Ok(ResourceResponse {
-                status: Status::Error("too many children".into()),
+                status: Status::NotReady,
                 state: None,
-                children: vec![child],
+                children,
                 dependencies: resource.spec.depends_on,
             });
         }
 
-        let Some(existing) = resource.children.first() else {
-            return Ok(ResourceResponse {
-                status: Status::NotReady,
-                state: None,
-                children: vec![child],
-                dependencies: resource.spec.depends_on,
-            });
-        };
+        for (existing, child) in resource.children.iter().zip(children.iter()) {
+            if existing.id != child.id {
+                return Ok(ResourceResponse {
+                    status: Status::NotReady,
+                    state: None,
+                    children,
+                    dependencies: resource.spec.depends_on,
+                });
+            }
 
-        if existing.id != child.id {
-            return Ok(ResourceResponse {
-                status: Status::NotReady,
-                state: None,
-                children: vec![child],
-                dependencies: resource.spec.depends_on,
-            });
-        }
+            if existing.spec != child.spec {
+                return Ok(ResourceResponse {
+                    status: Status::NotReady,
+                    state: None,
+                    children,
+                    dependencies: resource.spec.depends_on,
+                });
+            }
 
-        if existing.spec != child.spec {
-            return Ok(ResourceResponse {
-                status: Status::NotReady,
-                state: None,
-                children: vec![child],
-                dependencies: resource.spec.depends_on,
-            });
-        }
-
-        if existing.status != Status::Done {
-            return Ok(ResourceResponse {
-                status: Status::NotReady,
-                state: None,
-                children: vec![child],
-                dependencies: resource.spec.depends_on,
-            });
+            if existing.status != Status::Done {
+                return Ok(ResourceResponse {
+                    status: Status::NotReady,
+                    state: None,
+                    children,
+                    dependencies: resource.spec.depends_on,
+                });
+            }
         }
 
         if let Some(c) = engines.get_mut(k)
@@ -165,7 +158,7 @@ impl RuntimeReconciler {
             return Ok(ResourceResponse {
                 status: Status::Ready,
                 state: None,
-                children: vec![child],
+                children,
                 dependencies: resource.spec.depends_on,
             });
         }
@@ -180,7 +173,7 @@ impl RuntimeReconciler {
         Ok(ResourceResponse {
             status: Status::Ready,
             state: None,
-            children: vec![child],
+            children,
             dependencies: resource.spec.depends_on,
         })
     }
@@ -196,31 +189,23 @@ impl RuntimeReconciler {
 
         let mut binding = Command::new("/bin/podman");
         let cmd = binding
-            .args(["system", "service", "--time=0", &port_arg])
+            .args([
+                "--log-level=trace",
+                "system",
+                "service",
+                "--time=0",
+                &port_arg,
+            ])
             .env("NETAVARK_FW", "nftables")
             .env("HOME", &home_dir)
             .stderr(Stdio::inherit())
-            .stdout(Stdio::inherit());
+            .stdout(Stdio::inherit())
+            .uid(uid)
+            .gid(gid);
 
         // SAFETY: TODO
         unsafe {
             cmd.pre_exec(move || {
-                if libc::setgroups(0, std::ptr::null()) != 0 {
-                    return Err(std::io::Error::last_os_error());
-                }
-
-                if libc::setresgid(gid, gid, gid) != 0 {
-                    return Err(std::io::Error::last_os_error());
-                }
-
-                if libc::setresuid(uid, uid, uid) != 0 {
-                    return Err(std::io::Error::last_os_error());
-                }
-
-                if libc::prctl(libc::PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0 {
-                    return Err(std::io::Error::last_os_error());
-                }
-
                 std::fs::create_dir_all(format!("{home_dir}/.config"))?;
 
                 Ok(())
@@ -246,20 +231,50 @@ impl RuntimeReconciler {
         self.validate_new_spec(spec).await
     }
 
-    fn get_child(spec: &RuntimeSpec) -> Result<SubResourceCreate<Value>> {
-        Ok(SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
-                schema: "system:static-file".to_owned(),
-                name: Some("/etc/containers/policy.json".to_owned()),
-            }),
-            spec: serde_json::to_value(StaticFileSpec {
-                path: "/etc/containers/policy.json".into(),
-                content: Self::get_content(spec)?,
-                owner_gid: None,
-                readable_by_group: true,
-                readable_by_others: true,
-            })?,
-        })
+    fn get_children(
+        spec: &RuntimeSpec,
+    ) -> Result<Vec<SubResourceCreate<Value>>> {
+        Ok(vec![
+            SubResourceCreate::<Value> {
+                id: Identity::Dynamic(Key {
+                    schema: "system:static-file".to_owned(),
+                    name: Some("/etc/containers/policy.json".to_owned()),
+                }),
+                spec: serde_json::to_value(StaticFileSpec {
+                    path: "/etc/containers/policy.json".into(),
+                    content: Self::get_content(spec)?,
+                    owner_gid: None,
+                    readable_by_group: true,
+                    readable_by_others: true,
+                })?,
+            },
+            SubResourceCreate::<Value> {
+                id: Identity::Dynamic(Key {
+                    schema: "system:static-file".to_owned(),
+                    name: Some("/etc/subuid".to_owned()),
+                }),
+                spec: serde_json::to_value(StaticFileSpec {
+                    path: "/etc/subuid".into(),
+                    content: "1002:100000:65536".to_owned(),
+                    owner_gid: None,
+                    readable_by_group: true,
+                    readable_by_others: true,
+                })?,
+            },
+            SubResourceCreate::<Value> {
+                id: Identity::Dynamic(Key {
+                    schema: "system:static-file".to_owned(),
+                    name: Some("/etc/subgid".to_owned()),
+                }),
+                spec: serde_json::to_value(StaticFileSpec {
+                    path: "/etc/subgid".into(),
+                    content: "1002:100000:65536".to_owned(),
+                    owner_gid: None,
+                    readable_by_group: true,
+                    readable_by_others: true,
+                })?,
+            },
+        ])
     }
 
     fn get_content(_spec: &RuntimeSpec) -> Result<String> {

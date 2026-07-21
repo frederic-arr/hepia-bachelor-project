@@ -1,3 +1,6 @@
+use std::fs::set_permissions;
+use std::os::unix::fs::PermissionsExt;
+
 use anyhow::{Result, bail};
 use linux_utils::{SpecialFs, get_config_disk, get_data_disk, mount_special};
 use rustix::mount::{MountFlags, mount};
@@ -103,7 +106,6 @@ fn create_rfs() -> Result<()> {
     let dirs = [
         "/etc/containers",
         "/var/lib/podman-data",
-
         "/etc/opt",
         "/usr/bin",
         "/usr/include",
@@ -139,6 +141,8 @@ fn create_rfs() -> Result<()> {
     for dir in dirs {
         std::fs::create_dir_all(dir)?;
     }
+
+    set_permissions("/var/tmp", PermissionsExt::from_mode(0o1777))?;
 
     Ok(())
 }

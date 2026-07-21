@@ -13,7 +13,7 @@ use linux_utils::{
     mount_special,
     mount_squashfs,
 };
-use rustix::mount::{MountFlags, mount};
+use rustix::mount::{MountFlags, mount, mount_move};
 use rustix::process::{chdir, chroot};
 
 // https://github.com/cleverca22/not-os
@@ -25,12 +25,16 @@ where
 {
     tracing::info!("switch_root to {}", new_root.as_ref().display());
 
-    rustix::mount::mount_move("/dev", new_root.as_ref().join("dev"))?;
-    rustix::mount::mount_move("/proc", new_root.as_ref().join("proc"))?;
+    mount_move("/dev", new_root.as_ref().join("dev"))?;
+    mount_move("/proc", new_root.as_ref().join("proc"))?;
 
+    let old_root_fd = std::fs::File::open("/")?;
     chdir(new_root.as_ref())?;
+    mount_move(new_root.as_ref(), "/")?;
     chroot(".")?;
     chdir("/")?;
+
+    drop(old_root_fd);
 
     tracing::info!("exec {init}");
     Err(Command::new(init).exec().into())
