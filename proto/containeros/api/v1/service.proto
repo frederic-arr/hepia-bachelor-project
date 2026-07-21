@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package containeros.api.v1;
+
+service ApiService {
+  rpc ReconcileNow(ReconcileNowRequest) returns (ReconcileNowResponse) {}
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {}
+  rpc GetResource(GetResourceRequest) returns (GetResourceResponse) {}
+  rpc PushConfig(PushConfigRequest) returns (PushConfigResponse) {}
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
+  rpc ForceDelete(ForceDeleteRequest) returns (ForceDeleteResponse) {}
+}
+
+message ReconcileNowRequest {
+  bytes raw = 1;
+}
+
+message ReconcileNowResponse {
+  bytes raw = 1;
+}
+
+message PushConfigRequest {
+  bytes raw = 1;
+}
+
+message PushConfigResponse {
+  bytes raw = 1;
+}
+
+message ListResourcesRequest {
+  bytes raw = 1;
+}
+
+message ListResourcesResponse {
+  bytes raw = 1;
+}
+
+message GetResourceRequest {
+  bytes raw = 1;
+}
+
+message GetResourceResponse {
+  bytes raw = 1;
+}
+
+message ShutdownRequest {
+  bytes raw = 1;
+}
+
+message ShutdownResponse {
+  bytes raw = 1;
+}
+
+message ForceDeleteRequest {
+  bytes raw = 1;
+}
+
+message ForceDeleteResponse {
+  bytes raw = 1;
+}

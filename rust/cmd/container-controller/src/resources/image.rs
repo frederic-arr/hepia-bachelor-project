@@ -10,13 +10,7 @@ use bollard::query_parameters::{
     RemoveImageOptionsBuilder,
 };
 use cos_proto_reconciler::{
-    Identity,
-    Key,
-    Phase,
-    Resource,
-    ResourceResponse,
-    Status,
-    ValidateResponse,
+    Identity, Key, Phase, PrivateIdentity, Resource, ResourceResponse, Status, ValidateResponse,
 };
 use cos_proto_state::v1::ReconcileNowRequest;
 use derive_builder::Builder;
@@ -310,9 +304,9 @@ impl ImageReconciler {
     }
 
     fn get_deps(spec: &ImageDerivedSpec) -> HashSet<Identity> {
-        HashSet::from([Identity::Dynamic(Key {
+        HashSet::from([Identity::Private(PrivateIdentity::Dynamic(Key {
             schema: "container:runtime".to_owned(),
             name: Some(spec.runtime.clone()),
-        })])
+        }))])
     }
 }

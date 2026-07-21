@@ -209,6 +209,8 @@
 
           "crates/cos-proto-reconciler-client"
           "crates/cos-proto-state-server"
+          "crates/cos-proto-api"
+          "crates/cos-proto-api-server"
 
           "cmd/network-controller"
           "cmd/container-controller"

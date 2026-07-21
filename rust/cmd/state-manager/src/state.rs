@@ -34,8 +34,8 @@ const DEFAULT_RECONCILIATION_TIMER: Duration = Duration::from_secs(30);
 
 #[derive(Debug)]
 pub struct StateManager {
-    clients: RwLock<Clients>,
-    resources: RwLock<Resources>,
+    pub clients: RwLock<Clients>,
+    pub resources: RwLock<Resources>,
     pub queue: Queue<Key>,
     init_time: Instant,
     last_state_change: Mutex<Instant>,

@@ -11,6 +11,7 @@ use cos_proto_reconciler::{
     Identity,
     Key,
     Phase,
+    PrivateIdentity,
     Resource,
     ResourceResponse,
     Status,
@@ -353,10 +354,10 @@ impl InstanceReconciler {
 
     fn get_deps(spec: &InstanceSpec) -> HashSet<Identity> {
         HashSet::from([
-            Identity::Dynamic(Key {
+            Identity::Private(PrivateIdentity::Dynamic(Key {
                 schema: "container:runtime".to_owned(),
                 name: Some(spec.runtime.clone()),
-            }),
+            })),
             Identity::Shared(Key {
                 schema: "container:image".to_owned(),
                 name: Some(format!("{}#{}", spec.runtime, spec.image)),

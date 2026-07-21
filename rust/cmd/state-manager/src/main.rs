@@ -1,5 +1,6 @@
 #![feature(hash_map_macro)]
 
+mod api;
 mod queue;
 mod state;
 mod timeout;
@@ -11,7 +12,8 @@ use std::time::Instant;
 
 use anyhow::Result;
 use container_controller::{InstanceSpec, RuntimeSpec};
-use cos_proto_reconciler::{Identity, Key, SubResourceCreate};
+use cos_proto_api_server::v1::ApiServiceServer;
+use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use cos_proto_state::v1::{ReconcileNowRequest, ReconcileNowResponse};
 use cos_proto_state_server::v1::{StateService, StateServiceServer};
@@ -31,6 +33,7 @@ use tonic::{Request, Response, Status};
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
+use crate::api::ApiServiceThing;
 use crate::queue::Queue;
 use crate::state::StateManager;
 
@@ -38,10 +41,10 @@ use crate::state::StateManager;
 fn default_config() -> Vec<SubResourceCreate<Value>> {
     vec![
         SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
+            id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "network:dns".to_owned(),
                 name: None,
-            }),
+            })),
             spec: serde_json::to_value(DnsSpec {
                 nameservers: vec!["9.9.9.9".to_owned()],
                 ..Default::default()
@@ -49,10 +52,10 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             .unwrap(),
         },
         SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
+            id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "network:link".to_owned(),
                 name: Some("eth0".to_owned()),
-            }),
+            })),
             spec: serde_json::to_value(LinkSpec {
                 name: "eth0".to_owned(),
                 admin_up: true,
@@ -61,20 +64,20 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             .unwrap(),
         },
         SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
+            id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "network:dhcp".to_owned(),
                 name: Some("eth0".to_owned()),
-            }),
+            })),
             spec: serde_json::to_value(DhcpSpec {
                 link: "eth0".to_owned(),
             })
             .unwrap(),
         },
         SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
+            id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "container:runtime".to_owned(),
                 name: Some("default".to_owned()),
-            }),
+            })),
             spec: serde_json::to_value(RuntimeSpec {
                 name: "default".to_owned(),
                 engine: "podman".to_owned(),
@@ -82,23 +85,23 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
                 gid: 0,
                 port: Some(49453),
                 depends_on: HashSet::from([
-                    Identity::Dynamic(Key {
+                    Identity::Private(PrivateIdentity::Dynamic(Key {
                         schema: "network:route".to_owned(),
                         name: Some("eth0-dhcp".to_owned()),
-                    }),
-                    Identity::Dynamic(Key {
+                    })),
+                    Identity::Private(PrivateIdentity::Dynamic(Key {
                         schema: "network:dns".to_owned(),
                         name: None,
-                    }),
+                    })),
                 ]),
             })
             .unwrap(),
         },
         SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
+            id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "container:instance".to_owned(),
                 name: Some("demo".to_owned()),
-            }),
+            })),
             spec: serde_json::to_value(InstanceSpec {
                 name: "demo".to_owned(),
                 image: "docker.io/library/busybox:latest".to_owned(),
@@ -223,11 +226,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .serve(addr);
 
+    let addr2 = "0.0.0.0:50000".parse()?;
+    let api = Server::builder()
+        .add_service(ApiServiceServer::new(ApiServiceThing {
+            sm: Arc::clone(&sm),
+        }))
+        .serve(addr2);
+
     let rloop = sm.reconciliation_loop(&reconciliation_ct);
 
     tokio::select! {
         () = rloop => {},
         _ = server => {},
+        _ = api => {},
     };
 
     tracing::info!("saving data to disk");

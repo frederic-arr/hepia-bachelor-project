@@ -794,7 +794,9 @@ mod tests {
 
     mod refresh {
 
-        use super::*;
+        use cos_proto_reconciler::PrivateIdentity;
+
+use super::*;
 
         #[test]
         fn basic_should_succeed() {
@@ -813,10 +815,10 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Dynamic(Key {
+                id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
                     name: None,
-                }),
+                })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,
@@ -848,10 +850,10 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Dynamic(Key {
+                id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
                     name: None,
-                }),
+                })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,
@@ -876,7 +878,8 @@ mod tests {
     }
 
     mod reconciliation {
-        use isolation::isolate;
+        use cos_proto_reconciler::PrivateIdentity;
+use isolation::isolate;
 
         use super::*;
 
@@ -895,10 +898,10 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Dynamic(Key {
+                id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
                     name: None,
-                }),
+                })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,
@@ -980,10 +983,10 @@ mod tests {
                 smol::block_on(reconciler.derive(&spec)).unwrap();
 
             let file = StaticFileResource {
-                id: Identity::Dynamic(Key {
+                id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
                     name: None,
-                }),
+                })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,

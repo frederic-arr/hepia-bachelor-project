@@ -610,7 +610,7 @@ mod tests {
     use super::*;
 
     mod reconciliation {
-        use cos_proto_reconciler::{Identity, Key};
+        use cos_proto_reconciler::{Identity, Key, PrivateIdentity};
 
         use super::*;
 
@@ -627,10 +627,10 @@ mod tests {
             };
 
             let link = LinkResource {
-                id: Identity::Dynamic(Key {
+                id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
                     name: None,
-                }),
+                })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,

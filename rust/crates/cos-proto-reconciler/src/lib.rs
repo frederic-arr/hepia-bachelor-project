@@ -2,6 +2,7 @@
 
 use std::collections::HashSet;
 use std::fmt::Write as _;
+use std::hash::Hash;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -27,8 +28,14 @@ pub struct Key {
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Identity {
-    Dynamic(Key),
+    Private(PrivateIdentity),
     Shared(Key),
+}
+
+#[derive(Debug, Clone, Eq, Serialize, Deserialize)]
+pub enum PrivateIdentity {
+    Dynamic(Key),
+    Static(Key),
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -136,7 +143,8 @@ impl Identity {
     #[must_use]
     pub fn key(&self) -> &Key {
         match self {
-            Self::Dynamic(key) | Self::Shared(key) => key,
+            Self::Private(key) => key.key(),
+            Self::Shared(key) => key,
         }
     }
 
@@ -146,11 +154,39 @@ impl Identity {
     }
 }
 
+impl PrivateIdentity {
+    #[must_use]
+    pub fn key(&self) -> &Key {
+        match self {
+            Self::Static(key) | Self::Dynamic(key) => key,
+        }
+    }
+}
+
+impl PartialEq for PrivateIdentity {
+    fn eq(&self, other: &Self) -> bool {
+        self.key() == other.key()
+    }
+}
+
+impl Hash for PrivateIdentity {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: std::hash::Hasher,
+    {
+        self.key().hash(state);
+    }
+}
+
 impl std::fmt::Display for Identity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let key = match self {
-            Self::Dynamic(key) => {
+            Self::Private(PrivateIdentity::Dynamic(key)) => {
                 f.write_str("dyn#")?;
+                key
+            }
+            Self::Private(PrivateIdentity::Static(key)) => {
+                f.write_str("cfg#")?;
                 key
             }
             Self::Shared(key) => {

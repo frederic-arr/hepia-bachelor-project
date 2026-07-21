@@ -5,6 +5,7 @@ use cos_proto_reconciler::{
     Identity,
     Key,
     Phase,
+    PrivateIdentity,
     Resource,
     ResourceResponse,
     Status,
@@ -110,10 +111,10 @@ impl RouteReconciler {
         };
 
         parent.map_or_else(std::vec::Vec::new, |parent| {
-            vec![Identity::Dynamic(Key {
+            vec![Identity::Private(PrivateIdentity::Dynamic(Key {
                 schema: "network:address".to_owned(),
                 name: Some(parent),
-            })]
+            }))]
         })
     }
 
@@ -539,10 +540,10 @@ mod tests {
             };
 
             let addr = RouteResource {
-                id: Identity::Dynamic(Key {
+                id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
                     name: None,
-                }),
+                })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,

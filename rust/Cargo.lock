@@ -408,6 +408,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "cos-proto-api"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "tonic",
+ "tonic-prost-build",
+]
+
+[[package]]
+name = "cos-proto-api-client"
+version = "0.1.0"
+dependencies = [
+ "cos-proto-api",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
+name = "cos-proto-api-server"
+version = "0.1.0"
+dependencies = [
+ "cos-proto-api",
+ "tonic",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
 name = "cos-proto-reconciler"
 version = "0.1.0"
 dependencies = [
@@ -1870,6 +1899,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "container-controller",
+ "cos-proto-api",
+ "cos-proto-api-server",
  "cos-proto-reconciler",
  "cos-proto-reconciler-client",
  "cos-proto-state",

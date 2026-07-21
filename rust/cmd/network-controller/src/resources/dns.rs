@@ -2,13 +2,7 @@ use std::collections::HashSet;
 
 use anyhow::{Result, bail};
 use cos_proto_reconciler::{
-    Identity,
-    Key,
-    Resource,
-    ResourceResponse,
-    Status,
-    SubResourceCreate,
-    ValidateResponse,
+    Identity, Key, PrivateIdentity, Resource, ResourceResponse, Status, SubResourceCreate, ValidateResponse,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -197,10 +191,10 @@ impl DnsReconciler {
 
     fn get_child(spec: &DnsSpec) -> Result<SubResourceCreate<Value>> {
         Ok(SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
+            id: Identity::Private(PrivateIdentity::Dynamic(Key {
                 schema: "system:static-file".to_owned(),
                 name: Some("/etc/resolv.conf".to_owned()),
-            }),
+            })),
             spec: serde_json::to_value(StaticFileSpec {
                 path: "/etc/resolv.conf".into(),
                 content: Self::get_content(spec),

@@ -8,6 +8,7 @@ use cos_proto_reconciler::{
     Identity,
     Key,
     Phase,
+    PrivateIdentity,
     Resource,
     ResourceResponse,
     Status,
@@ -252,10 +253,10 @@ impl RuntimeReconciler {
         spec: &RuntimeSpec,
     ) -> Result<Vec<SubResourceCreate<Value>>> {
         Ok(vec![SubResourceCreate::<Value> {
-            id: Identity::Dynamic(Key {
+            id: Identity::Private(PrivateIdentity::Dynamic(Key {
                 schema: "system:static-file".to_owned(),
                 name: Some("/etc/containers/policy.json".to_owned()),
-            }),
+            })),
             spec: serde_json::to_value(StaticFileSpec {
                 path: "/etc/containers/policy.json".into(),
                 content: Self::get_content(spec)?,

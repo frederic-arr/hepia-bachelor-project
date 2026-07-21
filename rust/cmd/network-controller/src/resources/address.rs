@@ -3,13 +3,7 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use anyhow::{Context as _, Result, bail};
 use cos_proto_reconciler::{
-    Identity,
-    Key,
-    Phase,
-    Resource,
-    ResourceResponse,
-    Status,
-    ValidateResponse,
+    Identity, Key, Phase, PrivateIdentity, Resource, ResourceResponse, Status, ValidateResponse,
 };
 use derive_builder::Builder;
 use futures::{StreamExt as _, TryStreamExt as _};
@@ -92,10 +86,10 @@ impl AddressReconciler {
 
     #[must_use]
     pub fn deps(&self, spec: AddressSpec) -> [Identity; 1] {
-        [Identity::Dynamic(Key {
+        [Identity::Private(PrivateIdentity::Dynamic(Key {
             schema: "network:link".to_owned(),
             name: Some(spec.dev),
-        })]
+        }))]
     }
 
     pub async fn reconcile(
@@ -419,10 +413,10 @@ mod tests {
             };
 
             let addr = AddressResource {
-                id: Identity::Dynamic(Key {
+                id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
                     name: None,
-                }),
+                })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,

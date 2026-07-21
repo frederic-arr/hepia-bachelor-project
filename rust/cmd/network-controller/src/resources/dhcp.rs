@@ -6,14 +6,7 @@ use std::time::{Duration, Instant};
 
 use anyhow::{Result, anyhow};
 use cos_proto_reconciler::{
-    Identity,
-    Key,
-    Phase,
-    Resource,
-    ResourceResponse,
-    Status,
-    SubResourceCreate,
-    ValidateResponse,
+    Identity, Key, Phase, PrivateIdentity, Resource, ResourceResponse, Status, SubResourceCreate, ValidateResponse,
 };
 use cos_proto_state::v1::ReconcileNowRequest;
 use cos_proto_state_client::v1::StateServiceClient;
@@ -94,10 +87,10 @@ impl DhcpReconciler {
         Ok(ValidateResponse {
             derived_spec: (),
             children: vec![],
-            dependencies: HashSet::from([Identity::Dynamic(Key {
+            dependencies: HashSet::from([Identity::Private(PrivateIdentity::Dynamic(Key {
                 schema: "network:link".to_owned(),
                 name: Some(spec.link),
-            })]),
+            }))]),
         })
     }
 
@@ -299,10 +292,10 @@ impl DhcpReconciler {
             .clone()
             .map(|v| {
                 anyhow::Ok(SubResourceCreate::<Value> {
-                    id: Identity::Dynamic(Key {
+                    id: Identity::Private(PrivateIdentity::Dynamic(Key {
                         schema: "network:address".to_owned(),
                         name: Some(format!("{}-dhcp", resource.spec.link)),
-                    }),
+                    })),
                     spec: serde_json::to_value(AddressSpec {
                         dev: resource.spec.link.clone(),
                         address: v.address.into(),
@@ -316,10 +309,10 @@ impl DhcpReconciler {
             .clone()
             .map(|v| {
                 anyhow::Ok(SubResourceCreate::<Value> {
-                    id: Identity::Dynamic(Key {
+                    id: Identity::Private(PrivateIdentity::Dynamic(Key {
                         schema: "network:route".to_owned(),
                         name: Some(format!("{}-dhcp", resource.spec.link)),
-                    }),
+                    })),
                     spec: serde_json::to_value(RouteSpec::Ipv4 {
                         destination: "0.0.0.0".parse()?,
                         prefix_len: 0,
