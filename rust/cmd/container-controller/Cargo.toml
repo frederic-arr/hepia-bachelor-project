@@ -33,6 +33,7 @@ derive_builder = { workspace = true, features = ["std"] }
 futures.workspace = true
 tokio-util.workspace = true
 rand = { workspace = true, features = ["thread_rng"] }
+bollard = { workspace = true, features = ["http"] }
 
 [dev-dependencies]
 isolation.path = "../../crates/isolation"

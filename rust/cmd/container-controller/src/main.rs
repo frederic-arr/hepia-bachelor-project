@@ -1,5 +1,12 @@
 use anyhow::Result;
-use container_controller::{RuntimeReconciler, RuntimeResource};
+use container_controller::{
+    InstanceReconciler,
+    InstanceResource,
+    RuntimeReconciler,
+    RuntimeResource,
+    ImageReconciler,
+    ImageResource,
+};
 use cos_proto_reconciler::v1::{
     ReconcileRequest,
     ReconcileResponse,
@@ -42,6 +49,22 @@ impl ReconcilerService for Reconciler {
                     RuntimeReconciler::new()
                 );
             }
+            "container:instance" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    InstanceResource,
+                    InstanceReconciler::new()
+                );
+            }
+            "container:image" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    ImageResource,
+                    ImageReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -62,6 +85,20 @@ impl ReconcilerService for Reconciler {
                     resource,
                     RuntimeResource,
                     RuntimeReconciler::new()
+                );
+            }
+            "container:instance" => {
+                reconcile!(
+                    resource,
+                    InstanceResource,
+                    InstanceReconciler::new()
+                );
+            }
+            "container:image" => {
+                reconcile!(
+                    resource,
+                    ImageResource,
+                    ImageReconciler::new()
                 );
             }
             _ => return Err(Status::not_found("schema does not exist")),

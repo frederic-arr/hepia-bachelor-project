@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::process::Stdio;
 use std::sync::LazyLock;
+use std::time::Duration;
 
 use anyhow::{Context as _, Result, bail};
 use cos_proto_reconciler::{
@@ -13,11 +14,15 @@ use cos_proto_reconciler::{
     SubResourceCreate,
     ValidateResponse,
 };
+use cos_proto_state::v1::ReconcileNowRequest;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use system_controller::StaticFileSpec;
 use tokio::process::{Child, Command};
 use tokio::sync::Mutex;
+use tokio::time::timeout;
+
+use crate::STATE_CLIENT;
 
 #[derive(Debug, Clone)]
 pub struct RuntimeReconciler;
@@ -25,7 +30,7 @@ pub struct RuntimeReconciler;
 static ENGINES: LazyLock<Mutex<HashMap<String, Child>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-pub type RuntimeResource = Resource<RuntimeSpec, DnsDerivedSpec, DnsState>;
+pub type RuntimeResource = Resource<RuntimeSpec, RuntimeDerivedSpec, DnsState>;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RuntimeSpec {
@@ -33,12 +38,13 @@ pub struct RuntimeSpec {
     pub engine: String,
     pub uid: u32,
     pub gid: u32,
+    pub port: Option<u16>,
     pub depends_on: HashSet<Identity>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct DnsDerivedSpec {
-    port: u16,
+pub struct RuntimeDerivedSpec {
+    pub port: u16,
 }
 
 type DnsState = ();
@@ -57,17 +63,11 @@ impl Default for RuntimeReconciler {
 }
 
 impl RuntimeReconciler {
-    const MAX_ATTEMPTS: u8 = 5;
-    const MAX_NDOTS: u8 = 15;
-    const MAX_NS: usize = 3;
-    const MAX_SORTLIST: usize = 10;
-    const MAX_TIMEOUT: u8 = 30;
-
     pub async fn validate(
         &self,
         spec: RuntimeSpec,
         resource: Option<RuntimeResource>,
-    ) -> Result<ValidateResponse<DnsDerivedSpec>> {
+    ) -> Result<ValidateResponse<RuntimeDerivedSpec>> {
         if let Some(resource) = resource {
             self.validate_spec_change(&resource, &spec).await?;
         } else {
@@ -75,9 +75,10 @@ impl RuntimeReconciler {
         }
 
         Ok(ValidateResponse {
-            derived_spec: DnsDerivedSpec {
-                port: 42345,
-                // port: rand::random_range(32768..60999),
+            derived_spec: RuntimeDerivedSpec {
+                port: spec
+                    .port
+                    .unwrap_or_else(|| rand::random_range(32768..60999)),
             },
             children: Self::get_children(&spec)?,
             dependencies: spec.depends_on,
@@ -114,7 +115,7 @@ impl RuntimeReconciler {
         }
 
         let children = Self::get_children(&resource.spec)?;
-        if resource.children.len() != 3 {
+        if resource.children.len() != 1 {
             return Ok(ResourceResponse {
                 status: Status::NotReady,
                 state: None,
@@ -171,7 +172,7 @@ impl RuntimeReconciler {
         drop(engines);
 
         Ok(ResourceResponse {
-            status: Status::Ready,
+            status: Status::NotReady,
             state: None,
             children,
             dependencies: resource.spec.depends_on,
@@ -190,16 +191,13 @@ impl RuntimeReconciler {
         let mut binding = Command::new("/bin/podman");
         let cmd = binding
             .args([
-                "--log-level=trace",
-                "system",
-                "service",
-                "--time=0",
-                &port_arg,
+                // "--log-level=trace",
+                "system", "service", "--time=0", &port_arg,
             ])
             .env("NETAVARK_FW", "nftables")
             .env("HOME", &home_dir)
-            .stderr(Stdio::inherit())
-            .stdout(Stdio::inherit())
+            .stderr(Stdio::null())
+            .stdout(Stdio::null())
             .uid(uid)
             .gid(gid);
 
@@ -212,7 +210,26 @@ impl RuntimeReconciler {
             });
         }
 
-        cmd.spawn().context("unable to start podman")
+        let child = cmd.spawn().context("unable to start podman")?;
+
+        let key = resource.id.key().clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_secs(1)).await;
+
+            let mut c = (*STATE_CLIENT).clone();
+            let raw = match serde_json::to_vec(&key) {
+                Ok(v) => v,
+                Err(_err) => return,
+            };
+
+            let _ = timeout(
+                Duration::from_secs(1),
+                c.reconcile_now(ReconcileNowRequest { raw }),
+            )
+            .await;
+        });
+
+        Ok(child)
     }
 
     async fn validate_new_spec(&self, spec: &RuntimeSpec) -> Result<()> {
@@ -234,47 +251,19 @@ impl RuntimeReconciler {
     fn get_children(
         spec: &RuntimeSpec,
     ) -> Result<Vec<SubResourceCreate<Value>>> {
-        Ok(vec![
-            SubResourceCreate::<Value> {
-                id: Identity::Dynamic(Key {
-                    schema: "system:static-file".to_owned(),
-                    name: Some("/etc/containers/policy.json".to_owned()),
-                }),
-                spec: serde_json::to_value(StaticFileSpec {
-                    path: "/etc/containers/policy.json".into(),
-                    content: Self::get_content(spec)?,
-                    owner_gid: None,
-                    readable_by_group: true,
-                    readable_by_others: true,
-                })?,
-            },
-            SubResourceCreate::<Value> {
-                id: Identity::Dynamic(Key {
-                    schema: "system:static-file".to_owned(),
-                    name: Some("/etc/subuid".to_owned()),
-                }),
-                spec: serde_json::to_value(StaticFileSpec {
-                    path: "/etc/subuid".into(),
-                    content: "1002:100000:65536".to_owned(),
-                    owner_gid: None,
-                    readable_by_group: true,
-                    readable_by_others: true,
-                })?,
-            },
-            SubResourceCreate::<Value> {
-                id: Identity::Dynamic(Key {
-                    schema: "system:static-file".to_owned(),
-                    name: Some("/etc/subgid".to_owned()),
-                }),
-                spec: serde_json::to_value(StaticFileSpec {
-                    path: "/etc/subgid".into(),
-                    content: "1002:100000:65536".to_owned(),
-                    owner_gid: None,
-                    readable_by_group: true,
-                    readable_by_others: true,
-                })?,
-            },
-        ])
+        Ok(vec![SubResourceCreate::<Value> {
+            id: Identity::Dynamic(Key {
+                schema: "system:static-file".to_owned(),
+                name: Some("/etc/containers/policy.json".to_owned()),
+            }),
+            spec: serde_json::to_value(StaticFileSpec {
+                path: "/etc/containers/policy.json".into(),
+                content: Self::get_content(spec)?,
+                owner_gid: None,
+                readable_by_group: true,
+                readable_by_others: true,
+            })?,
+        }])
     }
 
     fn get_content(_spec: &RuntimeSpec) -> Result<String> {

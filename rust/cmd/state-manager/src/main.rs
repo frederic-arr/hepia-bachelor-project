@@ -10,7 +10,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Result;
-use container_controller::RuntimeSpec;
+use container_controller::{InstanceSpec, RuntimeSpec};
 use cos_proto_reconciler::{Identity, Key, SubResourceCreate};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use cos_proto_state::v1::{ReconcileNowRequest, ReconcileNowResponse};
@@ -76,14 +76,35 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
                 name: Some("default".to_owned()),
             }),
             spec: serde_json::to_value(RuntimeSpec {
-                name: "rootfull".to_owned(),
+                name: "default".to_owned(),
                 engine: "podman".to_owned(),
-                uid: 1002,
-                gid: 1002,
-                depends_on: HashSet::from([Identity::Dynamic(Key {
-                    schema: "network:route".to_owned(),
-                    name: Some("eth0-dhcp".to_owned()),
-                })]),
+                uid: 0,
+                gid: 0,
+                port: Some(49453),
+                depends_on: HashSet::from([
+                    Identity::Dynamic(Key {
+                        schema: "network:route".to_owned(),
+                        name: Some("eth0-dhcp".to_owned()),
+                    }),
+                    Identity::Dynamic(Key {
+                        schema: "network:dns".to_owned(),
+                        name: None,
+                    }),
+                ]),
+            })
+            .unwrap(),
+        },
+        SubResourceCreate::<Value> {
+            id: Identity::Dynamic(Key {
+                schema: "container:instance".to_owned(),
+                name: Some("demo".to_owned()),
+            }),
+            spec: serde_json::to_value(InstanceSpec {
+                name: "demo".to_owned(),
+                image: "docker.io/library/busybox:latest".to_owned(),
+                runtime: "default".to_owned(),
+                running: true,
+                cmd: vec!["echo".to_owned(), "%{CONTAINER_READY_CHECK}%".to_owned()],
             })
             .unwrap(),
         },

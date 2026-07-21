@@ -17,7 +17,7 @@ use cos_proto_reconciler::{
 };
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use itertools::Itertools as _;
-use serde_json::Value;
+use serde_json::{Value, json};
 use tokio::sync::{Mutex, RwLock};
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
@@ -61,12 +61,11 @@ impl StateManager {
         cancellation_token: &CancellationToken,
     ) {
         loop {
-            let last = *self.last_state_change.lock().await;
-
-            let elapsed = last.duration_since(self.init_time);
-            tracing::debug!(?elapsed, "first start -> current state");
-            let elapsed = last.elapsed();
-            tracing::debug!(?elapsed, "time since last state change");
+            // let last = *self.last_state_change.lock().await;
+            // let elapsed = last.duration_since(self.init_time);
+            // tracing::debug!(?elapsed, "first start -> current state");
+            // let elapsed = last.elapsed();
+            // tracing::debug!(?elapsed, "time since last state change");
 
             if cancellation_token.is_cancelled() {
                 tracing::trace!("reconciliation loop was cancelled");
@@ -108,7 +107,7 @@ impl StateManager {
                 match self.reconcile(key.clone(), cancellation_token).await {
                     Ok(when) => when,
                     Err(err) => {
-                        tracing::error!("{err:#}");
+                        tracing::error!("error while reconciling: {err:#}");
                         Some(Instant::now() + DEFAULT_RECONCILIATION_TIMER)
                     }
                 };
@@ -173,7 +172,6 @@ impl StateManager {
             .collect_vec();
 
         let resource = state.get_mut(&key).context("resource not found")?;
-        // resource.dependents = dependents;
 
         let Some(mut client) =
             self.clients.read().await.get(&key.schema).cloned()
@@ -236,6 +234,12 @@ impl StateManager {
             return Ok(None);
         };
 
+        if let Status::Error(StatusError::Other(err)) = &reconciled.status {
+            tracing::error!("remote error: {err}");
+        } else {
+            tracing::info!(status = ?reconciled.status, key = %key, "reconciled resource");
+        }
+
         let removed_deps = resource
             .dependencies
             .difference(&reconciled.dependencies)
@@ -247,10 +251,6 @@ impl StateManager {
             .difference(&resource.dependencies)
             .cloned()
             .collect_vec();
-
-        // TODO:
-        // resource.persistent_state = reconciled.persistent_state;
-        // resource.ephemeral_state = reconciled.ephemeral_state;
 
         resource.state = reconciled.state;
         let notify_dependents = matches!(
@@ -274,18 +274,23 @@ impl StateManager {
                 .await;
         }
 
-        if let Status::Error(StatusError::Other(err)) = &reconciled.status {
-            tracing::error!("{err}");
-        }
-
         resource.status = reconciled.status.clone();
 
-        let old_children = resource
+        let old_children: HashSet<_> = resource
             .children
             .iter()
             .map(cos_proto_reconciler::Identity::key)
             .cloned()
             .collect();
+
+        let old_shared_deps: HashSet<_> = resource
+            .dependencies
+            .iter()
+            .filter(|id| matches!(id, Identity::Shared(_)))
+            .map(|id| id.key().clone())
+            .collect();
+
+        let old_keys = old_children.union(&old_shared_deps).cloned().collect();
 
         resource.children =
             reconciled.children.iter().map(|v| &v.id).cloned().collect();
@@ -296,11 +301,28 @@ impl StateManager {
             &*self.clients.read().await,
             &self.queue,
             &mut state,
-            old_children,
+            old_keys,
             reconciled
                 .children
                 .into_iter()
                 .map(|v| (v.id.key().clone(), v))
+                .chain(
+                    reconciled
+                        .dependencies
+                        .iter()
+                        .filter(|v| matches!(v, Identity::Shared(_)))
+                        .map(|v| {
+                            (
+                                v.key().clone(),
+                                SubResourceCreate {
+                                    id: v.clone(),
+                                    spec: json!({
+                                        "name": &v.key().name
+                                    }),
+                                },
+                            )
+                        }),
+                )
                 .collect(),
         )
         .await?;
@@ -374,6 +396,7 @@ impl StateManager {
                 )?;
 
             added_fut.spawn(async move {
+                tracing::info!(key = %resource.id.key(), "validating creation");
                 let request = tonic::Request::new(ValidateRequest {
                     raw: serde_json::to_vec(&(
                         resource.clone(),
@@ -396,6 +419,7 @@ impl StateManager {
                 )?;
 
             modified_fut.spawn(async move {
+                tracing::info!(key = ?resource.id.key(), "validating modification");
                 let request = tonic::Request::new(ValidateRequest {
                     raw: serde_json::to_vec(&(
                         resource.clone(),
@@ -452,7 +476,8 @@ impl StateManager {
             entry.derived_spec = response.derived_spec;
             entry.dependencies = response.dependencies;
         }
-        let scheduled = added
+
+        let scheduled: HashSet<_> = added
             .iter()
             .chain(modified.iter())
             .filter(|(_, b)| {
@@ -460,7 +485,7 @@ impl StateManager {
                     .iter()
                     .map(|v| self_resources.get(v.key()))
                     .all(|v| {
-                        v.is_some_and(|v| {
+                        v.is_none_or(|v| {
                             matches!(v.status, Status::Done | Status::Ready)
                         })
                     })

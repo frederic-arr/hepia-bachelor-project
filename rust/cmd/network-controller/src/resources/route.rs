@@ -223,7 +223,7 @@ impl RouteReconciler {
             RoutePlan::Noop if matches!(resource.phase, Phase::Teardown) => {
                 Status::Deleted
             }
-            RoutePlan::Noop => Status::Ready,
+            RoutePlan::Noop => Status::Done,
             RoutePlan::Create(_) | RoutePlan::Delete(_) => Status::NotReady,
         };
 
