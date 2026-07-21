@@ -101,6 +101,7 @@ fn create_rfs() -> Result<()> {
     }
 
     let dirs = [
+        "/etc/containers",
         "/etc/opt",
         "/usr/bin",
         "/usr/include",

@@ -38,10 +38,10 @@ fn main() -> Result<!> {
         .stderr(Stdio::inherit())
         .spawn()?;
 
-    // let mut conctl = Command::new("/bin/container-controller")
-    //     .stdout(Stdio::inherit())
-    //     .stderr(Stdio::inherit())
-    //     .spawn()?;
+    let mut conctl = Command::new("/bin/container-controller")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()?;
 
     thread::sleep(Duration::from_millis(100));
 
@@ -73,7 +73,7 @@ fn main() -> Result<!> {
     busybox.wait()?;
     netctl.wait()?;
     sysctl.wait()?;
-    // conctl.wait()?;
+    conctl.wait()?;
     statemgr.wait()?;
 
     #[expect(

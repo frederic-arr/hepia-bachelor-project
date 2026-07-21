@@ -1,4 +1,5 @@
 use anyhow::Result;
+use container_controller::{RuntimeReconciler, RuntimeResource};
 use cos_proto_reconciler::v1::{
     ReconcileRequest,
     ReconcileResponse,
@@ -12,7 +13,6 @@ use cos_proto_reconciler_server::v1::{
 };
 use cos_proto_reconciler_server::{reconcile, validate};
 use serde_json::Value;
-use system_controller::{StaticFileReconciler, StaticFileResource};
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
@@ -33,14 +33,13 @@ impl ReconcilerService for Reconciler {
             .map_err(|err| Status::from_error(err.into()))?;
 
         let key = resource.id.key();
-
         match key.schema.as_ref() {
-            "system:static-file" => {
+            "container:runtime" => {
                 validate!(
                     resource,
                     maybe_resource,
-                    StaticFileResource,
-                    StaticFileReconciler::new_in("/etc".into())
+                    RuntimeResource,
+                    RuntimeReconciler::new()
                 );
             }
             _ => return Err(Status::not_found("schema does not exist")),
@@ -57,13 +56,12 @@ impl ReconcilerService for Reconciler {
                 .map_err(|err| Status::from_error(err.into()))?;
 
         let key = resource.id.key();
-
         match key.schema.as_ref() {
-            "system:static-file" => {
+            "container:runtime" => {
                 reconcile!(
                     resource,
-                    StaticFileResource,
-                    StaticFileReconciler::new_in("/etc".into())
+                    RuntimeResource,
+                    RuntimeReconciler::new()
                 );
             }
             _ => return Err(Status::not_found("schema does not exist")),
@@ -71,13 +69,14 @@ impl ReconcilerService for Reconciler {
     }
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "local")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-    let addr = "[::1]:50051".parse()?;
+
+    let addr = "[::1]:50053".parse()?;
     let reconciler = Reconciler;
 
-    tracing::info!("system controller listening on {addr}");
+    tracing::info!("container controller listening on {addr}");
 
     Server::builder()
         .add_service(ReconcilerServiceServer::new(reconciler))

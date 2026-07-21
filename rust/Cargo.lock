@@ -336,6 +336,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "container-controller"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bitflags 2.13.1",
+ "cos-proto-reconciler",
+ "cos-proto-reconciler-server",
+ "cos-proto-state",
+ "cos-proto-state-client",
+ "derive_builder",
+ "futures",
+ "isolation",
+ "libc",
+ "rustix",
+ "serde",
+ "serde_json",
+ "sha3",
+ "smol",
+ "system-controller",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "tonic",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "cos-proto-reconciler"
 version = "0.1.0"
 dependencies = [
@@ -1623,6 +1651,7 @@ name = "state-manager"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "container-controller",
  "cos-proto-reconciler",
  "cos-proto-reconciler-client",
  "cos-proto-state",

@@ -10,6 +10,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Result;
+use container_controller::RuntimeSpec;
 use cos_proto_reconciler::{Identity, Key, SubResourceCreate};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use cos_proto_state::v1::{ReconcileNowRequest, ReconcileNowResponse};
@@ -69,6 +70,23 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             })
             .unwrap(),
         },
+        SubResourceCreate::<Value> {
+            id: Identity::Dynamic(Key {
+                schema: "container:runtime".to_owned(),
+                name: Some("default".to_owned()),
+            }),
+            spec: serde_json::to_value(RuntimeSpec {
+                name: "rootfull".to_owned(),
+                engine: "podman".to_owned(),
+                uid: 0,
+                gid: 0,
+                depends_on: HashSet::from([Identity::Dynamic(Key {
+                    schema: "network:route".to_owned(),
+                    name: Some("eth0-dhcp".to_owned()),
+                })]),
+            })
+            .unwrap(),
+        },
     ]
 }
 
@@ -98,8 +116,10 @@ fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
         "network:dhcp".to_owned() => network_client,
 
         // Container resources
-        "container:container".to_owned() => container_client.clone(),
-        "container:image".to_owned() => container_client,
+        "container:runtime".to_owned() => container_client.clone(),
+        "container:instance".to_owned() => container_client.clone(),
+        "container:image".to_owned() => container_client.clone(),
+        "container:network".to_owned() => container_client,
     }
 }
 
