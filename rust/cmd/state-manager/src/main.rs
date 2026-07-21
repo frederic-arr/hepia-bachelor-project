@@ -78,8 +78,8 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             spec: serde_json::to_value(RuntimeSpec {
                 name: "rootfull".to_owned(),
                 engine: "podman".to_owned(),
-                uid: 0,
-                gid: 0,
+                uid: 1002,
+                gid: 1002,
                 depends_on: HashSet::from([Identity::Dynamic(Key {
                     schema: "network:route".to_owned(),
                     name: Some("eth0-dhcp".to_owned()),

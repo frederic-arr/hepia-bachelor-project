@@ -349,6 +349,7 @@ dependencies = [
  "futures",
  "isolation",
  "libc",
+ "rand",
  "rustix",
  "serde",
  "serde_json",

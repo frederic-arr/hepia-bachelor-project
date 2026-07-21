@@ -72,7 +72,7 @@ let
         if [ ! -d linux-${version} ]; then
           mkdir -p linux-${version}
           shopt -s dotglob
-          mv * linux-${version}/ 2>/dev/null || true
+          mv ./* linux-${version}/ 2>/dev/null || true
         fi
       fi
 

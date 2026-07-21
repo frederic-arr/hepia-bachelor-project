@@ -125,6 +125,7 @@ tokio-util = { version = "0.7.18", default-features = false }
 tracing = { version = "0.1.44", default-features = false }
 tracing-subscriber = { version = "0.3.23", default-features = false }
 thiserror = { version = "2.0.18", default-features = false }
+bollard = { version = "0.21.0", default-features = false }
 
 [workspace.dependencies.smoltcp]
 git = "https://github.com/smoltcp-rs/smoltcp"
