@@ -104,7 +104,7 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
                 image: "docker.io/library/busybox:latest".to_owned(),
                 runtime: "default".to_owned(),
                 running: true,
-                cmd: vec!["echo".to_owned(), "%{CONTAINER_READY_CHECK}%".to_owned()],
+                cmd: vec!["sleep".to_owned(), "infinity".to_owned()],
             })
             .unwrap(),
         },
