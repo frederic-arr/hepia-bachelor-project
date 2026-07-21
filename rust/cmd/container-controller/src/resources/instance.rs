@@ -194,7 +194,7 @@ impl InstanceReconciler {
             InstancePlan::Noop if matches!(resource.phase, Phase::Teardown) => {
                 Status::Deleted
             }
-            InstancePlan::Noop => Status::Done,
+            InstancePlan::Noop => Status::Ready,
             InstancePlan::Create
             | InstancePlan::Delete
             | InstancePlan::Start(_)

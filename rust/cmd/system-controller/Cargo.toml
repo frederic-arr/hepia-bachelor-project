@@ -21,11 +21,12 @@ rustix = { workspace = true, features = [
 libc.workspace = true
 cos-proto-reconciler.path = "../../crates/cos-proto-reconciler"
 cos-proto-reconciler-server.path = "../../crates/cos-proto-reconciler-server"
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt"] }
 tonic = { workspace = true, features = ["transport", "router"] }
 serde_json = { workspace = true, features = ["std"] }
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
+tokio-stream = { workspace = true, features = ["net"] }
 
 [dev-dependencies]
 isolation.path = "../../crates/isolation"

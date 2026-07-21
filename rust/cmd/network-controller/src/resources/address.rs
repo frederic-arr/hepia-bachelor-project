@@ -191,7 +191,7 @@ impl AddressReconciler {
             AddressPlan::Noop if matches!(resource.phase, Phase::Teardown) => {
                 Status::Deleted
             }
-            AddressPlan::Noop => Status::Done,
+            AddressPlan::Noop => Status::Ready,
             AddressPlan::Create(_) | AddressPlan::Delete(_) => Status::NotReady,
         };
 

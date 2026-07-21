@@ -251,7 +251,7 @@ impl LinkReconciler {
             LinkPlan::Noop if matches!(resource.phase, Phase::Teardown) => {
                 Status::Deleted
             }
-            LinkPlan::Noop => Status::Done,
+            LinkPlan::Noop => Status::Ready,
             LinkPlan::Create(_) | LinkPlan::Update(_) | LinkPlan::Delete(_) => {
                 Status::NotReady
             }

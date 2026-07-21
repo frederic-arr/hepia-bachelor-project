@@ -40,6 +40,7 @@ smoltcp = { workspace = true, features = [
     "phy-raw_socket",
     "async",
 ] }
+tokio-stream = { workspace = true, features = ["net"] }
 
 [dev-dependencies]
 isolation.path = "../../crates/isolation"

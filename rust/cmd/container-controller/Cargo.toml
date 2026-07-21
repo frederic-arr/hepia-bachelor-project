@@ -34,6 +34,7 @@ futures.workspace = true
 tokio-util.workspace = true
 rand = { workspace = true, features = ["thread_rng"] }
 bollard = { workspace = true, features = ["http"] }
+tokio-stream = { workspace = true, features = ["net"] }
 
 [dev-dependencies]
 isolation.path = "../../crates/isolation"

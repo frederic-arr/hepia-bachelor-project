@@ -1,11 +1,11 @@
 use anyhow::Result;
 use container_controller::{
+    ImageReconciler,
+    ImageResource,
     InstanceReconciler,
     InstanceResource,
     RuntimeReconciler,
     RuntimeResource,
-    ImageReconciler,
-    ImageResource,
 };
 use cos_proto_reconciler::v1::{
     ReconcileRequest,
@@ -20,6 +20,8 @@ use cos_proto_reconciler_server::v1::{
 };
 use cos_proto_reconciler_server::{reconcile, validate};
 use serde_json::Value;
+use tokio::net::TcpListener;
+use tokio_stream::wrappers::TcpListenerStream;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
@@ -95,11 +97,7 @@ impl ReconcilerService for Reconciler {
                 );
             }
             "container:image" => {
-                reconcile!(
-                    resource,
-                    ImageResource,
-                    ImageReconciler::new()
-                );
+                reconcile!(resource, ImageResource, ImageReconciler::new());
             }
             _ => return Err(Status::not_found("schema does not exist")),
         }
@@ -109,15 +107,16 @@ impl ReconcilerService for Reconciler {
 #[tokio::main(flavor = "local")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-
-    let addr = "[::1]:50053".parse()?;
+    let addr = "[::1]:50053";
     let reconciler = Reconciler;
 
+    let listener = TcpListener::bind(addr).await?;
+    let incoming = TcpListenerStream::new(listener);
     tracing::info!("container controller listening on {addr}");
 
     Server::builder()
         .add_service(ReconcilerServiceServer::new(reconciler))
-        .serve(addr)
+        .serve_with_incoming(incoming)
         .await?;
 
     Ok(())

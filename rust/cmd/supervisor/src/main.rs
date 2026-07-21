@@ -2,15 +2,36 @@
 
 mod linux_init;
 
-use std::process::{Command, Stdio};
-use std::thread;
-use std::time::Duration;
+use std::process::Stdio;
 
 use anyhow::Result;
+use tokio::io::{AsyncBufReadExt as _, BufReader};
+use tokio::process::{ChildStdout, Command};
+use tokio::task::JoinSet;
 
 use crate::linux_init::linux_init;
 
-fn main() -> Result<!> {
+async fn wait_for_line(mut f: Option<ChildStdout>, ln: &str) -> Result<()> {
+    if let Some(stdout) = f.take() {
+        let mut lines = BufReader::new(stdout).lines();
+
+        #[expect(clippy::print_stdout, reason = "TODO")]
+        while let Some(line) = lines.next_line().await? {
+            println!("{line}");
+
+            if line.contains(ln) {
+                break;
+            }
+        }
+
+        Ok(())
+    } else {
+        Ok(())
+    }
+}
+
+#[tokio::main(flavor = "local")]
+async fn main() -> Result<!> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::TRACE)
         .init();
@@ -26,25 +47,29 @@ fn main() -> Result<!> {
         .stderr(Stdio::inherit())
         .spawn()?;
 
-    busybox.wait()?;
+    busybox.wait().await?;
 
-    let mut netctl = Command::new("/bin/network-controller")
+    let netctl = Command::new("/bin/network-controller")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()?;
 
-    let mut sysctl = Command::new("/bin/system-controller")
+    let sysctl = Command::new("/bin/system-controller")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()?;
 
-    let mut conctl = Command::new("/bin/container-controller")
+    let conctl = Command::new("/bin/container-controller")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()?;
 
-    thread::sleep(Duration::from_millis(100));
+    let mut set = JoinSet::new();
+    set.spawn(wait_for_line(netctl.stdout, "listening"));
+    set.spawn(wait_for_line(sysctl.stdout, "listening"));
+    set.spawn(wait_for_line(conctl.stdout, "listening"));
 
+    set.join_all().await;
     let mut statemgr = Command::new("/bin/state-manager")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -70,16 +95,9 @@ fn main() -> Result<!> {
         .stderr(Stdio::inherit())
         .spawn()?;
 
-    busybox.wait()?;
-    netctl.wait()?;
-    sysctl.wait()?;
-    conctl.wait()?;
-    statemgr.wait()?;
+    busybox.wait().await?;
+    statemgr.wait().await?;
 
-    #[expect(
-        clippy::infinite_loop,
-        reason = "this is the init and can never stop"
-    )]
     loop {
         std::thread::park();
     }

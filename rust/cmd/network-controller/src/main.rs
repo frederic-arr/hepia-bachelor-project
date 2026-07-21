@@ -25,6 +25,8 @@ use network_controller::{
 };
 use rtnetlink::new_connection;
 use serde_json::Value;
+use tokio::net::TcpListener;
+use tokio_stream::wrappers::TcpListenerStream;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
@@ -136,15 +138,17 @@ impl ReconcilerService for Reconciler {
 #[tokio::main(flavor = "local")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-
-    let addr = "[::1]:50052".parse()?;
+    let addr = "[::1]:50052";
     let reconciler = Reconciler;
 
+
+    let listener = TcpListener::bind(addr).await?;
+    let incoming = TcpListenerStream::new(listener);
     tracing::info!("network controller listening on {addr}");
 
     Server::builder()
         .add_service(ReconcilerServiceServer::new(reconciler))
-        .serve(addr)
+        .serve_with_incoming(incoming)
         .await?;
 
     Ok(())

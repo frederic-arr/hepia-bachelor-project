@@ -13,6 +13,8 @@ use cos_proto_reconciler_server::v1::{
 use cos_proto_reconciler_server::{reconcile, validate};
 use serde_json::Value;
 use system_controller::{StaticFileReconciler, StaticFileResource};
+use tokio::net::TcpListener;
+use tokio_stream::wrappers::TcpListenerStream;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
@@ -71,17 +73,20 @@ impl ReconcilerService for Reconciler {
     }
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "local")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-    let addr = "[::1]:50051".parse()?;
+    let addr = "[::1]:50051";
     let reconciler = Reconciler;
 
+
+    let listener = TcpListener::bind(addr).await?;
+    let incoming = TcpListenerStream::new(listener);
     tracing::info!("system controller listening on {addr}");
 
     Server::builder()
         .add_service(ReconcilerServiceServer::new(reconciler))
-        .serve(addr)
+        .serve_with_incoming(incoming)
         .await?;
 
     Ok(())

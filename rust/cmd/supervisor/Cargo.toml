@@ -12,3 +12,4 @@ tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
 rustix.workspace = true
 anyhow.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "process", "io-util"] }
