@@ -79,7 +79,6 @@ async fn main() -> Result<()> {
     let addr = "[::1]:50051";
     let reconciler = Reconciler;
 
-
     let listener = TcpListener::bind(addr).await?;
     let incoming = TcpListenerStream::new(listener);
     tracing::info!("system controller listening on {addr}");

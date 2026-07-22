@@ -65,33 +65,33 @@ pub macro router {
     }}
 }
 
-pub macro validate {
-    ($res:ident, $maybe:ident, $resource:ident, $reconciler:expr) => {
-        let (reconciler, spec, maybe_resource) =
-            router!($res, $maybe, $resource, $reconciler);
-        let response = reconciler
-            .validate($res.id.key().clone(), spec, maybe_resource)
-            .await
-            .map_err(|err| ::tonic::Status::from_error(err.into()))?;
+pub macro validate($res:ident, $maybe:ident, $resource:ident, $reconciler:expr) {
+    let (reconciler, spec, maybe_resource) =
+        router!($res, $maybe, $resource, $reconciler);
+    let response = reconciler
+        .validate($res.id.key().clone(), spec, maybe_resource)
+        .await
+        .map_err(|err| ::tonic::Status::from_error(err.into()))?;
 
-        return Ok(::tonic::Response::new(::cos_proto_reconciler::v1::ValidateResponse {
+    return Ok(::tonic::Response::new(
+        ::cos_proto_reconciler::v1::ValidateResponse {
             raw: ::serde_json::to_vec(&response)
                 .map_err(|err| ::tonic::Status::from_error(err.into()))?,
-        }));
-    }
+        },
+    ));
 }
 
-pub macro reconcile {
-    ($res:ident, $resource:ident, $reconciler:expr) => {
-        let (reconciler, resource) = router!($res, $resource, $reconciler);
-        let response = reconciler
-            .reconcile(resource)
-            .await
-            .map_err(|err| ::tonic::Status::from_error(err.into()))?;
+pub macro reconcile($res:ident, $resource:ident, $reconciler:expr) {
+    let (reconciler, resource) = router!($res, $resource, $reconciler);
+    let response = reconciler
+        .reconcile(resource)
+        .await
+        .map_err(|err| ::tonic::Status::from_error(err.into()))?;
 
-        return Ok(::tonic::Response::new(::cos_proto_reconciler::v1::ReconcileResponse {
+    return Ok(::tonic::Response::new(
+        ::cos_proto_reconciler::v1::ReconcileResponse {
             raw: ::serde_json::to_vec(&response)
                 .map_err(|err| ::tonic::Status::from_error(err.into()))?,
-        }));
-    }
+        },
+    ));
 }

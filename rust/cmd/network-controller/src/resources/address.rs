@@ -3,7 +3,14 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use anyhow::{Context as _, Result, bail};
 use cos_proto_reconciler::{
-    Identity, Key, Phase, PrivateIdentity, Resource, ResourceResponse, Status, ValidateResponse,
+    Identity,
+    Key,
+    Phase,
+    PrivateIdentity,
+    Resource,
+    ResourceResponse,
+    Status,
+    ValidateResponse,
 };
 use derive_builder::Builder;
 use futures::{StreamExt as _, TryStreamExt as _};

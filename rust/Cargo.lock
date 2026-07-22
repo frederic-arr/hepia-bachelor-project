@@ -2039,7 +2039,6 @@ name = "state-manager"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "container-controller",
  "cos-proto-api",
  "cos-proto-api-server",
  "cos-proto-reconciler",

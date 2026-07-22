@@ -2,7 +2,14 @@ use std::collections::HashSet;
 
 use anyhow::{Result, bail};
 use cos_proto_reconciler::{
-    Identity, Key, PrivateIdentity, Resource, ResourceResponse, Status, SubResourceCreate, ValidateResponse,
+    Identity,
+    Key,
+    PrivateIdentity,
+    Resource,
+    ResourceResponse,
+    Status,
+    SubResourceCreate,
+    ValidateResponse,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
