@@ -3,7 +3,7 @@ use std::process::Stdio;
 use std::sync::LazyLock;
 use std::time::Duration;
 
-use anyhow::{Context as _, Result, bail};
+use anyhow::{Context as _, Result, anyhow, bail};
 use cos_proto_reconciler::{
     Identity,
     Key,
@@ -35,16 +35,16 @@ pub type RuntimeResource = Resource<RuntimeSpec, RuntimeDerivedSpec, DnsState>;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RuntimeSpec {
-    pub name: String,
     pub engine: String,
     pub uid: u32,
     pub gid: u32,
     pub port: Option<u16>,
-    pub depends_on: HashSet<Identity>,
+    pub depends_on: HashSet<Key>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RuntimeDerivedSpec {
+    pub name: String,
     pub port: u16,
 }
 
@@ -66,6 +66,7 @@ impl Default for RuntimeReconciler {
 impl RuntimeReconciler {
     pub async fn validate(
         &self,
+        key: Key,
         spec: RuntimeSpec,
         resource: Option<RuntimeResource>,
     ) -> Result<ValidateResponse<RuntimeDerivedSpec>> {
@@ -75,14 +76,17 @@ impl RuntimeReconciler {
             self.validate_new_spec(&spec).await?;
         }
 
+        let name = key.name.ok_or_else(|| anyhow!("missing name"))?;
+
         Ok(ValidateResponse {
             derived_spec: RuntimeDerivedSpec {
+                name,
                 port: spec
                     .port
                     .unwrap_or_else(|| rand::random_range(32768..60999)),
             },
             children: Self::get_children(&spec)?,
-            dependencies: spec.depends_on,
+            dependencies: Self::get_deps(&spec),
         })
     }
 
@@ -90,7 +94,7 @@ impl RuntimeReconciler {
         &self,
         resource: RuntimeResource,
     ) -> Result<ResourceResponse<Option<DnsState>>> {
-        let k = &resource.spec.name;
+        let k = &resource.derived_spec.name;
         let mut engines = ENGINES.lock().await;
 
         if matches!(resource.phase, Phase::Shutdown | Phase::Teardown) {
@@ -111,7 +115,7 @@ impl RuntimeReconciler {
                 status: Status::Error(format!("{err:#}").into()),
                 state: None,
                 children: vec![],
-                dependencies: resource.spec.depends_on,
+                dependencies: Self::get_deps(&resource.spec),
             });
         }
 
@@ -121,7 +125,7 @@ impl RuntimeReconciler {
                 status: Status::NotReady,
                 state: None,
                 children,
-                dependencies: resource.spec.depends_on,
+                dependencies: Self::get_deps(&resource.spec),
             });
         }
 
@@ -131,7 +135,7 @@ impl RuntimeReconciler {
                     status: Status::NotReady,
                     state: None,
                     children,
-                    dependencies: resource.spec.depends_on,
+                    dependencies: Self::get_deps(&resource.spec),
                 });
             }
 
@@ -140,7 +144,7 @@ impl RuntimeReconciler {
                     status: Status::NotReady,
                     state: None,
                     children,
-                    dependencies: resource.spec.depends_on,
+                    dependencies: Self::get_deps(&resource.spec),
                 });
             }
 
@@ -149,7 +153,7 @@ impl RuntimeReconciler {
                     status: Status::NotReady,
                     state: None,
                     children,
-                    dependencies: resource.spec.depends_on,
+                    dependencies: Self::get_deps(&resource.spec),
                 });
             }
         }
@@ -161,7 +165,13 @@ impl RuntimeReconciler {
                 status: Status::Ready,
                 state: None,
                 children,
-                dependencies: resource.spec.depends_on,
+                dependencies: resource
+                    .spec
+                    .depends_on
+                    .iter()
+                    .cloned()
+                    .map(|v| Identity::Private(PrivateIdentity::Dynamic(v)))
+                    .collect(),
             });
         }
 
@@ -176,8 +186,22 @@ impl RuntimeReconciler {
             status: Status::NotReady,
             state: None,
             children,
-            dependencies: resource.spec.depends_on,
+            dependencies: resource
+                .spec
+                .depends_on
+                .iter()
+                .cloned()
+                .map(|v| Identity::Private(PrivateIdentity::Dynamic(v)))
+                .collect(),
         })
+    }
+
+    fn get_deps(spec: &RuntimeSpec) -> HashSet<Identity> {
+        spec.depends_on
+            .iter()
+            .cloned()
+            .map(|v| Identity::Private(PrivateIdentity::Dynamic(v)))
+            .collect()
     }
 
     fn start_podman(resource: &RuntimeResource) -> Result<Child> {
@@ -185,7 +209,10 @@ impl RuntimeReconciler {
         let gid = resource.spec.gid;
         let port_arg =
             format!("tcp://127.0.0.1:{}", resource.derived_spec.port);
-        let home_dir = format!("/var/lib/podman-data/{}", resource.spec.name);
+        let home_dir = format!(
+            "/var/lib/podman-data/{}",
+            resource.derived_spec.name
+        );
         std::fs::create_dir_all(&home_dir)?;
         std::os::unix::fs::chown(&home_dir, Some(uid), Some(gid))?;
 

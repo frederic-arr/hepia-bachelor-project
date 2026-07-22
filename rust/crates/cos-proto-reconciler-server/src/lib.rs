@@ -70,7 +70,7 @@ pub macro validate {
         let (reconciler, spec, maybe_resource) =
             router!($res, $maybe, $resource, $reconciler);
         let response = reconciler
-            .validate(spec, maybe_resource)
+            .validate($res.id.key().clone(), spec, maybe_resource)
             .await
             .map_err(|err| ::tonic::Status::from_error(err.into()))?;
 

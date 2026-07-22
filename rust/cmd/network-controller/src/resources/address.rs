@@ -68,6 +68,7 @@ impl AddressReconciler {
 impl AddressReconciler {
     pub async fn validate(
         &self,
+        _key: Key,
         spec: AddressSpec,
         resource: Option<AddressResource>,
     ) -> Result<ValidateResponse<AddressDerivedSpec>> {

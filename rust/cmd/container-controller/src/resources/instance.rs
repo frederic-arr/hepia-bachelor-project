@@ -30,19 +30,22 @@ pub type InstanceResource =
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct InstanceSpec {
-    pub name: String,
     pub image: String,
     pub runtime: String,
     pub running: bool,
     pub cmd: Vec<String>,
 }
 
-pub type InstanceDerivedSpec = ();
+#[derive(Debug, Clone, PartialEq, Eq, Builder, Deserialize, Serialize)]
+pub struct InstanceDerivedSpec {
+    name: String,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Builder, Deserialize, Serialize)]
 #[builder(pattern = "mutable")]
 pub struct InstanceState {
     pub id: String,
+    pub name: String,
     pub image: String,
     pub running: bool,
     pub cmd: String,
@@ -73,6 +76,7 @@ impl Default for InstanceReconciler {
 impl InstanceReconciler {
     pub async fn validate(
         &self,
+        key: Key,
         spec: InstanceSpec,
         resource: Option<InstanceResource>,
     ) -> Result<ValidateResponse<InstanceDerivedSpec>> {
@@ -82,8 +86,10 @@ impl InstanceReconciler {
             self.validate_new_spec(&spec).await?;
         }
 
+        let name = key.name.ok_or_else(|| anyhow!("missing name"))?;
+
         Ok(ValidateResponse {
-            derived_spec: (),
+            derived_spec: InstanceDerivedSpec { name },
             children: vec![],
             dependencies: Self::get_deps(&spec),
         })
@@ -218,7 +224,7 @@ impl InstanceReconciler {
         let mut filters = HashMap::new();
         filters.insert(
             "name".to_owned(),
-            vec![resource.spec.name.clone()],
+            vec![resource.derived_spec.name.clone()],
         );
 
         let options = ListContainersOptionsBuilder::default()
@@ -286,8 +292,12 @@ impl InstanceReconciler {
         }
 
         let plan = match (resource.spec.running, refreshed_state.running) {
-            (true, false) => InstancePlan::Start(resource.spec.name.clone()),
-            (false, true) => InstancePlan::Stop(resource.spec.name.clone()),
+            (true, false) => {
+                InstancePlan::Start(resource.derived_spec.name.clone())
+            }
+            (false, true) => {
+                InstancePlan::Stop(resource.derived_spec.name.clone())
+            }
             (true, true) | (false, false) => InstancePlan::Noop,
         };
 
@@ -304,7 +314,7 @@ impl InstanceReconciler {
         match plan {
             InstancePlan::Create => {
                 let opts = CreateContainerOptionsBuilder::default()
-                    .name(&resource.spec.name)
+                    .name(&resource.derived_spec.name)
                     .build();
 
                 let cfg = ContainerCreateBody {
@@ -314,7 +324,8 @@ impl InstanceReconciler {
                 };
                 ctx.create_container(Some(opts), cfg).await?;
                 if resource.spec.running {
-                    ctx.start_container(&resource.spec.name, None).await?;
+                    ctx.start_container(&resource.derived_spec.name, None)
+                        .await?;
                 }
 
                 Ok(())
@@ -323,10 +334,11 @@ impl InstanceReconciler {
                 if let Some(refreshed_state) = cx
                     && refreshed_state.running
                 {
-                    ctx.stop_container(&resource.spec.name, None).await?;
+                    ctx.stop_container(&resource.derived_spec.name, None)
+                        .await?;
                 }
 
-                ctx.remove_container(&resource.spec.name, None)
+                ctx.remove_container(&resource.derived_spec.name, None)
                     .await
                     .map_err(Into::into)
             }

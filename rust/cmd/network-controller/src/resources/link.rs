@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use anyhow::{Context as _, Result, anyhow, bail};
 use cos_proto_reconciler::{
+    Key,
     Phase,
     Resource,
     ResourceResponse,
@@ -31,12 +32,14 @@ pub type LinkResource = Resource<LinkSpec, LinkDerivedSpec, LinkState>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LinkSpec {
-    pub name: String,
     pub admin_up: bool,
     pub link_type: LinkSpecType,
 }
 
-type LinkDerivedSpec = ();
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkDerivedSpec {
+    pub name: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LinkSpecType {
@@ -148,6 +151,7 @@ impl LinkReconciler {
 impl LinkReconciler {
     pub async fn validate(
         &self,
+        key: Key,
         spec: LinkSpec,
         resource: Option<LinkResource>,
     ) -> Result<ValidateResponse<LinkDerivedSpec>> {
@@ -157,8 +161,10 @@ impl LinkReconciler {
             self.validate_new_spec(&spec).await?;
         }
 
+        let name = key.name.ok_or_else(|| anyhow!("missing name"))?;
+
         Ok(ValidateResponse {
-            derived_spec: (),
+            derived_spec: LinkDerivedSpec { name },
             children: vec![],
             dependencies: HashSet::new(),
         })
@@ -278,7 +284,8 @@ impl LinkReconciler {
     }
 
     async fn refresh(&self, resource: &LinkResource) -> Result<LinkContext> {
-        Self::get_link_info(&self.rtnl, resource.spec.name.clone()).await
+        Self::get_link_info(&self.rtnl, resource.derived_spec.name.clone())
+            .await
     }
 
     pub async fn get_link_info(
@@ -311,6 +318,7 @@ impl LinkReconciler {
         cx: LinkContext,
     ) -> Result<LinkPlan> {
         let spec = &resource.spec;
+        let derived_spec = &resource.derived_spec;
         match (&resource.phase, cx) {
             (Phase::Teardown, LinkContext::Link(link)) => {
                 Ok(LinkPlan::Delete(link))
@@ -322,7 +330,7 @@ impl LinkReconciler {
                         let msg = Self::link_plan_unspec(
                             spec,
                             None,
-                            LinkDummy::new(&spec.name),
+                            LinkDummy::new(&derived_spec.name),
                         );
                         msg.build()
                     }
@@ -330,7 +338,7 @@ impl LinkReconciler {
                         let msg = Self::link_plan_unspec(
                             spec,
                             None,
-                            LinkUnspec::new_with_name(&spec.name),
+                            LinkUnspec::new_with_name(&derived_spec.name),
                         );
                         msg.build()
                     }
@@ -342,21 +350,22 @@ impl LinkReconciler {
             (Phase::Running, LinkContext::Link(link)) => {
                 let (empty, msg) = match spec.link_type {
                     LinkSpecType::Dummy(_) => {
-                        let empty = LinkDummy::new(&spec.name).build();
+                        let empty = LinkDummy::new(&derived_spec.name).build();
                         let msg = Self::link_plan_unspec(
                             spec,
                             Some(&link),
-                            LinkDummy::new(&spec.name),
+                            LinkDummy::new(&derived_spec.name),
                         );
                         (empty, msg.build())
                     }
                     LinkSpecType::Unspec(_) => {
                         let empty =
-                            LinkUnspec::new_with_name(&spec.name).build();
+                            LinkUnspec::new_with_name(&derived_spec.name)
+                                .build();
                         let msg = Self::link_plan_unspec(
                             spec,
                             Some(&link),
-                            LinkUnspec::new_with_name(&spec.name),
+                            LinkUnspec::new_with_name(&derived_spec.name),
                         );
                         (empty, msg.build())
                     }
@@ -621,7 +630,6 @@ mod tests {
             let reconciler = LinkReconciler::new_with(handle);
 
             let spec = LinkSpec {
-                name: "dummy0".to_owned(),
                 admin_up: true,
                 link_type: LinkSpecType::Dummy(LinkSpecDummy {}),
             };
@@ -629,12 +637,14 @@ mod tests {
             let link = LinkResource {
                 id: Identity::Private(PrivateIdentity::Static(Key {
                     schema: String::new(),
-                    name: None,
+                    name: Some("dummy0".to_owned()),
                 })),
                 phase: Phase::Running,
                 status: Status::Unknown,
                 spec,
-                derived_spec: (),
+                derived_spec: LinkDerivedSpec {
+                    name: "dummy0".to_owned(),
+                },
                 state: None,
                 children: vec![],
                 dependencies: vec![],

@@ -8,11 +8,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context as _, Result, anyhow, bail};
 use cos_proto_reconciler::{
-    Phase,
-    Resource,
-    ResourceResponse,
-    Status,
-    ValidateResponse,
+    Key, Phase, Resource, ResourceResponse, Status, ValidateResponse,
 };
 use rustix::fs::{
     AtFlags,
@@ -103,6 +99,7 @@ impl StaticFileReconciler {
 impl StaticFileReconciler {
     pub async fn validate(
         &self,
+        _key: Key,
         spec: StaticFileSpec,
         resource: Option<StaticFileResource>,
     ) -> Result<ValidateResponse<StaticFileDerivedSpec>> {

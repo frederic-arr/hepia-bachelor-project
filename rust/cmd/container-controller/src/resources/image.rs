@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 use std::time::Duration;
 
-use anyhow::{Result, bail};
+use anyhow::{Result, anyhow, bail};
 use bollard::Docker;
 use bollard::query_parameters::{
     CreateImageOptionsBuilder,
@@ -10,7 +10,14 @@ use bollard::query_parameters::{
     RemoveImageOptionsBuilder,
 };
 use cos_proto_reconciler::{
-    Identity, Key, Phase, PrivateIdentity, Resource, ResourceResponse, Status, ValidateResponse,
+    Identity,
+    Key,
+    Phase,
+    PrivateIdentity,
+    Resource,
+    ResourceResponse,
+    Status,
+    ValidateResponse,
 };
 use cos_proto_state::v1::ReconcileNowRequest;
 use derive_builder::Builder;
@@ -30,15 +37,12 @@ pub struct ImageReconciler;
 
 pub type ImageResource = Resource<ImageSpec, ImageDerivedSpec, ImageState>;
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct ImageSpec {
-    pub name: String,
-}
+pub type ImageSpec = ();
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ImageDerivedSpec {
-    runtime: String,
-    image: String,
+    pub runtime: String,
+    pub image: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Builder, Deserialize, Serialize)]
@@ -70,6 +74,7 @@ impl Default for ImageReconciler {
 impl ImageReconciler {
     pub async fn validate(
         &self,
+        key: Key,
         spec: ImageSpec,
         resource: Option<ImageResource>,
     ) -> Result<ValidateResponse<ImageDerivedSpec>> {
@@ -79,7 +84,8 @@ impl ImageReconciler {
             self.validate_new_spec(&spec).await?;
         }
 
-        let Some((runtime, image)) = spec.name.split_once('#') else {
+        let name = key.name.ok_or_else(|| anyhow!("missing name"))?;
+        let Some((runtime, image)) = name.split_once('#') else {
             bail!("invalid image format");
         };
 
@@ -255,7 +261,12 @@ impl ImageReconciler {
 
                     let key = resource.id.key().clone();
                     let handle = tokio::spawn(async move {
-                        while stream.next().await.is_some() {}
+                        while let Some(v) = stream.next().await {
+                            if let Err(err) = v {
+                                tracing::error!("image: {err}");
+                                return;
+                            }
+                        }
 
                         let mut c = (*STATE_CLIENT).clone();
                         let raw = match serde_json::to_vec(&key) {

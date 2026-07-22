@@ -6,7 +6,15 @@ use std::time::{Duration, Instant};
 
 use anyhow::{Result, anyhow};
 use cos_proto_reconciler::{
-    Identity, Key, Phase, PrivateIdentity, Resource, ResourceResponse, Status, SubResourceCreate, ValidateResponse,
+    Identity,
+    Key,
+    Phase,
+    PrivateIdentity,
+    Resource,
+    ResourceResponse,
+    Status,
+    SubResourceCreate,
+    ValidateResponse,
 };
 use cos_proto_state::v1::ReconcileNowRequest;
 use cos_proto_state_client::v1::StateServiceClient;
@@ -43,12 +51,12 @@ static STATE_CLIENT: LazyLock<StateServiceClient<Channel>> =
         )
     });
 
+pub type DhcpSpec = ();
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct DhcpSpec {
+pub struct DhcpDerivedSpec {
     pub link: String,
 }
-
-type DhcpDerivedSpec = ();
 
 type DhcpWorkState = (CancellationToken, Option<DhcpState>);
 
@@ -75,6 +83,7 @@ impl DhcpReconciler {
 
     pub async fn validate(
         &self,
+        key: Key,
         spec: DhcpSpec,
         resource: Option<DhcpResource>,
     ) -> Result<ValidateResponse<DhcpDerivedSpec>> {
@@ -84,13 +93,17 @@ impl DhcpReconciler {
             self.validate_new_spec(&spec).await?;
         }
 
+        let name = key.name.ok_or_else(|| anyhow!("missing name"))?;
+
         Ok(ValidateResponse {
-            derived_spec: (),
+            derived_spec: DhcpDerivedSpec { link: name.clone() },
             children: vec![],
-            dependencies: HashSet::from([Identity::Private(PrivateIdentity::Dynamic(Key {
-                schema: "network:link".to_owned(),
-                name: Some(spec.link),
-            }))]),
+            dependencies: HashSet::from([Identity::Private(
+                PrivateIdentity::Dynamic(Key {
+                    schema: "network:link".to_owned(),
+                    name: Some(name),
+                }),
+            )]),
         })
     }
 
@@ -219,13 +232,14 @@ impl DhcpReconciler {
         Ok(ret_token)
     }
 
+    #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn reconcile(
         &self,
         resource: DhcpResource,
     ) -> Result<ResourceResponse<DhcpState>> {
         let linkinfo = LinkReconciler::get_link_info(
             &self.rtnl,
-            resource.spec.link.clone(),
+            resource.derived_spec.link.clone(),
         )
         .await;
 
@@ -252,7 +266,7 @@ impl DhcpReconciler {
 
         let mut clients = (*CLIENTS).lock().await;
         if matches!(resource.phase, Phase::Shutdown | Phase::Teardown) {
-            if let Some(client) = clients.remove(&resource.spec.link) {
+            if let Some(client) = clients.remove(&resource.derived_spec.link) {
                 client.0.cancel();
             }
 
@@ -265,12 +279,12 @@ impl DhcpReconciler {
         }
 
         let ret = clients
-            .entry(resource.spec.link.clone())
+            .entry(resource.derived_spec.link.clone())
             .or_try_insert_with(|| {
                 Self::create_dhcp_client(
                     link.address,
                     resource.id.key().clone(),
-                    resource.spec.link.clone(),
+                    resource.derived_spec.link.clone(),
                 )
                 .map(|v| (v, None))
             });
@@ -294,10 +308,13 @@ impl DhcpReconciler {
                 anyhow::Ok(SubResourceCreate::<Value> {
                     id: Identity::Private(PrivateIdentity::Dynamic(Key {
                         schema: "network:address".to_owned(),
-                        name: Some(format!("{}-dhcp", resource.spec.link)),
+                        name: Some(format!(
+                            "{}-dhcp",
+                            resource.derived_spec.link
+                        )),
                     })),
                     spec: serde_json::to_value(AddressSpec {
-                        dev: resource.spec.link.clone(),
+                        dev: resource.derived_spec.link.clone(),
                         address: v.address.into(),
                         prefix_len: v.prefix_len,
                     })?,
@@ -311,13 +328,19 @@ impl DhcpReconciler {
                 anyhow::Ok(SubResourceCreate::<Value> {
                     id: Identity::Private(PrivateIdentity::Dynamic(Key {
                         schema: "network:route".to_owned(),
-                        name: Some(format!("{}-dhcp", resource.spec.link)),
+                        name: Some(format!(
+                            "{}-dhcp",
+                            resource.derived_spec.link
+                        )),
                     })),
                     spec: serde_json::to_value(RouteSpec::Ipv4 {
                         destination: "0.0.0.0".parse()?,
                         prefix_len: 0,
                         gateway: v.router,
-                        parent: Some(format!("{}-dhcp", resource.spec.link)),
+                        parent: Some(format!(
+                            "{}-dhcp",
+                            resource.derived_spec.link
+                        )),
                     })?,
                 })
             })

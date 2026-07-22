@@ -77,6 +77,7 @@ impl RouteReconciler {
 impl RouteReconciler {
     pub async fn validate(
         &self,
+        _key: Key,
         spec: RouteSpec,
         resource: Option<RouteResource>,
     ) -> Result<ValidateResponse<RouteDerivedSpec>> {

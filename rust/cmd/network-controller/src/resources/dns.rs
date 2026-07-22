@@ -64,6 +64,7 @@ impl DnsReconciler {
 
     pub async fn validate(
         &self,
+        _key: Key,
         spec: DnsSpec,
         resource: Option<DnsResource>,
     ) -> Result<ValidateResponse<DnsDerivedSpec>> {
