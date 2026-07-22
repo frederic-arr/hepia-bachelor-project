@@ -11,6 +11,7 @@ tonic.workspace = true
 prost.workspace = true
 serde = { workspace = true, features = ["std", "derive"] }
 serde_json = { workspace = true, features = ["std"] }
+anyhow.workspace = true
 
 [build-dependencies]
 tonic-prost-build.workspace = true

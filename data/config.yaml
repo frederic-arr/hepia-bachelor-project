@@ -13,6 +13,14 @@ schema: network:dhcp
 name: eth0
 
 ---
+schema: network:route
+name: nowhere
+ipv4:
+  destination: 192.168.0.0
+  prefix_len: 24
+  gateway: 10.0.2.99
+
+---
 schema: container:runtime
 name: rootfull
 engine: podman

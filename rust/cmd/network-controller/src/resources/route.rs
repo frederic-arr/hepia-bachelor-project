@@ -30,6 +30,7 @@ pub struct RouteReconciler {
 pub type RouteResource = Resource<RouteSpec, RouteDerivedSpec, RouteState>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum RouteSpec {
     Ipv4 {
         destination: Ipv4Addr,
@@ -262,41 +263,29 @@ impl RouteReconciler {
                   be annoying"
     )]
     async fn refresh(&self, resource: &RouteResource) -> Result<RouteContext> {
+        // NOTE: Trying to filter here by adding a gateway or destination breaks
+        // everything for unknown reasons. Adding a destination seems to
+        // "resolve" the route
         let msg = match resource.spec {
             RouteSpec::Ipv4 {
-                destination,
-                prefix_len,
-                gateway,
+                destination: _,
+                prefix_len: _,
+                gateway: _,
                 parent: _,
-            } => {
-                let mut msg =
-                    RouteMessageBuilder::<Ipv4Addr>::new().gateway(gateway);
+            } => RouteMessageBuilder::<Ipv4Addr>::new()
+                .scope(RouteScope::Universe)
+                .table_id(libc::RT_TABLE_MAIN.into())
+                .build(),
 
-                msg = if prefix_len == 0 {
-                    msg.scope(RouteScope::Universe)
-                } else {
-                    msg.destination_prefix(destination, prefix_len)
-                };
-
-                msg.build()
-            }
             RouteSpec::Ipv6 {
-                destination,
-                prefix_len,
-                gateway,
+                destination: _,
+                prefix_len: _,
+                gateway: _,
                 parent: _,
-            } => {
-                let mut msg =
-                    RouteMessageBuilder::<Ipv6Addr>::new().gateway(gateway);
-
-                msg = if prefix_len == 0 {
-                    msg.scope(RouteScope::Universe)
-                } else {
-                    msg.destination_prefix(destination, prefix_len)
-                };
-
-                msg.build()
-            }
+            } => RouteMessageBuilder::<Ipv6Addr>::new()
+                .scope(RouteScope::Universe)
+                .table_id(libc::RT_TABLE_MAIN.into())
+                .build(),
         };
 
         let default = match resource.spec {
@@ -338,29 +327,28 @@ impl RouteReconciler {
                         _ => None,
                     });
 
-                let (destination, destination_prefix_len, gateway) =
-                    match resource.spec {
-                        RouteSpec::Ipv4 {
-                            destination,
-                            prefix_len,
-                            gateway,
-                            parent: _,
-                        } => (
-                            IpAddr::V4(destination),
-                            prefix_len,
-                            IpAddr::V4(gateway),
-                        ),
-                        RouteSpec::Ipv6 {
-                            destination,
-                            prefix_len,
-                            gateway,
-                            parent: _,
-                        } => (
-                            IpAddr::V6(destination),
-                            prefix_len,
-                            IpAddr::V6(gateway),
-                        ),
-                    };
+                let (destination, prefix_len, gateway) = match resource.spec {
+                    RouteSpec::Ipv4 {
+                        destination,
+                        prefix_len,
+                        gateway,
+                        parent: _,
+                    } => (
+                        IpAddr::V4(destination),
+                        prefix_len,
+                        IpAddr::V4(gateway),
+                    ),
+                    RouteSpec::Ipv6 {
+                        destination,
+                        prefix_len,
+                        gateway,
+                        parent: _,
+                    } => (
+                        IpAddr::V6(destination),
+                        prefix_len,
+                        IpAddr::V6(gateway),
+                    ),
+                };
 
                 let route_destination = match route_destination {
                     Some(r) => Some(r),
@@ -373,13 +361,24 @@ impl RouteReconciler {
                 let is_matching_destination =
                     route_destination == Some(destination);
 
-                let is_matching_len = route.header.destination_prefix_length
-                    == destination_prefix_len;
+                let is_matching_len =
+                    route.header.destination_prefix_length == prefix_len;
+
+                // dbg!(route);
+                // dbg!(&route_gw);
+                // dbg!(&gateway);
+                // dbg!(&route_destination);
+                // dbg!(&destination);
 
                 let is_matching_gw = route_gw == Some(gateway);
                 let is_matching = is_matching_destination
                     && is_matching_len
                     && is_matching_gw;
+
+                // dbg!(&is_matching_destination);
+                // dbg!(&is_matching_gw);
+                // dbg!(&is_matching_len);
+                // dbg!(&is_matching);
 
                 std::future::ready(is_matching)
             });
@@ -397,6 +396,8 @@ impl RouteReconciler {
             return Ok(RouteContext::NoRoute);
         };
 
+        // dbg!(&route);
+
         RouteState::try_from_message(&route).map(RouteContext::Route)
     }
 
@@ -410,20 +411,20 @@ impl RouteReconciler {
                 let msg = match resource.spec {
                     RouteSpec::Ipv4 {
                         destination,
-                        prefix_len: destination_prefix_len,
+                        prefix_len,
                         gateway,
                         parent: _,
                     } => RouteMessageBuilder::<Ipv4Addr>::new()
-                        .destination_prefix(destination, destination_prefix_len)
+                        .destination_prefix(destination, prefix_len)
                         .gateway(gateway)
                         .build(),
                     RouteSpec::Ipv6 {
                         destination,
-                        prefix_len: destination_prefix_len,
+                        prefix_len,
                         gateway,
                         parent: _,
                     } => RouteMessageBuilder::<Ipv6Addr>::new()
-                        .destination_prefix(destination, destination_prefix_len)
+                        .destination_prefix(destination, prefix_len)
                         .gateway(gateway)
                         .build(),
                 };
@@ -435,23 +436,24 @@ impl RouteReconciler {
                 let msg = match resource.spec {
                     RouteSpec::Ipv4 {
                         destination,
-                        prefix_len: destination_prefix_len,
+                        prefix_len,
                         gateway,
                         parent: _,
                     } => RouteMessageBuilder::<Ipv4Addr>::new()
-                        .destination_prefix(destination, destination_prefix_len)
+                        .destination_prefix(destination, prefix_len)
                         .gateway(gateway)
                         .build(),
                     RouteSpec::Ipv6 {
                         destination,
-                        prefix_len: destination_prefix_len,
+                        prefix_len,
                         gateway,
                         parent: _,
                     } => RouteMessageBuilder::<Ipv6Addr>::new()
-                        .destination_prefix(destination, destination_prefix_len)
+                        .destination_prefix(destination, prefix_len)
                         .gateway(gateway)
                         .build(),
                 };
+                // dbg!(&msg);
 
                 Ok(RoutePlan::Create(msg))
             }
@@ -509,12 +511,26 @@ mod tests {
     mod reconciliation {
         use cos_proto_reconciler::{Identity, Key};
         use rtnetlink::LinkDummy;
+        use rtnetlink::sys::AsyncSocket as _;
 
         use super::*;
 
         async fn create_reconciler() -> (RouteReconciler, RouteResource) {
-            let (conn, handle, _) =
+            create_reconciler_custom("10.0.2.15/24", "0.0.0.0/0", "10.0.2.2")
+                .await
+        }
+
+        async fn create_reconciler_custom(
+            addr: &str,
+            dest: &str,
+            gw: &str,
+        ) -> (RouteReconciler, RouteResource) {
+            let (mut conn, handle, _) =
                 new_connection_with_socket::<SmolSocket>().unwrap();
+            conn.socket_mut()
+                .socket_mut()
+                .set_netlink_get_strict_chk(true)
+                .unwrap();
             smol::spawn(conn).detach();
 
             handle
@@ -526,7 +542,11 @@ mod tests {
 
             handle
                 .address()
-                .add(2, "10.0.0.2".parse().unwrap(), 24)
+                .add(
+                    2,
+                    addr.split_once('/').unwrap().0.parse().unwrap(),
+                    addr.split_once('/').unwrap().1.parse().unwrap(),
+                )
                 .execute()
                 .await
                 .unwrap();
@@ -534,9 +554,9 @@ mod tests {
             let reconciler = RouteReconciler::new_with(handle);
 
             let spec = RouteSpec::Ipv4 {
-                destination: "0.0.0.0".parse().unwrap(),
-                prefix_len: 0,
-                gateway: "10.0.0.1".parse().unwrap(),
+                destination: dest.split_once('/').unwrap().0.parse().unwrap(),
+                prefix_len: dest.split_once('/').unwrap().1.parse().unwrap(),
+                gateway: gw.parse().unwrap(),
                 parent: None,
             };
 
@@ -581,7 +601,7 @@ mod tests {
             // 1: the 10.0.0.2/32 added by setting an address
             // 2: the 10.0.0.255/32 added by setting an address
             // 3: *our* route
-            assert_eq!(count, 4);
+            assert_eq!(count, 1);
         }
 
         #[test]
@@ -609,7 +629,49 @@ mod tests {
             );
 
             // See [`create_route_should_succeed`] for an explanation
-            assert_eq!(count, 4);
+            assert_eq!(count, 1);
+        }
+
+        #[test]
+        #[isolate]
+        fn non_aggregated_should_succeed() {
+            let (reconciler, mut addr) =
+                smol::block_on(create_reconciler_custom(
+                    "10.0.2.15/24",
+                    "192.168.0.0/24",
+                    "10.0.2.2",
+                ));
+
+            smol::block_on(
+                reconciler
+                    .rtnl
+                    .address()
+                    .add(2, "0.0.0.0".parse().unwrap(), 0)
+                    .execute(),
+            )
+            .unwrap();
+
+            let result =
+                smol::block_on(reconciler.reconcile(addr.clone())).unwrap();
+            assert_matches!(result.status, Status::Ready);
+
+            addr.status = Status::Unknown;
+            let result = smol::block_on(reconciler.reconcile(addr)).unwrap();
+            assert_matches!(result.status, Status::Ready);
+
+            let _ = result.state.unwrap();
+
+            let count = smol::block_on(
+                reconciler
+                    .rtnl
+                    .route()
+                    .get(RouteMessageBuilder::<Ipv4Addr>::new().build())
+                    .execute()
+                    .count(),
+            );
+
+            // See [`create_route_should_succeed`] for an explanation
+            assert_eq!(count, 1);
         }
 
         #[test]
@@ -636,7 +698,7 @@ mod tests {
             );
 
             // See [`create_route_should_succeed`] for an explanation
-            assert_eq!(count, 3);
+            assert_eq!(count, 0);
         }
     }
 }

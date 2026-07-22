@@ -45,7 +45,6 @@ pub struct InstanceDerivedSpec {
 #[builder(pattern = "mutable")]
 pub struct InstanceState {
     pub id: String,
-    pub name: String,
     pub image: String,
     pub running: bool,
     pub cmd: String,
@@ -138,7 +137,7 @@ impl InstanceReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}").into()),
+                    status: Status::Error(format!("refresh: {err:#}").into()),
                     state: resource.state,
                     children: vec![],
                     dependencies: Self::get_deps(&resource.spec),
@@ -147,11 +146,12 @@ impl InstanceReconciler {
         };
 
         let state = &cx;
+
         let plan = match self.plan(&resource, cx.as_ref()).await {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}").into()),
+                    status: Status::Error(format!("plan: {err:#}").into()),
                     state: state.clone(),
                     children: vec![],
                     dependencies: Self::get_deps(&resource.spec),
@@ -164,7 +164,7 @@ impl InstanceReconciler {
                 Ok(v) => v,
                 Err(err) => {
                     return Ok(ResourceResponse {
-                        status: Status::Error(format!("{err:#}").into()),
+                        status: Status::Error(format!("apply: {err:#}").into()),
                         state: state.clone(),
                         children: vec![],
                         dependencies: Self::get_deps(&resource.spec),

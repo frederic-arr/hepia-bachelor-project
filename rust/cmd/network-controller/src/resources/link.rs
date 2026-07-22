@@ -33,6 +33,8 @@ pub type LinkResource = Resource<LinkSpec, LinkDerivedSpec, LinkState>;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LinkSpec {
     pub admin_up: bool,
+
+    #[serde(default)]
     pub link_type: LinkSpecType,
 }
 

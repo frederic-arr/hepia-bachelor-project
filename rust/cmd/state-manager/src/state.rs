@@ -419,7 +419,7 @@ impl StateManager {
                 )?;
 
             modified_fut.spawn(async move {
-                tracing::info!(key = ?resource.id.key(), "validating modification");
+                tracing::info!(key = %resource.id, "validating modification");
                 let request = tonic::Request::new(ValidateRequest {
                     raw: serde_json::to_vec(&(
                         resource.clone(),

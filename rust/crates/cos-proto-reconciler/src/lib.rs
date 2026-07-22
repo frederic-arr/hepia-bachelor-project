@@ -3,6 +3,7 @@
 use std::collections::HashSet;
 use std::fmt::Write as _;
 use std::hash::Hash;
+use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -20,7 +21,7 @@ pub mod v1 {
     tonic::include_proto!("containeros.reconciler.v1");
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Key {
     pub schema: String,
     pub name: Option<String>,
@@ -125,6 +126,25 @@ pub struct ValidateResponse<U> {
     pub dependencies: HashSet<Identity>,
 }
 
+impl Serialize for Key {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for Key {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        s.parse().map_err(serde::de::Error::custom)
+    }
+}
+
 pub macro assert_reconciliation_error($status:expr, $pat:expr) {
     ::std::assert_matches!($status, Status::Error(_));
     let Status::Error(err) = $status else {
@@ -217,5 +237,24 @@ where
 {
     fn from(value: T) -> Self {
         Self::Other(value.to_string())
+    }
+}
+
+impl FromStr for Key {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let key = match s.split_once('/') {
+            Some((schema, name)) => Self {
+                schema: schema.to_owned(),
+                name: Some(name.to_owned()),
+            },
+            None => Self {
+                schema: s.to_owned(),
+                name: None,
+            },
+        };
+
+        Ok(key)
     }
 }

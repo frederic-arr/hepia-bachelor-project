@@ -37,7 +37,8 @@ pub struct ImageReconciler;
 
 pub type ImageResource = Resource<ImageSpec, ImageDerivedSpec, ImageState>;
 
-pub type ImageSpec = ();
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ImageSpec {}
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ImageDerivedSpec {

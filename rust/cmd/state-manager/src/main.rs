@@ -16,7 +16,13 @@ use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use cos_proto_state::v1::{ReconcileNowRequest, ReconcileNowResponse};
 use cos_proto_state_server::v1::{StateService, StateServiceServer};
-use network_controller::{DnsSpec, LinkSpec, LinkSpecType, LinkSpecUnspec};
+use network_controller::{
+    DhcpSpec,
+    DnsSpec,
+    LinkSpec,
+    LinkSpecType,
+    LinkSpecUnspec,
+};
 use serde_json::Value;
 use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
@@ -60,7 +66,7 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
                 schema: "network:dhcp".to_owned(),
                 name: Some("eth0".to_owned()),
             })),
-            spec: serde_json::to_value(()).unwrap(),
+            spec: serde_json::to_value(DhcpSpec {}).unwrap(),
         },
         // SubResourceCreate::<Value> {
         //     id: Identity::Private(PrivateIdentity::Static(Key {
@@ -68,20 +74,19 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
         //         name: Some("default".to_owned()),
         //     })),
         //     spec: serde_json::to_value(RuntimeSpec {
-        //         name: "default".to_owned(),
         //         engine: "podman".to_owned(),
         //         uid: 0,
         //         gid: 0,
         //         port: Some(49453),
         //         depends_on: HashSet::from([
-        //             Identity::Private(PrivateIdentity::Dynamic(Key {
+        //             Key {
         //                 schema: "network:route".to_owned(),
         //                 name: Some("eth0-dhcp".to_owned()),
-        //             })),
-        //             Identity::Private(PrivateIdentity::Dynamic(Key {
+        //             },
+        //             Key {
         //                 schema: "network:dns".to_owned(),
         //                 name: None,
-        //             })),
+        //             },
         //         ]),
         //     })
         //     .unwrap(),
@@ -92,7 +97,7 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
         //         name: Some("demo".to_owned()),
         //     })),
         //     spec: serde_json::to_value(InstanceSpec {
-        //         name: "demo".to_owned(),
+        //         // name: "demo".to_owned(),
         //         image: "docker.io/library/busybox:latest".to_owned(),
         //         runtime: "default".to_owned(),
         //         running: true,

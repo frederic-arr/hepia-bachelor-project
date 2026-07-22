@@ -51,7 +51,8 @@ static STATE_CLIENT: LazyLock<StateServiceClient<Channel>> =
         )
     });
 
-pub type DhcpSpec = ();
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct DhcpSpec {}
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DhcpDerivedSpec {

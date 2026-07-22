@@ -13,7 +13,7 @@ use cos_proto_reconciler::v1::{
     ValidateRequest,
     ValidateResponse,
 };
-use cos_proto_reconciler::{Key, Resource, SubResourceCreate};
+use cos_proto_reconciler::{Resource, SubResourceCreate};
 use cos_proto_reconciler_server::v1::{
     ReconcilerService,
     ReconcilerServiceServer,

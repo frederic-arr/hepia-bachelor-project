@@ -1,6 +1,5 @@
 #![expect(clippy::print_stdout, reason = "TODO")]
 
-use std::fs::File;
 use std::path::PathBuf;
 use std::str::FromStr as _;
 
@@ -13,7 +12,13 @@ use cos_proto_api::v1::{
     ReconcileNowRequest,
 };
 use cos_proto_api_client::v1::ApiServiceClient;
-use cos_proto_reconciler::{Key, TerminalResource};
+use cos_proto_reconciler::{
+    Identity,
+    Key,
+    PrivateIdentity,
+    SubResourceCreate,
+    TerminalResource,
+};
 use itertools::Itertools as _;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -87,7 +92,16 @@ async fn main() -> Result<()> {
                 std::fs::File::open(config)?,
             )
             .map(ConfigResource::deserialize)
-            .collect::<std::result::Result<Vec<_>, _>>()?;
+            .collect::<std::result::Result<Vec<_>, _>>()?
+            .into_iter()
+            .map(|v| SubResourceCreate {
+                id: Identity::Private(PrivateIdentity::Static(Key {
+                    schema: v.schema,
+                    name: v.name,
+                })),
+                spec: v.spec,
+            })
+            .collect::<Vec<_>>();
 
             let request = Request::new(PushConfigRequest {
                 raw: serde_json::to_vec(&configs)?,
