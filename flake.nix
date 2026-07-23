@@ -58,8 +58,8 @@
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox pkgs.cacert ];
-          pathsToLink = [ "/bin" "/lib" "/etc" ];
+          paths  = [ supervisor netmgr conmgr sysmgr pkgs.podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.e2fsprogs pkgs.util-linux pkgs.limine ];
+          pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 
         # Inspired by https://github.com/NixOS/nixpkgs/blob/26.05/nixos/lib/make-squashfs.nix
@@ -69,7 +69,7 @@
         rootfs = pkgs.runCommand "mkrootfs" { } ''
           closureInfo=${pkgs.closureInfo { rootPaths = [ rootfsEnv ]; }}
           mkdir -p source/nix/store
-          mkdir -p source/{bin,lib}
+          mkdir -p source/{bin,lib,share}
           mkdir -p source/{dev,proc,sys}
           mkdir -p source/{etc,home,media,mnt,opt,run,sbin,srv,tmp,usr,var}
 
@@ -115,7 +115,7 @@
 
         sysmgr = rustFn {
           package = "system-manager";
-          deps = [ "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-client" ];
+          deps = [ "invariant-macros" "cos-api-reconciler" "cos-api-reconciler-client" "cos-api-api" "cos-api-api-server" "linux-utils" ];
         };
 
         qemu-boot-x86_64 = pkgs.runCommand "boot-x86_64" { } ''
@@ -143,7 +143,7 @@
           set timeout=5
 
           menuentry "ContainerOS" {
-            linux  /boot/bzImage init=/init console=ttyS0,115200
+            linux  /boot/bzImage init=/init console=ttyS0,115200 cos.maintenance
             initrd /boot/initrd
           }
           EOF

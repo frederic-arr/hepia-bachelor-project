@@ -21,7 +21,7 @@ impl Vm {
         let vm = Self::create();
         Self::wait_for_str(
             &vm.console_socket,
-            "contianer-manager listening on 127.0.0.1:50053",
+            "api listening on 0.0.0.0:50000",
             Duration::from_secs(10),
         )
         .unwrap();

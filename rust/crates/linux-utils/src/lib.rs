@@ -207,3 +207,9 @@ where
     )
     .map_err(Into::into)
 }
+
+#[must_use]
+pub fn is_maintenance() -> bool {
+    let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap();
+    cmdline.contains("cos.maintenance")
+}
