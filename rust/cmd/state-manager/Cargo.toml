@@ -21,6 +21,12 @@ tokio-util.workspace = true
 tonic = { workspace = true, features = ["channel"] }
 serde_json = { workspace = true, features = ["std"] }
 tracing.workspace = true
-tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi", "env-filter"] }
+tracing-subscriber = { workspace = true, features = [
+    "std",
+    "fmt",
+    "ansi",
+    "env-filter",
+] }
 itertools = { workspace = true, features = ["use_std"] }
 thiserror.workspace = true
+argon2 = { workspace = true, features = ["alloc", "rand", "password-hash"] }

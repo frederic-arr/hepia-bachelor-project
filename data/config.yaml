@@ -1,4 +1,10 @@
 ---
+schema: api
+auth:
+  # hepia2026demo
+  password: $argon2id$v=19$m=16,t=2,p=1$c3I3UjliaUZ4QXc5aGd3OQ$BYMQWM+Hj/21PCj0NIeIhQ
+
+---
 schema: network:dns
 nameservers:
   - 9.9.9.9

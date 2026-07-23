@@ -124,6 +124,10 @@ impl StateManager {
         key: Key,
         cancellation_token: &CancellationToken,
     ) -> Result<Option<Instant>> {
+        if key.schema == "api" {
+            return Ok(None);
+        }
+
         tracing::info!("attempting to reconcile {key}");
         let max_duration = Duration::from_secs(5);
         let deadline = Instant::now() + max_duration;
@@ -390,6 +394,19 @@ impl StateManager {
         let mut modified_fut = JoinSet::new();
 
         for resource in added {
+            if resource.id.schema() == "api" {
+                added_fut.spawn(async {
+                    let response = ValidateResponse::<Value> {
+                        derived_spec: Value::Null,
+                        children: vec![],
+                        dependencies: HashSet::new(),
+                    };
+
+                    Ok((resource, response))
+                });
+                continue;
+            }
+
             let mut client =
                 clients.get(resource.id.schema()).cloned().ok_or_else(
                     || anyhow!("no clients for {}", resource.id.schema()),
@@ -413,6 +430,19 @@ impl StateManager {
         }
 
         for resource in modified {
+            if resource.id.schema() == "api" {
+                added_fut.spawn(async {
+                    let response = ValidateResponse::<Value> {
+                        derived_spec: Value::Null,
+                        children: vec![],
+                        dependencies: HashSet::new(),
+                    };
+
+                    Ok((resource, response))
+                });
+                continue;
+            }
+
             let mut client =
                 clients.get(resource.id.schema()).cloned().ok_or_else(
                     || anyhow!("no clients for {}", resource.id.schema()),

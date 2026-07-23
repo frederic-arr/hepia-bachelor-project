@@ -31,6 +31,9 @@ struct Cli {
     #[arg(short, long)]
     server: String,
 
+    #[arg(short, long)]
+    password: Option<String>,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -84,7 +87,11 @@ async fn main() -> Result<()> {
         Commands::Reconcile { name, schema } => {
             let raw = serde_json::to_vec(&Key { name, schema })?;
 
-            let request = Request::new(ReconcileNowRequest { raw });
+            let mut request = Request::new(ReconcileNowRequest { raw });
+            if let Some(password) = cli.password {
+                request.metadata_mut().append("x-auth", password.parse()?);
+            }
+
             let _ = client.reconcile_now(request).await?;
         }
         Commands::Push { config } => {
@@ -103,14 +110,21 @@ async fn main() -> Result<()> {
             })
             .collect::<Vec<_>>();
 
-            let request = Request::new(PushConfigRequest {
+            let mut request = Request::new(PushConfigRequest {
                 raw: serde_json::to_vec(&configs)?,
             });
+            if let Some(password) = cli.password {
+                request.metadata_mut().append("x-auth", password.parse()?);
+            }
 
             client.push_config(request).await?;
         }
         Commands::List {} => {
-            let request = Request::new(ListResourcesRequest { raw: vec![] });
+            let mut request = Request::new(ListResourcesRequest { raw: vec![] });
+            if let Some(password) = cli.password {
+                request.metadata_mut().append("x-auth", password.parse()?);
+            }
+
             let raw = client.list_resources(request).await?.into_inner().raw;
             let resources = serde_json::from_slice::<
                 Vec<TerminalResource<Value, Value, Value>>,
@@ -141,7 +155,11 @@ async fn main() -> Result<()> {
         Commands::Get { name, schema } => {
             let raw = serde_json::to_vec(&Key { name, schema })?;
 
-            let request = Request::new(GetResourceRequest { raw });
+            let mut request = Request::new(GetResourceRequest { raw });
+            if let Some(password) = cli.password {
+                request.metadata_mut().append("x-auth", password.parse()?);
+            }
+
             let raw = client.get_resource(request).await?.into_inner().raw;
             let resource = serde_json::from_slice::<
                 TerminalResource<Value, Value, Value>,

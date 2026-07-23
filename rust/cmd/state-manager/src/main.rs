@@ -10,7 +10,7 @@ use std::hash_map;
 use std::sync::Arc;
 use std::time::Instant;
 
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use cos_proto_api_server::v1::ApiServiceServer;
 use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
@@ -26,19 +26,30 @@ use network_controller::{
 use serde_json::Value;
 use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
+use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
 use tonic::transport::{Channel, Endpoint, Server};
 use tonic::{Request, Response, Status};
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
 
-use crate::api::ApiServiceThing;
+use crate::api::{ApiAuth, ApiConfig, ApiServer};
 use crate::queue::Queue;
 use crate::state::StateManager;
 
 #[expect(clippy::unwrap_used, reason = "this is early in the program")]
 fn default_config() -> Vec<SubResourceCreate<Value>> {
     vec![
+        SubResourceCreate::<Value> {
+            id: Identity::Private(PrivateIdentity::Static(Key {
+                schema: "api".to_owned(),
+                name: None,
+            })),
+            spec: serde_json::to_value(ApiConfig {
+                auth: ApiAuth::None,
+            })
+            .unwrap(),
+        },
         SubResourceCreate::<Value> {
             id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "network:dns".to_owned(),
@@ -194,6 +205,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
     tracing::info!(elapsed = ?start.elapsed(), "default config created");
 
+    let config = resources
+        .get(&Key {
+            schema: "api".to_owned(),
+            name: None,
+        })
+        .context("an api configuration must exist")?
+        .clone();
+
     let sm = StateManager::new(clients, resources, queue).await;
     let ct = CancellationToken::new();
     let reconciliation_ct = ct.clone();
@@ -222,8 +241,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr2 = "0.0.0.0:50000".parse()?;
     let api = Server::builder()
-        .add_service(ApiServiceServer::new(ApiServiceThing {
+        .add_service(ApiServiceServer::new(ApiServer {
             sm: Arc::clone(&sm),
+            config: Mutex::new(serde_json::from_value(config.spec)?),
         }))
         .serve(addr2);
 
