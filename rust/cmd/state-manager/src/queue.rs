@@ -5,11 +5,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use itertools::Itertools as _;
-use tokio::sync::{Notify, RwLock, RwLockWriteGuard};
+use tokio::sync::{Mutex, MutexGuard, Notify};
 
 #[derive(Debug)]
 pub struct Queue<K> {
-    queue: RwLock<QueueInner<K>>,
+    queue: Mutex<QueueInner<K>>,
     notify: Arc<Notify>,
 }
 
@@ -24,7 +24,7 @@ struct QueueInner<K> {
     reason = "this is the guard's lifetime"
 )]
 struct QueueInnerGuard<'a, K> {
-    guard: RwLockWriteGuard<'a, QueueInner<K>>,
+    guard: MutexGuard<'a, QueueInner<K>>,
     notify: Arc<Notify>,
     earliest: Option<Instant>,
 }
@@ -60,7 +60,7 @@ where
 {
     #[must_use]
     async fn write(&self) -> QueueInnerGuard<'_, K> {
-        let guard = self.queue.write().await;
+        let guard = self.queue.lock().await;
         let earliest = guard.queue.first_key_value().map(|(k, _)| *k);
         QueueInnerGuard {
             notify: Arc::clone(&self.notify),
@@ -71,7 +71,7 @@ where
 
     pub fn new() -> Self {
         Self {
-            queue: RwLock::new(QueueInner {
+            queue: Mutex::new(QueueInner {
                 scheduled: HashMap::new(),
                 queue: BTreeMap::new(),
             }),
@@ -104,6 +104,10 @@ where
     }
 
     pub async fn schedule_at_bulk(&self, keys: HashSet<K>, when: Instant) {
+        if keys.is_empty() {
+            return;
+        }
+
         let dkeys = keys.iter().map(|v| format!("{v}")).collect_vec();
         let dwhen = when.duration_since(Instant::now());
         tracing::trace!(keys = ?dkeys, when = ?dwhen, "scheduling keys in bulk");
@@ -118,17 +122,13 @@ where
             }
         }
 
-        if keys.is_empty() {
-            return;
-        }
-
         guard.queue.entry(when).or_default().extend(keys.clone());
         guard.scheduled.extend(keys.into_iter().map(|k| (k, when)));
     }
 
     async fn earliest(&self) -> Option<Instant> {
         self.queue
-            .read()
+            .lock()
             .await
             .queue
             .first_key_value()
@@ -139,7 +139,7 @@ where
         &self,
         at: Instant,
     ) -> BTreeMap<Instant, HashSet<K>> {
-        let mut guard = self.queue.write().await;
+        let mut guard = self.queue.lock().await;
 
         let mut exp = guard.queue.split_off(&(at + Duration::from_nanos(1)));
         std::mem::swap(&mut guard.queue, &mut exp);
