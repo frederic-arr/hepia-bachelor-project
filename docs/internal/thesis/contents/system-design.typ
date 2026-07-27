@@ -493,19 +493,6 @@ réconciliation est toujours verrouillées, ce qui mettrai en suspend la
 modification de celle-ci jusqu'à ce que la réconciliation soit terminée. Pour
 éviter les problèmes, une durée maximal de réconciliation est imposé.
 
-== Initialisation du système
-#todo[Initialisation du système][
-    - Comment est-ce qu'un contrôleur est associé à une ressource? Durant la
-        phase de démarrage, l'orchestrateur va faire un appel API particulier
-        qui va retourner tous les types qu'un contrôleur sait gérer
-]
-#include "../diagrams/sysinit.typ"
-
-== Démarrage des processus
-#todo[Démarrage des processus]
-#include "../diagrams/procstart.typ"
-
-
 /*
 == Ressources
 - Une ressource est composé d'une identité (schema, nom et type [dynamique,
