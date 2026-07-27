@@ -1,5 +1,5 @@
 ---
-# $schema: https://jassielof.github.io/json-schemas/docs/hayagriva.schema.json
+# $schema: https://raw.githubusercontent.com/mkdjr/hayagriva/refs/heads/main/hayagriva.schema.json
 
 # Mattermost: Buildroot par F. Gluck
 # Mattermost: Solution sécurisée pour infrastructure nexus par G. Pin
@@ -1415,3 +1415,51 @@ bib-owasp-devguide-secure-by-default:
   url:
     value: https://devguide.owasp.org/en/04-design/02-web-app-checklist/01-secure-by-default/
     date: 2026-03-09
+
+bib-rust-std-btreemap:
+  type: web
+  title: Struct BTreeMap
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/collections/struct.BTreeMap.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-rust-std-hashset:
+  type: web
+  title: Struct HashSet
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/collections/struct.HashSet.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-rust-std-mutex:
+  type: web
+  title: Struct Mutex
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/sync/struct.Mutex.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-rust-std-drop:
+  type: web
+  title: Trait Drop
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/ops/trait.Drop.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html

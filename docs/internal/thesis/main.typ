@@ -70,3 +70,5 @@
 
 #set heading(numbering: none)
 #include "contents/conclusion.typ"
+
+#bibliography("../bibliography.yaml")

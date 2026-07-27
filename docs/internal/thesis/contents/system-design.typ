@@ -449,7 +449,7 @@ ressource ne peut pas être complètement retirée du système tant qu'elle poss
 d'autres ressources ou des dépendances entrantes. Dans le cas des dépendances
 entrantes, la suppression effective sera bloquée jusqu'à ce qu'il n'y ait plus
 aucune dépendance. Si une dépendance à une ressource en cours de suppression, ce
-lien de dépendance ne sera pas sauvegarder par le système. De même, si la
+lien de dépendance ne sera pas sauvegardé par le système. De même, si la
 spécification d'une ressource en cours de suppresion est modifiée, cette
 modification sera elle aussi ignorée. Le système étant déclaratif, si cette
 nouvelle version de la spécification persite à être déclarée par une autre
@@ -504,3 +504,36 @@ modification de celle-ci jusqu'à ce que la réconciliation soit terminée. Pour
 == Démarrage des processus
 #todo[Démarrage des processus]
 #include "../diagrams/procstart.typ"
+
+
+/*
+== Ressources
+- Une ressource est composé d'une identité (schema, nom et type [dynamique,
+    statique, etc.])
+- d'une phase: running, shutdown, ou teardown: la phase running est la phase par
+    défaut, elle indique simplement que la ressource peut être activement
+    réconciliée. La pahse shutdown indique que la ressource doit être arrêtée
+    sans être supprimée. Le système étant immuable et ephémère, la majorité des
+    ressources ignores cette phase étant donné que la ressource est entièrement
+    supprimée au redémarrage. Le cas d'utilisation est principalement pour les
+    conteneurs. Enfin la phase teardown indique que la ressource doit être
+    supprimée.
+- d'un status: Inconnu, erreur, pas prêt, prêt
+- d'une spécification
+- d'une spécification dérivée
+- d'un état
+- de dépendances
+- d'enfants
+- La distinction de spécification vs spec dérivée est que: la spécification est
+    fournie par le propriétaire de la ressource, tandis que la spécification
+    dérivée est dérivée a partir de la spec normal, dès lors, la spec dérivée ne
+    peut changer QUE lorsque la spec change, et il est garanti que la spec
+    dérivée existe; si sa dérivatione st impossible, alors la nouvelle
+    spécification est rejetée. Cela existe car d'une part, il n'existe aucune
+    garantie que l'état soit sauvegardé et il faut le traiter comme un champ
+    optionel (en effet, lors de la première réconciliation, l'état n'existe
+    pas). En outre recalculer cela a chaque fois peut être fastidieux, par
+    exemple le hash d'un fichier ou autre.
+- Toute erreur de validation ou dérivation entraine le rejet de la configuration
+    et la spécification ne sera pas enregistrée.
+*/

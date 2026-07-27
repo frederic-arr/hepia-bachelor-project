@@ -41,15 +41,19 @@
         [
             #std.figure(
                 caption: flex-caption(caption, [
-                    #caption \
-                    #note \
-                    #if source != none {
-                        text(style: "italic")[Source: #if (
-                                type(source) == label
-                            ) [
-                                tiré de #cite(source, form: "prose")
-                            ] else { source }]
-                    }
+                    #caption
+
+                    #if note != none [
+                        #note
+                    ]
+
+                    #if source != none [
+                        _Source_: #if (
+                            type(source) == label
+                        ) [
+                            tiré de #cite(source, form: "prose")
+                        ] else { source }
+                    ]
                 ]),
                 [#body],
             ) #label
