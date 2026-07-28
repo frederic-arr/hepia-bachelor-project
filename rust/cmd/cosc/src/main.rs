@@ -1,29 +1,14 @@
 #![expect(clippy::print_stdout, reason = "TODO")]
 
 use std::path::PathBuf;
-use std::str::FromStr as _;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use cos_proto_api::v1::{
-    GetResourceRequest,
-    ListResourcesRequest,
-    PushConfigRequest,
-    ReconcileNowRequest,
-};
-use cos_proto_api_client::v1::ApiServiceClient;
-use cos_proto_reconciler::{
-    Identity,
-    Key,
-    PrivateIdentity,
-    SubResourceCreate,
-    TerminalResource,
-};
+use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
+use cosc::ConfigResource;
 use itertools::Itertools as _;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use tonic::Request;
-use tonic::transport::Endpoint;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -56,15 +41,6 @@ enum Commands {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ConfigResource {
-    pub schema: String,
-    pub name: Option<String>,
-
-    #[serde(flatten)]
-    pub spec: Value,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DisplayResource {
     pub schema: String,
     pub name: Option<String>,
@@ -80,19 +56,11 @@ pub struct DisplayResource {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let conn = Endpoint::from_str(&cli.server)?.connect_lazy();
-    let mut client = ApiServiceClient::new(conn);
+    let mut client = cosc::CosClient::new(&cli.server, cli.password)?;
 
     match cli.command {
         Commands::Reconcile { name, schema } => {
-            let raw = serde_json::to_vec(&Key { name, schema })?;
-
-            let mut request = Request::new(ReconcileNowRequest { raw });
-            if let Some(password) = cli.password {
-                request.metadata_mut().append("x-auth", password.parse()?);
-            }
-
-            let _ = client.reconcile_now(request).await?;
+            client.reconcile(&Key { schema, name }).await?;
         }
         Commands::Push { config } => {
             let configs = serde_yaml::Deserializer::from_reader(
@@ -110,61 +78,37 @@ async fn main() -> Result<()> {
             })
             .collect::<Vec<_>>();
 
-            let mut request = Request::new(PushConfigRequest {
-                raw: serde_json::to_vec(&configs)?,
-            });
-            if let Some(password) = cli.password {
-                request.metadata_mut().append("x-auth", password.parse()?);
-            }
-
-            client.push_config(request).await?;
+            client.push(&configs).await?;
         }
         Commands::List {} => {
-            let mut request = Request::new(ListResourcesRequest { raw: vec![] });
-            if let Some(password) = cli.password {
-                request.metadata_mut().append("x-auth", password.parse()?);
-            }
-
-            let raw = client.list_resources(request).await?.into_inner().raw;
-            let resources = serde_json::from_slice::<
-                Vec<TerminalResource<Value, Value, Value>>,
-            >(&raw)?
-            .into_iter()
-            .map(|v| DisplayResource {
-                schema: v.id.schema().clone(),
-                name: v.id.key().name.clone(),
-                spec: v.spec,
-                derived: v.derived_spec,
-                state: v.state,
-                dependencies: v
-                    .dependencies
-                    .into_iter()
-                    .map(|v| format!("{v}"))
-                    .collect_vec(),
-                children: v
-                    .children
-                    .into_iter()
-                    .map(|v| format!("{v}"))
-                    .collect_vec(),
-            })
-            .collect_vec();
+            let resources = client.list().await?;
+            let resources = resources
+                .into_iter()
+                .map(|v| DisplayResource {
+                    schema: v.id.schema().clone(),
+                    name: v.id.key().name.clone(),
+                    spec: v.spec,
+                    derived: v.derived_spec,
+                    state: v.state,
+                    dependencies: v
+                        .dependencies
+                        .into_iter()
+                        .map(|v| format!("{v}"))
+                        .collect_vec(),
+                    children: v
+                        .children
+                        .into_iter()
+                        .map(|v| format!("{v}"))
+                        .collect_vec(),
+                })
+                .collect_vec();
 
             let v = serde_json::to_string(&resources)?;
             println!("{v}");
         }
         Commands::Get { name, schema } => {
-            let raw = serde_json::to_vec(&Key { name, schema })?;
-
-            let mut request = Request::new(GetResourceRequest { raw });
-            if let Some(password) = cli.password {
-                request.metadata_mut().append("x-auth", password.parse()?);
-            }
-
-            let raw = client.get_resource(request).await?.into_inner().raw;
-            let resource = serde_json::from_slice::<
-                TerminalResource<Value, Value, Value>,
-            >(&raw)
-            .map(|v| DisplayResource {
+            let resource = client.get_resource(&Key { name, schema }).await;
+            let resource = resource.map(|v| DisplayResource {
                 schema: v.id.schema().clone(),
                 name: v.id.key().name.clone(),
                 spec: v.spec,

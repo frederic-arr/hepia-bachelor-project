@@ -12,6 +12,8 @@ let
       ./.cargo
       ./Cargo.toml
       ./Cargo.lock
+      ./e2e/Cargo.toml
+      ./e2e/src/lib.rs
       (craneLib.fileset.commonCargoSources ./cmd/${package})
     ] ++ map (p: craneLib.fileset.commonCargoSources ./${p}) deps);
   };

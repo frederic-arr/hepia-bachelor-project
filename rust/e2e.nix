@@ -2,7 +2,11 @@
 { iso }:
 
 let
-  deps = [ "invariant-macros" ];
+  deps = [
+    "cos-proto-reconciler"
+    "cos-proto-api"
+    "cos-proto-api-client"
+  ];
   craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
   src = craneLib.cleanCargoSource ./.;
   protoSrc = pkgs.lib.cleanSource ./../proto;
@@ -14,7 +18,8 @@ let
       ./.config
       ./Cargo.toml
       ./Cargo.lock
-      (craneLib.fileset.commonCargoSources ./cmd/e2e-tests)
+      ./e2e # don't filter because we might have non-rust stuff that's still important such as fixtures
+      ./cmd/cosc
     ] ++ map (p: craneLib.fileset.commonCargoSources ./crates/${p}) deps);
   };
 
@@ -45,12 +50,12 @@ in
 craneLib.cargoNextest (commonArgs // {
   inherit cargoArtifacts;
   inherit (craneLib.crateNameFromCargoToml {
-    cargoToml = ./cmd/e2e-tests/Cargo.toml;
+    cargoToml = ./e2e/Cargo.toml;
   }) version;
   src = crateSrc;
-  pname = "e2e-tests";
+  pname = "e2e";
 
-  cargoExtraArgs = "--offline -p e2e-tests";
+  cargoExtraArgs = "--offline -p e2e";
   E2E_DISK_IMAGE = iso;
 
   postInstall = ''

@@ -829,6 +829,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "e2e"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cosc",
+ "rand",
+ "regex",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "either"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

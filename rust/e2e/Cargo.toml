@@ -1,0 +1,16 @@
+[package]
+name = "e2e"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+anyhow.workspace = true
+regex.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "process"] }
+cosc.path = "../cmd/cosc"
+rand = { workspace = true, features = ["thread_rng"] }
+serde_json.workspace = true
