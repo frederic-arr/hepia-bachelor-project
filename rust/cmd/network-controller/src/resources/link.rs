@@ -256,8 +256,13 @@ impl LinkReconciler {
         };
 
         let status = match new_plan {
-            LinkPlan::Noop if matches!(resource.phase, Phase::Teardown) => {
+            LinkPlan::Noop if matches!(resource.phase, Phase::Deleting) => {
                 Status::Deleted
+            }
+            LinkPlan::Noop
+                if matches!(resource.phase, Phase::PendingDeletion) =>
+            {
+                Status::NotReady
             }
             LinkPlan::Noop => Status::Ready,
             LinkPlan::Create(_) | LinkPlan::Update(_) | LinkPlan::Delete(_) => {
@@ -322,7 +327,7 @@ impl LinkReconciler {
         let spec = &resource.spec;
         let derived_spec = &resource.derived_spec;
         match (&resource.phase, cx) {
-            (Phase::Teardown, LinkContext::Link(link)) => {
+            (Phase::Deleting, LinkContext::Link(link)) => {
                 Ok(LinkPlan::Delete(link))
             }
 
@@ -380,7 +385,7 @@ impl LinkReconciler {
                 Ok(LinkPlan::Update(msg))
             }
             (
-                Phase::Shutdown | Phase::Teardown,
+                Phase::Shutdown | Phase::Deleting | Phase::PendingDeletion,
                 LinkContext::NoLink | LinkContext::Link(_),
             ) => Ok(LinkPlan::Noop),
         }
@@ -737,7 +742,7 @@ mod tests {
                 smol::block_on(reconciler.reconcile(link.clone())).unwrap();
             assert_matches!(result.status, Status::Ready);
 
-            link.phase = Phase::Teardown;
+            link.phase = Phase::Deleting;
             let result = smol::block_on(reconciler.reconcile(link)).unwrap();
             assert_matches!(result.status, Status::Deleted);
             assert_matches!(result.state, None);

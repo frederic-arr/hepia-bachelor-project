@@ -102,7 +102,6 @@ impl ImageReconciler {
         })
     }
 
-    // #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn reconcile(
         &self,
         resource: ImageResource,
@@ -190,8 +189,13 @@ impl ImageReconciler {
         };
 
         let status = match new_plan {
-            ImagePlan::Noop if matches!(resource.phase, Phase::Teardown) => {
+            ImagePlan::Noop if matches!(resource.phase, Phase::Deleting) => {
                 Status::Deleted
+            }
+            ImagePlan::Noop
+                if matches!(resource.phase, Phase::PendingDeletion) =>
+            {
+                Status::NotReady
             }
             ImagePlan::Noop => Status::Done,
             ImagePlan::Pull | ImagePlan::Delete => Status::NotReady,
@@ -235,9 +239,12 @@ impl ImageReconciler {
     ) -> Result<ImagePlan> {
         let plan = match (&resource.phase, cx) {
             (Phase::Running, None) => ImagePlan::Pull,
-            (Phase::Teardown, Some(_)) => ImagePlan::Delete,
+            (Phase::Deleting, Some(_)) => ImagePlan::Delete,
             (Phase::Running | Phase::Shutdown, Some(_))
-            | (Phase::Shutdown | Phase::Teardown, None) => ImagePlan::Noop,
+            | (
+                Phase::Shutdown | Phase::Deleting | Phase::PendingDeletion,
+                None | Some(_),
+            ) => ImagePlan::Noop,
         };
 
         Ok(plan)

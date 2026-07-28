@@ -233,7 +233,6 @@ impl DhcpReconciler {
         Ok(ret_token)
     }
 
-    #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn reconcile(
         &self,
         resource: DhcpResource,
@@ -266,7 +265,7 @@ impl DhcpReconciler {
         };
 
         let mut clients = (*CLIENTS).lock().await;
-        if matches!(resource.phase, Phase::Shutdown | Phase::Teardown) {
+        if matches!(resource.phase, Phase::Shutdown | Phase::Deleting) {
             if let Some(client) = clients.remove(&resource.derived_spec.link) {
                 client.0.cancel();
             }

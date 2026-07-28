@@ -347,6 +347,12 @@ impl StateManager {
             entry.dependents.insert(id.clone());
         }
 
+        if reconciled.status == Status::Deleted {
+            tracing::info!(key = %key, "resource deleted");
+            state.remove(&key);
+            return Ok(None);
+        }
+
         tracing::trace!("reconciliation succesfull");
         if reconciled.status == Status::Done {
             return Ok(None);
@@ -357,7 +363,6 @@ impl StateManager {
         ))
     }
 
-    #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn bulk_upsert(
         clients: &Clients,
         queue: &Queue<Key>,
@@ -476,7 +481,7 @@ impl StateManager {
                 continue;
             };
 
-            entry.phase = Phase::Teardown;
+            entry.phase = Phase::Deleting;
         }
 
         for (resource, response) in added.clone() {

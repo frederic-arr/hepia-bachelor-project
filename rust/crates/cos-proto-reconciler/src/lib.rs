@@ -43,7 +43,8 @@ pub enum PrivateIdentity {
 pub enum Phase {
     Running,
     Shutdown,
-    Teardown,
+    PendingDeletion,
+    Deleting,
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]

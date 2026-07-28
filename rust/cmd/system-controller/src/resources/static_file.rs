@@ -214,9 +214,14 @@ impl StaticFileReconciler {
 
         let status = match new_plan {
             StaticFilePlan::Noop
-                if matches!(resource.phase, Phase::Teardown) =>
+                if matches!(resource.phase, Phase::Deleting) =>
             {
                 Status::Deleted
+            }
+            StaticFilePlan::Noop
+                if matches!(resource.phase, Phase::PendingDeletion) =>
+            {
+                Status::NotReady
             }
             StaticFilePlan::Noop => Status::Done,
             StaticFilePlan::Create { parent_fd: _ }
@@ -416,7 +421,7 @@ impl StaticFileReconciler {
     ) -> Result<StaticFilePlan> {
         match (&resource.phase, cx) {
             (
-                Phase::Teardown,
+                Phase::Deleting,
                 StaticFileContext::File {
                     parent_fd,
                     target_fd: _,
@@ -429,7 +434,7 @@ impl StaticFileReconciler {
             }
 
             (
-                Phase::Running,
+                Phase::Running | Phase::PendingDeletion,
                 StaticFileContext::File {
                     state,
                     target_fd,
@@ -487,7 +492,7 @@ impl StaticFileReconciler {
                 Ok(StaticFilePlan::Replace { parent_fd })
             }
             (
-                Phase::Shutdown | Phase::Teardown,
+                Phase::Shutdown | Phase::Deleting | Phase::PendingDeletion,
                 StaticFileContext::NoFile { parent_fd: _ }
                 | StaticFileContext::File {
                     parent_fd: _,
@@ -961,7 +966,7 @@ mod tests {
             assert_matches!(result.status, Status::Done);
             assert!(std::fs::exists(&file.spec.path).unwrap());
 
-            file.phase = Phase::Teardown;
+            file.phase = Phase::Deleting;
             let result =
                 smol::block_on(reconciler.reconcile(file.clone())).unwrap();
             assert_matches!(result.status, Status::Deleted);

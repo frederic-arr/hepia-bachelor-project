@@ -94,7 +94,6 @@ impl InstanceReconciler {
         })
     }
 
-    #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn reconcile(
         &self,
         resource: InstanceResource,
@@ -198,8 +197,13 @@ impl InstanceReconciler {
         };
 
         let status = match new_plan {
-            InstancePlan::Noop if matches!(resource.phase, Phase::Teardown) => {
+            InstancePlan::Noop if matches!(resource.phase, Phase::Deleting) => {
                 Status::Deleted
+            }
+            InstancePlan::Noop
+                if matches!(resource.phase, Phase::PendingDeletion) =>
+            {
+                Status::NotReady
             }
             InstancePlan::Noop => Status::Ready,
             InstancePlan::Create
@@ -279,26 +283,31 @@ impl InstanceReconciler {
         resource: &InstanceResource,
         cx: Option<&InstanceState>,
     ) -> Result<InstancePlan> {
-        let Some(refreshed_state) = cx else {
-            return Ok(InstancePlan::Create);
-        };
-
-        if resource.spec.image != refreshed_state.image {
-            return Ok(InstancePlan::Delete);
-        }
-
-        if resource.spec.cmd.join(" ") != refreshed_state.cmd {
-            return Ok(InstancePlan::Delete);
-        }
-
-        let plan = match (resource.spec.running, refreshed_state.running) {
-            (true, false) => {
-                InstancePlan::Start(resource.derived_spec.name.clone())
+        let plan = match (&resource.phase, cx) {
+            (Phase::Running, None) => InstancePlan::Create,
+            (Phase::Deleting, Some(_)) => InstancePlan::Delete,
+            (Phase::Running, Some(refreshed_state)) => {
+                if resource.spec.image != refreshed_state.image
+                    || resource.spec.cmd.join(" ") != refreshed_state.cmd
+                {
+                    InstancePlan::Delete
+                } else {
+                    match (resource.spec.running, refreshed_state.running) {
+                        (true, false) => InstancePlan::Start(
+                            resource.derived_spec.name.clone(),
+                        ),
+                        (false, true) => InstancePlan::Stop(
+                            resource.derived_spec.name.clone(),
+                        ),
+                        (true, true) | (false, false) => InstancePlan::Noop,
+                    }
+                }
             }
-            (false, true) => {
-                InstancePlan::Stop(resource.derived_spec.name.clone())
-            }
-            (true, true) | (false, false) => InstancePlan::Noop,
+            (Phase::Shutdown, Some(_))
+            | (
+                Phase::Shutdown | Phase::Deleting | Phase::PendingDeletion,
+                None | Some(_),
+            ) => InstancePlan::Noop,
         };
 
         Ok(plan)

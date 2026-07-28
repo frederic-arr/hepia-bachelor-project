@@ -120,7 +120,6 @@ impl RouteReconciler {
         })
     }
 
-    #[expect(clippy::too_many_lines, reason = "TODO")]
     pub async fn reconcile(
         &self,
         resource: RouteResource,
@@ -223,8 +222,13 @@ impl RouteReconciler {
         };
 
         let status = match new_plan {
-            RoutePlan::Noop if matches!(resource.phase, Phase::Teardown) => {
+            RoutePlan::Noop if matches!(resource.phase, Phase::Deleting) => {
                 Status::Deleted
+            }
+            RoutePlan::Noop
+                if matches!(resource.phase, Phase::PendingDeletion) =>
+            {
+                Status::NotReady
             }
             RoutePlan::Noop => Status::Ready,
             RoutePlan::Create(_) | RoutePlan::Delete(_) => Status::NotReady,
@@ -257,11 +261,6 @@ impl RouteReconciler {
         self.validate_new_spec(spec).await
     }
 
-    #[expect(
-        clippy::too_many_lines,
-        reason = "rtnl messages are complex but splitting the function would \
-                  be annoying"
-    )]
     async fn refresh(&self, resource: &RouteResource) -> Result<RouteContext> {
         // NOTE: Trying to filter here by adding a gateway or destination breaks
         // everything for unknown reasons. Adding a destination seems to
@@ -407,7 +406,7 @@ impl RouteReconciler {
         cx: RouteContext,
     ) -> Result<RoutePlan> {
         match (&resource.phase, cx) {
-            (Phase::Teardown, RouteContext::Route(_)) => {
+            (Phase::Deleting, RouteContext::Route(_)) => {
                 let msg = match resource.spec {
                     RouteSpec::Ipv4 {
                         destination,
@@ -460,7 +459,7 @@ impl RouteReconciler {
 
             (Phase::Running, RouteContext::Route(_))
             | (
-                Phase::Shutdown | Phase::Teardown,
+                Phase::Shutdown | Phase::Deleting | Phase::PendingDeletion,
                 RouteContext::NoRoute | RouteContext::Route(_),
             ) => Ok(RoutePlan::Noop),
         }
@@ -683,7 +682,7 @@ mod tests {
                 smol::block_on(reconciler.reconcile(addr.clone())).unwrap();
             assert_matches!(result.status, Status::Ready);
 
-            addr.phase = Phase::Teardown;
+            addr.phase = Phase::Deleting;
             let result = smol::block_on(reconciler.reconcile(addr)).unwrap();
             assert_matches!(result.status, Status::Deleted);
             assert_matches!(result.state, None);

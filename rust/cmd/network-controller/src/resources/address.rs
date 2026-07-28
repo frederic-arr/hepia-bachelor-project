@@ -190,8 +190,13 @@ impl AddressReconciler {
         };
 
         let status = match new_plan {
-            AddressPlan::Noop if matches!(resource.phase, Phase::Teardown) => {
+            AddressPlan::Noop if matches!(resource.phase, Phase::Deleting) => {
                 Status::Deleted
+            }
+            AddressPlan::Noop
+                if matches!(resource.phase, Phase::PendingDeletion) =>
+            {
+                Status::NotReady
             }
             AddressPlan::Noop => Status::Ready,
             AddressPlan::Create(_) | AddressPlan::Delete(_) => Status::NotReady,
@@ -274,7 +279,7 @@ impl AddressReconciler {
     ) -> Result<AddressPlan> {
         match (&resource.phase, cx) {
             (
-                Phase::Teardown,
+                Phase::Deleting,
                 AddressContext::Address {
                     link_index: _,
                     state,
@@ -303,7 +308,10 @@ impl AddressReconciler {
             }
 
             (
-                Phase::Running | Phase::Shutdown | Phase::Teardown,
+                Phase::Running
+                | Phase::Shutdown
+                | Phase::PendingDeletion
+                | Phase::Deleting,
                 AddressContext::NoAddress { link_index: _ }
                 | AddressContext::Address {
                     link_index: _,
@@ -491,7 +499,7 @@ mod tests {
                 smol::block_on(reconciler.reconcile(addr.clone())).unwrap();
             assert_matches!(result.status, Status::Ready);
 
-            addr.phase = Phase::Teardown;
+            addr.phase = Phase::Deleting;
             let result = smol::block_on(reconciler.reconcile(addr)).unwrap();
             assert_matches!(result.status, Status::Deleted);
             assert_matches!(result.state, None);

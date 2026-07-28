@@ -97,7 +97,7 @@ impl RuntimeReconciler {
         let k = &resource.derived_spec.name;
         let mut engines = ENGINES.lock().await;
 
-        if matches!(resource.phase, Phase::Shutdown | Phase::Teardown) {
+        if matches!(resource.phase, Phase::Shutdown | Phase::Deleting) {
             if let Some(mut c) = engines.remove(k) {
                 let _ = c.kill().await;
             }
