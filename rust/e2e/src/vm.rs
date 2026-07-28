@@ -10,6 +10,7 @@ use tokio::process::{Child, Command};
 
 use crate::random_port;
 
+#[derive(Debug)]
 pub struct Vm {
     pub tmpdir: TempDir,
     pub child: Child,
@@ -42,6 +43,7 @@ impl Vm {
         cmd.args(["-enable-kvm"])
             .args(["-cdrom", iso])
             .args(["-cpu", "host"])
+            .args(["-smp", "4"])
             .args(["-m", &memory_size.to_string()])
             .args(["-nographic", "-no-reboot"])
             .args([
@@ -60,7 +62,8 @@ impl Vm {
                 "-netdev",
                 &format!("user,id=net0,hostfwd=tcp::{port}-:{target_port}"),
             ])
-            .args(["-device", "virtio-net-pci,netdev=net0"]);
+            .args(["-device", "virtio-net-pci,netdev=net0"])
+            .kill_on_drop(true);
 
         if let Some(disk_size) = disk_size {
             let mut child = Command::new("dd")
@@ -129,12 +132,5 @@ impl Vm {
 
     pub async fn kill(&mut self) -> Result<()> {
         self.child.kill().await.map_err(Into::into)
-    }
-}
-
-impl Drop for Vm {
-    #[expect(clippy::unwrap_used, reason = "we are running tests")]
-    fn drop(&mut self) {
-        self.child.start_kill().unwrap();
     }
 }

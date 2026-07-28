@@ -6,7 +6,9 @@ mod validation {
     use serde_json::json;
 
     async fn create_vm() -> CosVm {
-        CosVm::new(Some(env!("CARGO_TARGET_TMPDIR"))).await.unwrap()
+        CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None)
+            .await
+            .unwrap()
     }
 
     #[tokio::test]

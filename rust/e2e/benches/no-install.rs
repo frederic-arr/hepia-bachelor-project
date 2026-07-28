@@ -10,17 +10,15 @@ struct Measurement {
     time_to_run_container: Duration,
 }
 
-async fn create_vm() -> CosVm {
-    CosVm::new(Some(env!("CARGO_TARGET_TMPDIR"))).await.unwrap()
-}
-
 async fn cos_no_install() -> Measurement {
     let port = random_port();
     let data = include_str!("./data/cos-no-install.yaml")
         .replace("%%PORT%%", &port.to_string());
 
     let start = Instant::now();
-    let mut vm = create_vm().await;
+    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None)
+        .await
+        .unwrap();
     let time_to_installer = start.elapsed();
 
     vm.push_str(&data).await.unwrap();
@@ -38,14 +36,13 @@ async fn cos_no_install() -> Measurement {
 
 #[tokio::main(flavor = "local")]
 async fn main() {
-    const NUM_ITER: usize = 100;
+    const NUM_ITER: usize = 1;
 
-    let mut cos_no_install_data = Vec::with_capacity(NUM_ITER);
+    let mut cos = Vec::with_capacity(NUM_ITER);
     for _ in 0..NUM_ITER {
         let data = cos_no_install().await;
-        dbg!(data);
-        cos_no_install_data.push(data);
+        cos.push(data);
     }
 
-    dbg!(cos_no_install_data);
+    dbg!(cos);
 }

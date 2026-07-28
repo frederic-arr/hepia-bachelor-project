@@ -11,3 +11,4 @@ rustc-ice-*.txt
 result
 *.img
 .config/.cspell.json
+*.iso
