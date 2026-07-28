@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 use cosc::{CosClient, Key, Resource, SubResourceCreate, Value};
 
-use crate::common::Vm;
+use crate::Vm;
 
 pub struct CosVm {
     vm: Vm,
@@ -11,9 +11,9 @@ pub struct CosVm {
 }
 
 impl CosVm {
-    pub async fn new() -> Result<Self> {
+    pub async fn new(tmp: Option<&str>) -> Result<Self> {
         let iso = std::env::var("E2E_DISK_IMAGE")?;
-        let vm = Vm::new(&iso, 50000, None, 256).await?;
+        let vm = Vm::new(tmp, &iso, 50000, None, 256).await?;
 
         Vm::wait_for_str(
             &vm.console_socket,

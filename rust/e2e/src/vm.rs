@@ -5,10 +5,10 @@ use std::time::{Duration, Instant};
 
 use anyhow::{Result, anyhow, bail};
 use regex::Regex;
-use tempfile::{TempDir, tempdir_in};
+use tempfile::{TempDir, tempdir, tempdir_in};
 use tokio::process::{Child, Command};
 
-use crate::common::random_port;
+use crate::random_port;
 
 pub struct Vm {
     pub tmpdir: TempDir,
@@ -21,13 +21,18 @@ pub struct Vm {
 
 impl Vm {
     pub async fn new(
+        tmp: Option<&str>,
         image: &str,
         target_port: u16,
         disk_size: Option<u16>,
         memory_size: u16,
     ) -> Result<Self> {
         let iso = image;
-        let tmpdir = tempdir_in(env!("CARGO_TARGET_TMPDIR"))?;
+        let tmpdir = match tmp {
+            Some(p) => tempdir_in(p)?,
+            None => tempdir()?,
+        };
+
         let disk = tmpdir.path().join("disk.img");
         let console_socket = tmpdir.path().join("console.sock");
         let qmp_socket = tmpdir.path().join("qmp.sock");

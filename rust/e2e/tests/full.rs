@@ -1,23 +1,22 @@
-#![feature(exit_status_error)]
-
-mod common;
-
 #[cfg(test)]
 mod validation {
 
     use cosc::Key;
+    use e2e::{CosVm, random_port, wait_for_request};
     use serde_json::json;
 
-    use crate::common::*;
+    async fn create_vm() -> CosVm {
+        CosVm::new(Some(env!("CARGO_TARGET_TMPDIR"))).await.unwrap()
+    }
 
     #[tokio::test]
     async fn starts() {
-        let _vm = CosVm::new().await.unwrap();
+        let _vm = create_vm().await;
     }
 
     #[tokio::test]
     async fn get_route() {
-        let mut vm = CosVm::new().await.unwrap();
+        let mut vm = create_vm().await;
         let resource = vm
             .get_resource(&Key {
                 schema: "network:route".to_owned(),
@@ -41,7 +40,7 @@ mod validation {
 
     #[tokio::test]
     async fn list_resources() {
-        let mut vm = CosVm::new().await.unwrap();
+        let mut vm = create_vm().await;
         let resources = vm.list().await.unwrap();
         assert_eq!(resources.len(), 7);
 
@@ -54,7 +53,7 @@ mod validation {
         let data = include_str!("./data/create-container.yaml")
             .replace("%%PORT%%", &port.to_string());
 
-        let mut vm = CosVm::new().await.unwrap();
+        let mut vm = create_vm().await;
         let () = vm.push_str(&data).await.unwrap();
         vm.set_password(Some("hepia2026demo".to_owned()));
 
@@ -70,7 +69,7 @@ mod validation {
         let data = include_str!("./data/create-container.yaml")
             .replace("%%PORT%%", &port.to_string());
 
-        let mut vm = CosVm::new().await.unwrap();
+        let mut vm = create_vm().await;
         let () = vm.push_str(&data).await.unwrap();
         wait_for_request(port).await.unwrap();
 
@@ -84,7 +83,7 @@ mod validation {
         let data = include_str!("./data/create-delete-container--create.yaml")
             .replace("%%PORT%%", &port.to_string());
 
-        let mut vm = CosVm::new().await.unwrap();
+        let mut vm = create_vm().await;
         let () = vm.push_str(&data).await.unwrap();
         vm.set_password(Some("hepia2026demo".to_owned()));
         wait_for_request(port).await.unwrap();

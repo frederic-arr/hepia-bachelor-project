@@ -6,7 +6,7 @@ edition = "2024"
 [lints]
 workspace = true
 
-[dev-dependencies]
+[dependencies]
 tempfile.workspace = true
 anyhow.workspace = true
 regex.workspace = true
@@ -14,3 +14,11 @@ tokio = { workspace = true, features = ["macros", "rt", "process"] }
 cosc.path = "../cmd/cosc"
 rand = { workspace = true, features = ["thread_rng"] }
 serde_json.workspace = true
+
+[dev-dependencies]
+criterion = { workspace = true, features = ["html_reports"] }
+
+[[bench]]
+name = "no-install"
+harness = false
+
