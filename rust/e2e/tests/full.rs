@@ -44,6 +44,8 @@ mod validation {
         let mut vm = CosVm::new().await.unwrap();
         let resources = vm.list().await.unwrap();
         assert_eq!(resources.len(), 7);
+
+        vm.kill().await.unwrap();
     }
 
     #[tokio::test]
@@ -58,6 +60,8 @@ mod validation {
 
         let resources = vm.list().await.unwrap();
         assert_eq!(resources.len(), 10);
+
+        vm.kill().await.unwrap();
     }
 
     #[tokio::test]
@@ -69,6 +73,8 @@ mod validation {
         let mut vm = CosVm::new().await.unwrap();
         let () = vm.push_str(&data).await.unwrap();
         wait_for_request(port).await.unwrap();
+
+        vm.kill().await.unwrap();
     }
 
     #[tokio::test]
@@ -87,7 +93,8 @@ mod validation {
         let () = vm.push_str(data).await.unwrap();
 
         let resources = vm.list().await.unwrap();
-        dbg!(&resources);
         assert_eq!(resources.len(), 7);
+
+        vm.kill().await.unwrap();
     }
 }

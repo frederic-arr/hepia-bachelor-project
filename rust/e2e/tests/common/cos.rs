@@ -13,7 +13,7 @@ pub struct CosVm {
 impl CosVm {
     pub async fn new() -> Result<Self> {
         let iso = std::env::var("E2E_DISK_IMAGE")?;
-        let vm = Vm::new(&iso, 50000, 512, 256).await?;
+        let vm = Vm::new(&iso, 50000, None, 256).await?;
 
         Vm::wait_for_str(
             &vm.console_socket,
@@ -25,6 +25,10 @@ impl CosVm {
             CosClient::new(&format!("http://127.0.0.1:{}", vm.port), None)?;
 
         Ok(Self { vm, client })
+    }
+
+    pub async fn kill(&mut self) -> Result<()> {
+        self.vm.kill().await
     }
 
     pub async fn reconcile(&mut self, key: &Key) -> Result<()> {

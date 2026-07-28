@@ -13,7 +13,7 @@ use crate::common::random_port;
 pub struct Vm {
     pub tmpdir: TempDir,
     pub child: Child,
-    pub disk: PathBuf,
+    pub disk: Option<PathBuf>,
     pub console_socket: PathBuf,
     pub qmp_socket: PathBuf,
     pub port: u16,
@@ -23,38 +23,22 @@ impl Vm {
     pub async fn new(
         image: &str,
         target_port: u16,
-        disk_size: u16,
+        disk_size: Option<u16>,
         memory_size: u16,
     ) -> Result<Self> {
         let iso = image;
-        let mut tmpdir = tempdir_in(env!("CARGO_TARGET_TMPDIR"))?;
-        tmpdir.disable_cleanup(true);
+        let tmpdir = tempdir_in(env!("CARGO_TARGET_TMPDIR"))?;
         let disk = tmpdir.path().join("disk.img");
         let console_socket = tmpdir.path().join("console.sock");
         let qmp_socket = tmpdir.path().join("qmp.sock");
 
-        let mut child = Command::new("dd")
-            .args([
-                "if=/dev/zero",
-                &format!("of={}", disk.display()),
-                &format!("bs={disk_size}M"),
-                "count=1",
-            ])
-            .spawn()?;
-        let status = child.wait().await?;
-        status.exit_ok()?;
-
         let port = random_port();
-        let child = Command::new("qemu-system-x86_64")
-            .args(["-enable-kvm"])
+        let mut cmd = Command::new("qemu-system-x86_64");
+        cmd.args(["-enable-kvm"])
             .args(["-cdrom", iso])
             .args(["-cpu", "host"])
             .args(["-m", &memory_size.to_string()])
             .args(["-nographic", "-no-reboot"])
-            .args([
-                "-drive",
-                &format!("file={},format=raw,if=virtio", disk.display()),
-            ])
             .args([
                 "-chardev",
                 &format!(
@@ -71,13 +55,32 @@ impl Vm {
                 "-netdev",
                 &format!("user,id=net0,hostfwd=tcp::{port}-:{target_port}"),
             ])
-            .args(["-device", "virtio-net-pci,netdev=net0"])
-            .spawn()?;
+            .args(["-device", "virtio-net-pci,netdev=net0"]);
+
+        if let Some(disk_size) = disk_size {
+            let mut child = Command::new("dd")
+                .args([
+                    "if=/dev/zero",
+                    &format!("of={}", disk.display()),
+                    &format!("bs={disk_size}M"),
+                    "count=1",
+                ])
+                .spawn()?;
+            let status = child.wait().await?;
+            status.exit_ok()?;
+
+            cmd.args([
+                "-drive",
+                &format!("file={},format=raw,if=virtio", disk.display()),
+            ]);
+        }
+
+        let child = cmd.spawn()?;
 
         Ok(Self {
             tmpdir,
             child,
-            disk,
+            disk: disk_size.map(|_| disk),
             console_socket,
             qmp_socket,
             port,
@@ -117,6 +120,10 @@ impl Vm {
         }
 
         bail!("Pattern '{pattern}' not found before timeout")
+    }
+
+    pub async fn kill(&mut self) -> Result<()> {
+        self.child.kill().await.map_err(Into::into)
     }
 }
 
