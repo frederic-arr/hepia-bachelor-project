@@ -14,7 +14,7 @@ pub struct Queue<K> {
 }
 
 #[derive(Debug)]
-struct QueueInner<K> {
+pub struct QueueInner<K> {
     scheduled: HashMap<K, Instant>,
     queue: BTreeMap<Instant, HashSet<K>>,
 }
@@ -58,6 +58,10 @@ impl<K> Queue<K>
 where
     K: Hash + Eq + Clone + Send + Sync + std::fmt::Display,
 {
+    pub async fn block(&self) -> MutexGuard<'_, QueueInner<K>> {
+        self.queue.lock().await
+    }
+
     #[must_use]
     async fn write(&self) -> QueueInnerGuard<'_, K> {
         let guard = self.queue.lock().await;

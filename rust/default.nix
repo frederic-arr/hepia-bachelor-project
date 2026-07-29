@@ -12,8 +12,6 @@ let
       ./.cargo
       ./Cargo.toml
       ./Cargo.lock
-      ./e2e/Cargo.toml
-      ./e2e/src/lib.rs
       (craneLib.fileset.commonCargoSources ./cmd/${package})
     ] ++ map (p: craneLib.fileset.commonCargoSources ./${p}) deps);
   };
@@ -32,6 +30,14 @@ let
     postUnpack = ''
       cp -r ${protoSrc} $sourceRoot/../proto
       chmod -R u+w $sourceRoot/../proto
+      mkdir -p $sourceRoot/e2e/src
+      touch $sourceRoot/e2e/src/lib.rs
+      cat <<EOF > $sourceRoot/e2e/Cargo.toml
+      [package]
+      name = "e2e"
+      version = "0.1.0"
+      edition = "2024"
+      EOF
     '';
 
     CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
@@ -41,6 +47,7 @@ let
   cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
     pname = "workspace";
     version = "0.1.0";
+    cargoExtraArgs = "--offline";
   });
 in
 craneLib.buildPackage (commonArgs // {

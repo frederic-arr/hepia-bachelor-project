@@ -16,6 +16,7 @@ cos-proto-state-server.path = "../../crates/cos-proto-state-server"
 cos-proto-api.path = "../../crates/cos-proto-api"
 cos-proto-api-server.path = "../../crates/cos-proto-api-server"
 network-controller.path = "../network-controller"
+linux-utils.path = "../../crates/linux-utils"
 tokio = { workspace = true, features = ["macros", "rt", "signal"] }
 tokio-util.workspace = true
 tonic = { workspace = true, features = ["channel"] }
@@ -30,3 +31,4 @@ tracing-subscriber = { workspace = true, features = [
 itertools = { workspace = true, features = ["use_std"] }
 thiserror.workspace = true
 argon2 = { workspace = true, features = ["alloc", "rand", "password-hash"] }
+rustix = { workspace = true, features = ["mount", "fs", "system"] }

@@ -1,3 +1,4 @@
+#![feature(exit_status_error)]
 #![feature(hash_map_macro)]
 
 mod api;
@@ -12,7 +13,13 @@ use std::time::Instant;
 
 use anyhow::{Context as _, Result};
 use cos_proto_api_server::v1::ApiServiceServer;
-use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
+use cos_proto_reconciler::{
+    Identity,
+    Key,
+    PrivateIdentity,
+    SubResourceCreate,
+    TerminalResource,
+};
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use cos_proto_state::v1::{ReconcileNowRequest, ReconcileNowResponse};
 use cos_proto_state_server::v1::{StateService, StateServiceServer};
@@ -79,43 +86,6 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             })),
             spec: serde_json::to_value(DhcpSpec {}).unwrap(),
         },
-        // SubResourceCreate::<Value> {
-        //     id: Identity::Private(PrivateIdentity::Static(Key {
-        //         schema: "container:runtime".to_owned(),
-        //         name: Some("default".to_owned()),
-        //     })),
-        //     spec: serde_json::to_value(RuntimeSpec {
-        //         engine: "podman".to_owned(),
-        //         uid: 0,
-        //         gid: 0,
-        //         port: Some(49453),
-        //         depends_on: HashSet::from([
-        //             Key {
-        //                 schema: "network:route".to_owned(),
-        //                 name: Some("eth0-dhcp".to_owned()),
-        //             },
-        //             Key {
-        //                 schema: "network:dns".to_owned(),
-        //                 name: None,
-        //             },
-        //         ]),
-        //     })
-        //     .unwrap(),
-        // },
-        // SubResourceCreate::<Value> {
-        //     id: Identity::Private(PrivateIdentity::Static(Key {
-        //         schema: "container:instance".to_owned(),
-        //         name: Some("demo".to_owned()),
-        //     })),
-        //     spec: serde_json::to_value(InstanceSpec {
-        //         // name: "demo".to_owned(),
-        //         image: "docker.io/library/busybox:latest".to_owned(),
-        //         runtime: "default".to_owned(),
-        //         running: true,
-        //         cmd: vec!["sleep".to_owned(), "infinity".to_owned()],
-        //     })
-        //     .unwrap(),
-        // },
     ]
 }
 
@@ -176,16 +146,11 @@ impl StateService for StateManagerService {
     }
 }
 
-#[tokio::main(flavor = "local")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::builder()
-                .with_default_directive(Level::INFO.into())
-                .parse_lossy("state_manager=info"),
-        )
-        .init();
-
+async fn create_default_state_manager() -> Result<(
+    StateManager,
+    TerminalResource<Value, Value, Value>,
+)> {
+    tracing::info!("loading default config");
     let mut resources = HashMap::new();
     let clients = get_clients();
     let queue = Queue::new();
@@ -201,6 +166,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .into_iter()
             .map(|v| (v.id.key().clone(), v))
             .collect(),
+        true,
     )
     .await?;
     tracing::info!(elapsed = ?start.elapsed(), "default config created");
@@ -214,6 +180,57 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .clone();
 
     let sm = StateManager::new(clients, resources, queue).await;
+    Ok((sm, config))
+}
+
+async fn create_state_manager_from_disk() -> Result<(
+    StateManager,
+    TerminalResource<Value, Value, Value>,
+)> {
+    tracing::info!("loading from disk");
+    let clients = get_clients();
+    let queue = Queue::new();
+
+    let bundle = std::fs::read_to_string("/config/bundle.json")?;
+    let resources = StateManager::from_bundle(bundle.as_bytes())?;
+    tracing::info!("loaded {} resources from disk", resources.len());
+    let config = resources
+        .get(&Key {
+            schema: "api".to_owned(),
+            name: None,
+        })
+        .context("an api configuration must exist")?
+        .clone();
+
+    queue
+        .schedule_at_bulk(
+            resources
+                .values()
+                .filter(|&v| v.dependencies.is_empty())
+                .map(|v| v.id.key().clone())
+                .collect(),
+            Instant::now(),
+        )
+        .await;
+
+    let sm = StateManager::new(clients, resources, queue).await;
+    Ok((sm, config))
+}
+
+#[tokio::main(flavor = "local")]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(Level::INFO.into())
+                .parse_lossy("state_manager=info"),
+        )
+        .init();
+
+    let (sm, config) = match create_state_manager_from_disk().await {
+        Ok(v) => v,
+        Err(_) => create_default_state_manager().await?,
+    };
     let ct = CancellationToken::new();
     let reconciliation_ct = ct.clone();
 
@@ -240,10 +257,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .serve(addr);
 
     let addr2 = "0.0.0.0:50000".parse()?;
+
+    let mut cmdline = vec![];
+    let data = std::fs::read_to_string("/proc/cmdline")?;
+    for v in data.split(' ') {
+        match v.split_once('=') {
+            Some((k, v)) => cmdline.push((k.to_owned(), v.to_owned())),
+            None => cmdline.push((v.to_owned(), String::new())),
+        }
+    }
+
     let api = Server::builder()
         .add_service(ApiServiceServer::new(ApiServer {
             sm: Arc::clone(&sm),
             config: Mutex::new(serde_json::from_value(config.spec)?),
+            cmdline: cmdline.iter().cloned().collect(),
         }))
         .serve(addr2);
 

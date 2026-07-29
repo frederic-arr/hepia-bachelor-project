@@ -79,6 +79,21 @@ mod validation {
     }
 
     #[tokio::test]
+    async fn install() {
+        let port = random_port();
+        let data = include_str!("./data/install.yaml")
+            .replace("%%PORT%%", &port.to_string());
+
+        let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(1024))
+            .await
+            .unwrap();
+        let () = vm.push_str(&data).await.unwrap();
+        wait_for_request(port).await.unwrap();
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
     #[ignore = "TODO"]
     async fn create_delete_container() {
         let port = random_port();

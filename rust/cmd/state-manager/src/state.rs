@@ -17,6 +17,8 @@ use cos_proto_reconciler::{
 };
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use itertools::Itertools as _;
+use linux_utils::is_maintenance;
+use rustix::fs::sync;
 use serde_json::{Value, json};
 use tokio::sync::{Mutex, RwLock};
 use tokio::task::JoinSet;
@@ -61,18 +63,19 @@ impl StateManager {
         cancellation_token: &CancellationToken,
     ) {
         loop {
-            // let last = *self.last_state_change.lock().await;
-            // let elapsed = last.duration_since(self.init_time);
-            // tracing::debug!(?elapsed, "first start -> current state");
-            // let elapsed = last.elapsed();
-            // tracing::debug!(?elapsed, "time since last state change");
-
             if cancellation_token.is_cancelled() {
                 tracing::trace!("reconciliation loop was cancelled");
                 break;
             }
 
             self.reconciliation_loop_tick(cancellation_token).await;
+            if !is_maintenance()
+                && let Err(err) = self.serialize_bundle().await
+            {
+                cancellation_token.cancel();
+                tracing::error!("failed to serialize to disk: {err}");
+                return;
+            }
         }
     }
 
@@ -124,7 +127,7 @@ impl StateManager {
         key: Key,
         cancellation_token: &CancellationToken,
     ) -> Result<Option<Instant>> {
-        if key.schema == "api" {
+        if key.schema == "api" || key.schema == "install" {
             return Ok(None);
         }
 
@@ -328,6 +331,7 @@ impl StateManager {
                         }),
                 )
                 .collect(),
+            true,
         )
         .await?;
 
@@ -369,6 +373,7 @@ impl StateManager {
         self_resources: &mut Resources,
         old_keys: HashSet<Key>,
         mut updated_resources: HashMap<Key, SubResourceCreate<Value>>,
+        do_schedule: bool,
     ) -> Result<()> {
         let mut resources: HashMap<_, _> = self_resources
             .iter()
@@ -399,7 +404,9 @@ impl StateManager {
         let mut modified_fut = JoinSet::new();
 
         for resource in added {
-            if resource.id.schema() == "api" {
+            if resource.id.schema() == "api"
+                || resource.id.schema() == "install"
+            {
                 added_fut.spawn(async {
                     let response = ValidateResponse::<Value> {
                         derived_spec: Value::Null,
@@ -435,7 +442,9 @@ impl StateManager {
         }
 
         for resource in modified {
-            if resource.id.schema() == "api" {
+            if resource.id.schema() == "api"
+                || resource.id.schema() == "install"
+            {
                 added_fut.spawn(async {
                     let response = ValidateResponse::<Value> {
                         derived_spec: Value::Null,
@@ -529,7 +538,44 @@ impl StateManager {
             .cloned()
             .collect();
 
-        queue.schedule_at_bulk(scheduled, Instant::now()).await;
+        if do_schedule {
+            queue.schedule_at_bulk(scheduled, Instant::now()).await;
+        }
+
         Ok(())
+    }
+
+    pub async fn to_bundle(&self) -> Result<Vec<u8>> {
+        let guard = self.resources.read().await;
+        let resources = &guard.values().collect_vec();
+        let v = serde_json::to_vec(resources)?;
+        drop(guard);
+        Ok(v)
+    }
+
+    pub async fn serialize_bundle(&self) -> Result<()> {
+        let bundle = self.to_bundle().await?;
+        std::fs::write("/config/bundle.json", bundle)?;
+        sync();
+
+        Ok(())
+    }
+
+    pub fn from_bundle(bundle: &[u8]) -> Result<Resources> {
+        let resources: Vec<TerminalResource<Value, Value, Value>> =
+            serde_json::from_slice(bundle)?;
+
+        let data = resources.into_iter().map(|v| {
+            let key = v.id.key().clone();
+            let value = TerminalResource {
+                phase: Phase::Running,
+                status: Status::Unknown,
+                ..v
+            };
+
+            (key, value)
+        });
+
+        Ok(data.collect())
     }
 }

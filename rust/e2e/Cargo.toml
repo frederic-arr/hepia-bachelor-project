@@ -19,10 +19,10 @@ serde_json.workspace = true
 criterion = { workspace = true, features = ["html_reports"] }
 
 [[bench]]
-name = "no-install"
+name = "time-no-install"
 harness = false
 
 [[bench]]
-name = "install"
+name = "time-install"
 harness = false
 

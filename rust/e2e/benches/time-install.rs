@@ -44,5 +44,18 @@ async fn main() {
         cos.push(data);
     }
 
-    dbg!(cos);
+    std::fs::write(
+        format!("{}/time-install.csv", env!("CARGO_TARGET_TMPDIR")),
+        cos.into_iter()
+            .map(|m| {
+                format!(
+                    "{},{}",
+                    m.time_to_installer.as_millis(),
+                    m.time_to_run_container.as_millis()
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+    )
+    .unwrap();
 }

@@ -45,7 +45,7 @@ impl Vm {
             .args(["-cpu", "host"])
             .args(["-smp", "4"])
             .args(["-m", &memory_size.to_string()])
-            .args(["-nographic", "-no-reboot"])
+            .args(["-nographic"])
             .args([
                 "-chardev",
                 &format!(
