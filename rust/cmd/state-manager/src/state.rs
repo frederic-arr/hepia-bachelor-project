@@ -521,9 +521,27 @@ impl StateManager {
             entry.dependencies = response.dependencies;
         }
 
-        let scheduled: HashSet<_> = added
-            .iter()
-            .chain(modified.iter())
+        Self::schedule_available(
+            added.iter().chain(modified.iter()),
+            queue,
+            self_resources,
+            do_schedule,
+        )
+        .await
+    }
+
+    pub async fn schedule_available<'aaa, I>(
+        keys: I,
+        queue: &Queue<Key>,
+        self_resources: &'aaa Resources,
+        do_schedule: bool,
+    ) -> Result<()>
+    where
+        I: Iterator<
+            Item = &'aaa (SubResourceCreate<Value>, ValidateResponse<Value>),
+        >,
+    {
+        let scheduled: HashSet<_> = keys
             .filter(|(_, b)| {
                 b.dependencies
                     .iter()

@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use anyhow::{Result, anyhow};
+use anyhow::{Context as _, Result, anyhow};
 use bollard::Docker;
 use bollard::plugin::{ContainerCreateBody, ContainerSummaryStateEnum};
 use bollard::query_parameters::{
@@ -175,7 +175,7 @@ impl InstanceReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}").into()),
+                    status: Status::Error(format!("rerefresh: {err:#}").into()),
                     state: state.clone(),
                     children: vec![],
                     dependencies: Self::get_deps(&resource.spec),
@@ -188,7 +188,7 @@ impl InstanceReconciler {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}").into()),
+                    status: Status::Error(format!("replan: {err:#}").into()),
                     state: state.clone(),
                     children: vec![],
                     dependencies: Self::get_deps(&resource.spec),
@@ -236,8 +236,12 @@ impl InstanceReconciler {
             .filters(&filters)
             .build();
 
-        let Some(container) =
-            ctx.list_containers(Some(options)).await?.first().cloned()
+        let Some(container) = ctx
+            .list_containers(Some(options))
+            .await
+            .context("failed to list containers")?
+            .first()
+            .cloned()
         else {
             return Ok(None);
         };

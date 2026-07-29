@@ -60,7 +60,7 @@ mod validation {
         vm.set_password(Some("hepia2026demo".to_owned()));
 
         let resources = vm.list().await.unwrap();
-        assert_eq!(resources.len(), 10);
+        assert_eq!(resources.len(), 9);
 
         vm.kill().await.unwrap();
     }

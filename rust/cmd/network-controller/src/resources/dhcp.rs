@@ -94,18 +94,25 @@ impl DhcpReconciler {
             self.validate_new_spec(&spec).await?;
         }
 
+        let deps = Self::get_deps(key.clone())?;
         let name = key.name.ok_or_else(|| anyhow!("missing name"))?;
 
         Ok(ValidateResponse {
-            derived_spec: DhcpDerivedSpec { link: name.clone() },
+            derived_spec: DhcpDerivedSpec { link: name },
             children: vec![],
-            dependencies: HashSet::from([Identity::Private(
-                PrivateIdentity::Dynamic(Key {
-                    schema: "network:link".to_owned(),
-                    name: Some(name),
-                }),
-            )]),
+            dependencies: deps,
         })
+    }
+
+    fn get_deps(key: Key) -> Result<HashSet<Identity>> {
+        let name = key.name.ok_or_else(|| anyhow!("missing name"))?;
+
+        Ok(HashSet::from([Identity::Private(
+            PrivateIdentity::Dynamic(Key {
+                schema: "network:link".to_owned(),
+                name: Some(name),
+            }),
+        )]))
     }
 
     async fn wait(
@@ -250,7 +257,7 @@ impl DhcpReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state: None,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: Self::get_deps(resource.id.key().clone())?,
                 });
             }
         };
@@ -260,7 +267,7 @@ impl DhcpReconciler {
                 status: Status::Error("link does not exist".to_owned().into()),
                 state: None,
                 children: vec![],
-                dependencies: HashSet::new(),
+                dependencies: Self::get_deps(resource.id.key().clone())?,
             });
         };
 
@@ -274,7 +281,7 @@ impl DhcpReconciler {
                 status: Status::Deleted,
                 state: None,
                 children: vec![],
-                dependencies: HashSet::new(),
+                dependencies: Self::get_deps(resource.id.key().clone())?,
             });
         }
 
@@ -296,7 +303,7 @@ impl DhcpReconciler {
                     status: Status::Error(format!("{err:#}").into()),
                     state: None,
                     children: vec![],
-                    dependencies: HashSet::new(),
+                    dependencies: Self::get_deps(resource.id.key().clone())?,
                 });
             }
         };
@@ -350,7 +357,7 @@ impl DhcpReconciler {
             status: Status::Ready,
             state: cfg,
             children: vec![addr, rtr].into_iter().flatten().collect(),
-            dependencies: HashSet::new(),
+            dependencies: Self::get_deps(resource.id.key().clone())?,
         })
     }
 
