@@ -1,12 +1,22 @@
 #![expect(clippy::unwrap_used, reason = "TODO")]
+#![expect(clippy::print_stdout, reason = "TODO")]
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use e2e::{CosVm, random_port, wait_for_request};
 
 #[derive(Debug, Clone, Copy)]
+#[expect(clippy::struct_field_names, reason = "")]
 struct Measurement {
-    time_to_installer: Duration,
+    time_to_config: Duration,
+    time_to_install: Duration,
+    time_to_kernel: Duration,
+    time_to_init: Duration,
+    time_to_supervisor: Duration,
+    time_to_reconcile: Duration,
+    time_to_dhcp: Duration,
+    time_to_downloading_image: Duration,
+    time_to_download_image: Duration,
     time_to_run_container: Duration,
 }
 
@@ -15,32 +25,82 @@ async fn cos_install() -> Measurement {
     let data = include_str!("./data/cos-install.yaml")
         .replace("%%PORT%%", &port.to_string());
 
-    let start = Instant::now();
     let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(1024))
         .await
         .unwrap();
-    let time_to_installer = start.elapsed();
 
     vm.push_str(&data).await.unwrap();
+    let time_to_config = vm.elapsed();
+    dbg!(time_to_config);
+
+    vm.wait_for_str("install succesfull").await.unwrap();
+    let time_to_install = vm.elapsed();
+    dbg!(time_to_install);
+
+    vm.wait_for_str("Linux version").await.unwrap();
+    let time_to_kernel = vm.elapsed();
+    dbg!(time_to_kernel);
+
+    vm.wait_for_str("Run /init as init process").await.unwrap();
+    let time_to_init = vm.elapsed();
+    dbg!(time_to_init);
+
+    vm.wait_for_str("/bin/supervisor").await.unwrap();
+    let time_to_supervisor = vm.elapsed();
+    dbg!(time_to_supervisor);
+
+    vm.wait_for_str("attempting to reconcile").await.unwrap();
+    let time_to_reconcile = vm.elapsed();
+    dbg!(time_to_reconcile);
+
+    vm.wait_for_str(
+        "reconciled resource status=Ready key=network:route/eth0-dhcp",
+    )
+    .await
+    .unwrap();
+    let time_to_dhcp = vm.elapsed();
+    dbg!(time_to_dhcp);
+
+    vm.wait_for_str("attempting to reconcile container:image/")
+        .await
+        .unwrap();
+    let time_to_downloading_image = vm.elapsed();
+    dbg!(time_to_downloading_image);
+
+    vm.wait_for_str("econciled resource status=Done key=container:image/")
+        .await
+        .unwrap();
+    let time_to_download_image = vm.elapsed();
+    dbg!(time_to_download_image);
 
     wait_for_request(port).await.unwrap();
-    let time_to_run_container = start.elapsed();
+    let time_to_run_container = vm.elapsed();
+    dbg!(time_to_run_container);
 
     vm.kill().await.unwrap();
 
     Measurement {
-        time_to_installer,
+        time_to_config,
+        time_to_install,
+        time_to_kernel,
+        time_to_init,
+        time_to_supervisor,
+        time_to_reconcile,
+        time_to_dhcp,
+        time_to_downloading_image,
+        time_to_download_image,
         time_to_run_container,
     }
 }
 
 #[tokio::main(flavor = "local")]
 async fn main() {
-    const NUM_ITER: usize = 1;
+    const NUM_ITER: usize = 20;
 
     let mut cos = Vec::with_capacity(NUM_ITER);
-    for _ in 0..NUM_ITER {
+    for i in 0..NUM_ITER {
         let data = cos_install().await;
+        println!("#{i}: {}s", data.time_to_run_container.as_secs());
         cos.push(data);
     }
 
@@ -49,9 +109,17 @@ async fn main() {
         cos.into_iter()
             .map(|m| {
                 format!(
-                    "cos,{},{}",
-                    m.time_to_installer.as_millis(),
-                    m.time_to_run_container.as_millis()
+                    "{},{},{},{},{},{},{},{},{},{}",
+                    m.time_to_config.as_millis(),
+                    m.time_to_install.as_millis(),
+                    m.time_to_kernel.as_millis(),
+                    m.time_to_init.as_millis(),
+                    m.time_to_supervisor.as_millis(),
+                    m.time_to_reconcile.as_millis(),
+                    m.time_to_dhcp.as_millis(),
+                    m.time_to_downloading_image.as_millis(),
+                    m.time_to_download_image.as_millis(),
+                    m.time_to_run_container.as_millis(),
                 )
             })
             .collect::<Vec<_>>()

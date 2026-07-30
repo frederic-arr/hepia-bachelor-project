@@ -1,5 +1,6 @@
 #![expect(clippy::unwrap_used, reason = "TODO")]
 #![expect(clippy::print_stderr, reason = "TODO")]
+#![expect(clippy::print_stdout, reason = "TODO")]
 
 use anyhow::Result;
 use e2e::{CosVm, random_port};
@@ -66,8 +67,9 @@ async fn main() {
     const NUM_ITER: usize = 100;
 
     let mut cos = Vec::with_capacity(NUM_ITER);
-    for _ in 0..NUM_ITER {
+    for i in 0..NUM_ITER {
         let data = cos_membench().await;
+        println!("#{i}: {} MiB", data.alloc);
         cos.push(data);
     }
 

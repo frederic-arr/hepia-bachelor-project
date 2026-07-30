@@ -88,13 +88,11 @@ fn create_rfs() -> Result<()> {
     ];
 
     if let Some(disk) = get_config_disk() {
-        dbg!(&disk);
         std::fs::create_dir_all("/config")?;
         mount(disk, "/config", "vfat", MountFlags::empty(), None)?;
     }
 
     if let Some(disk) = get_data_disk() {
-        dbg!(&disk);
         std::fs::create_dir_all("/var")?;
         mount(disk, "/var", "ext4", MountFlags::empty(), None)?;
     } else {

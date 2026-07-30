@@ -4,6 +4,7 @@ use std::sync::LazyLock;
 use std::time::Duration;
 
 use anyhow::{Context as _, Result, anyhow, bail};
+use bollard::Docker;
 use cos_proto_reconciler::{
     Identity,
     Key,
@@ -242,7 +243,14 @@ impl RuntimeReconciler {
 
         let key = resource.id.key().clone();
         tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_secs(1)).await;
+            let Ok(docker) = Docker::connect_with_host(&port_arg) else {
+                return;
+            };
+
+            let docker = docker.with_timeout(Duration::from_secs(1));
+            while docker.ping().await.is_err() {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
 
             let mut c = (*STATE_CLIENT).clone();
             let raw = match serde_json::to_vec(&key) {

@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use anyhow::Result;
 use cosc::{CosClient, Key, Resource, SubResourceCreate, Value};
@@ -18,8 +18,6 @@ pub struct CosVm {
 impl CosVm {
     pub async fn new(tmp: Option<&str>, disk: Option<u16>) -> Result<Self> {
         let iso = std::env::var("E2E_DISK_IMAGE")?;
-        let start = Instant::now();
-
         let vm = Vm::new(tmp, &iso, 50000, disk, 256).await?;
 
         Vm::wait_for_str(
@@ -27,35 +25,35 @@ impl CosVm {
             "Linux version",
             Duration::from_secs(10),
         )?;
-        let time_to_kernel = start.elapsed();
+        let time_to_kernel = vm.elapsed();
 
         Vm::wait_for_str(
             &vm.console_socket,
             "Run /init as init process",
             Duration::from_secs(10),
         )?;
-        let time_to_init = start.elapsed();
+        let time_to_init = vm.elapsed();
 
         Vm::wait_for_str(
             &vm.console_socket,
             "/bin/supervisor",
             Duration::from_secs(10),
         )?;
-        let time_to_supervisor = start.elapsed();
+        let time_to_supervisor = vm.elapsed();
 
         Vm::wait_for_str(
             &vm.console_socket,
             "attempting to reconcile",
             Duration::from_secs(10),
         )?;
-        let time_to_reconcile = start.elapsed();
+        let time_to_reconcile = vm.elapsed();
 
         Vm::wait_for_str(
             &vm.console_socket,
             "reconciled resource status=Ready key=network:route/eth0-dhcp",
             Duration::from_secs(10),
         )?;
-        let time_to_dhcp = start.elapsed();
+        let time_to_dhcp = vm.elapsed();
 
         let client =
             CosClient::new(&format!("http://127.0.0.1:{}", vm.port), None)?;
@@ -75,7 +73,7 @@ impl CosVm {
         Vm::wait_for_str(
             &self.vm.console_socket,
             pattern,
-            Duration::from_secs(10),
+            Duration::from_secs(60),
         )
     }
 
@@ -108,5 +106,9 @@ impl CosVm {
 
     pub fn set_password(&mut self, password: Option<String>) {
         self.client.set_password(password);
+    }
+
+    pub fn elapsed(&self) -> Duration {
+        self.vm.elapsed()
     }
 }

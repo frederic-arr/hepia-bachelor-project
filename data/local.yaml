@@ -1,6 +1,6 @@
----
-schema: install
-system_disk: /dev/vda
+# ---
+# schema: install
+# system_disk: /dev/vda
 
 ---
 schema: api

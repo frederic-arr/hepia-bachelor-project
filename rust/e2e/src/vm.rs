@@ -18,6 +18,7 @@ pub struct Vm {
     pub console_socket: PathBuf,
     pub qmp_socket: PathBuf,
     pub port: u16,
+    pub start: Instant,
 }
 
 impl Vm {
@@ -83,6 +84,7 @@ impl Vm {
             ]);
         }
 
+        let start = Instant::now();
         let child = cmd.spawn()?;
 
         Ok(Self {
@@ -92,6 +94,7 @@ impl Vm {
             console_socket,
             qmp_socket,
             port,
+            start,
         })
     }
 
@@ -132,5 +135,10 @@ impl Vm {
 
     pub async fn kill(&mut self) -> Result<()> {
         self.child.kill().await.map_err(Into::into)
+    }
+
+    #[must_use]
+    pub fn elapsed(&self) -> Duration {
+        self.start.elapsed()
     }
 }

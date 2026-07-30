@@ -1,6 +1,7 @@
 #![expect(clippy::unwrap_used, reason = "TODO")]
+#![expect(clippy::print_stdout, reason = "TODO")]
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use e2e::{CosVm, random_port, wait_for_request};
 
@@ -22,7 +23,6 @@ async fn cos_no_install() -> Measurement {
     let data = include_str!("./data/cos-no-install.yaml")
         .replace("%%PORT%%", &port.to_string());
 
-    let start = Instant::now();
     let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None)
         .await
         .unwrap();
@@ -32,15 +32,15 @@ async fn cos_no_install() -> Measurement {
     vm.wait_for_str("attempting to reconcile container:image/")
         .await
         .unwrap();
-    let time_to_downloading_image = start.elapsed();
+    let time_to_downloading_image = vm.elapsed();
 
     vm.wait_for_str("econciled resource status=Done key=container:image/")
         .await
         .unwrap();
-    let time_to_download_image = start.elapsed();
+    let time_to_download_image = vm.elapsed();
 
     wait_for_request(port).await.unwrap();
-    let time_to_run_container = start.elapsed();
+    let time_to_run_container = vm.elapsed();
 
     vm.kill().await.unwrap();
 
@@ -61,8 +61,9 @@ async fn main() {
     const NUM_ITER: usize = 100;
 
     let mut cos = Vec::with_capacity(NUM_ITER);
-    for _ in 0..NUM_ITER {
+    for i in 0..NUM_ITER {
         let data = cos_no_install().await;
+        println!("#{i}: {}s", data.time_to_run_container.as_secs());
         cos.push(data);
     }
 

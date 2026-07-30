@@ -18,15 +18,15 @@ serde_json.workspace = true
 [dev-dependencies]
 criterion = { workspace = true, features = ["html_reports"] }
 
-[[bench]]
-name = "time-no-install"
-harness = false
+# [[bench]]
+# name = "time-no-install"
+# harness = false
 
 [[bench]]
 name = "time-install"
 harness = false
 
-[[bench]]
-name = "membench"
-harness = false
+# [[bench]]
+# name = "membench"
+# harness = false
 

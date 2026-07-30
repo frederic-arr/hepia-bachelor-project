@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 use std::time::Duration;
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Context as _, Result, anyhow, bail};
 use bollard::Docker;
 use bollard::query_parameters::{
     CreateImageOptionsBuilder,
@@ -123,9 +123,11 @@ impl ImageReconciler {
             serde_json::from_value(rt.derived_spec.clone())?;
 
         let client =
-            Docker::connect_with_host(&format!("tcp://127.0.0.1:{}", rt.port))?;
+            Docker::connect_with_host(&format!("tcp://127.0.0.1:{}", rt.port))
+                .context("create docker client")?;
 
-        let cx = match self.refresh(&resource, &client).await {
+        let cx = match self.refresh(&resource, &client).await.context("refresh")
+        {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
@@ -138,7 +140,8 @@ impl ImageReconciler {
         };
 
         let state = &cx;
-        let plan = match self.plan(&resource, cx.as_ref()).await {
+        let plan = match self.plan(&resource, cx.as_ref()).await.context("plan")
+        {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
@@ -150,8 +153,24 @@ impl ImageReconciler {
             }
         };
 
-        let () =
-            match self.apply(&resource, &plan, state.as_ref(), &client).await {
+        let () = match self
+            .apply(&resource, &plan, state.as_ref(), &client)
+            .await
+            .context("apply")
+        {
+            Ok(v) => v,
+            Err(err) => {
+                return Ok(ResourceResponse {
+                    status: Status::Error(format!("{err:#}").into()),
+                    state: state.clone(),
+                    children: vec![],
+                    dependencies: Self::get_deps(&resource.derived_spec),
+                });
+            }
+        };
+
+        let new_cx =
+            match self.refresh(&resource, &client).await.context("rerefresh") {
                 Ok(v) => v,
                 Err(err) => {
                     return Ok(ResourceResponse {
@@ -163,20 +182,12 @@ impl ImageReconciler {
                 }
             };
 
-        let new_cx = match self.refresh(&resource, &client).await {
-            Ok(v) => v,
-            Err(err) => {
-                return Ok(ResourceResponse {
-                    status: Status::Error(format!("{err:#}").into()),
-                    state: state.clone(),
-                    children: vec![],
-                    dependencies: Self::get_deps(&resource.derived_spec),
-                });
-            }
-        };
-
         let state = &new_cx;
-        let new_plan = match self.plan(&resource, state.as_ref()).await {
+        let new_plan = match self
+            .plan(&resource, state.as_ref())
+            .await
+            .context("replan")
+        {
             Ok(v) => v,
             Err(err) => {
                 return Ok(ResourceResponse {
@@ -224,7 +235,10 @@ impl ImageReconciler {
             .filters(&filters)
             .build();
 
-        let images = ctx.list_images(Some(opts)).await?;
+        let images = ctx
+            .list_images(Some(opts))
+            .await
+            .context("unable to list images")?;
         let Some(image) = images.first() else {
             return Ok(None);
         };

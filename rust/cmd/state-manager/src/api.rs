@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::io::Write as _;
 use std::process::Command;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -350,6 +351,7 @@ impl ApiService for ApiServer {
             std::mem::forget(guard);
             tokio::spawn(async move {
                 tracing::info!("install succesfull, rebooting in 3 seconds");
+                let _ = std::io::stdout().flush();
                 tokio::time::sleep(Duration::from_secs(3)).await;
 
                 let _ = reboot(RebootCommand::Restart);
