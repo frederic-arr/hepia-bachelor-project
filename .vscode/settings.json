@@ -6,7 +6,7 @@
     "tinymist.formatterPrintWidth": 80,
     "tinymist.rootPath": "${workspaceFolder}/docs/internal",
     "tinymist.systemFonts": false,
-    "tinymist.preview.partialRendering": false,
+    "tinymist.preview.partialRendering": true,
     "tinymist.fontPaths": [
         "${workspaceFolder}/docs/internal/lib/fonts/alegreya-sans",
         "${workspaceFolder}/docs/internal/lib/fonts/liberation",
@@ -31,4 +31,5 @@
         "${exact}",
         "${include_ignored}"
     ],
+    "tinymist.projectResolution": "lockDatabase"
 }

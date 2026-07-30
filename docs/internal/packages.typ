@@ -6,4 +6,5 @@
     codly-languages: "@preview/codly-languages:0.1.1",
     fletcher: "@preview/fletcher:0.5.8",
     drafting: "@preview/drafting:0.2.2",
+    lilaq: "@preview/lilaq:0.6.0",
 )

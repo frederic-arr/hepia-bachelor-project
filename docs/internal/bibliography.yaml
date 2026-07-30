@@ -1416,6 +1416,18 @@ bib-owasp-devguide-secure-by-default:
     value: https://devguide.owasp.org/en/04-design/02-web-app-checklist/01-secure-by-default/
     date: 2026-03-09
 
+bib-rust-doctest:
+  type: web
+  title: Documentation tests
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/rustdoc/write-documentation/documentation-tests.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The rustdoc book
+    url: https://doc.rust-lang.org/1.97.1/rustdoc/
+
 bib-rust-std-btreemap:
   type: web
   title: Struct BTreeMap

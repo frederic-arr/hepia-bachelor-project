@@ -4,6 +4,9 @@
 
 // TODO: Amorcer le chapitre
 
+// TODO: Parler de l'implémentation spécifique de certains contrôleurs?
+// Par exemple le contrôleur system/static-file ou network/route ou network/dhcp
+
 == Environement de développement
 === Choix du langage
 Rust est choisi comme langage principal pour l'implémentation du projet. Ce
@@ -16,22 +19,18 @@ usage étant imposé par une contrainte propre à cet outil plutôt que par un c
 indépendant.
 
 === Composants et organisation
-L'organisation du code repose sur une structuration en crates#footnote[
-    Une crate constitue l'unité de compilation et de distribution de code en
-    Rust, comparable à un module, une bibliothèque ou un package dans d'autres
-    écosystèmes.
-]. Le code du projet est réparti entre deux répertoires principaux selon le
-langage utilisé: `rust/`, regroupant l'ensemble du code Rust, et `go/`,
-regroupant le code Go utilisé pour la partie du projet reposant sur Terraform.
-Ces deux répertoires constituent respectivement la racine du workspace Rust et
-celle du workspace Go, chacun regroupant l'ensemble des modules propres à son
-langage sous une configuration de compilation commune. Le répertoire `rust/`
-contient lui-même deux sous-répertoires: `cmd/`, où sont situés les binaires
-exécutables, et `crates/`, où sont situées les bibliothèques internes partagées
-entre plusieurs binaires. Le reste de l'arborescence répartit les éléments non
-liés au code applicatif: la configuration du noyau et les éléments annexes sont
-situés dans `linux/`, les définitions de services et de messages gRPC dans
-`proto/`, et les documents propres au travail de diplôme dans `docs/internal`.
+Le code du projet est réparti entre deux répertoires principaux selon le langage
+utilisé: `rust/`, regroupant l'ensemble du code Rust, et `go/`, regroupant le
+code Go utilisé pour la partie du projet reposant sur Terraform. Ces deux
+répertoires constituent respectivement la racine du workspace Rust et celle du
+workspace Go, chacun regroupant l'ensemble des modules propres à son langage
+sous une configuration de compilation commune. Le répertoire `rust/` contient
+lui-même deux sous-répertoires: `cmd/`, où sont situés les binaires exécutables,
+et `crates/`, où sont situées les bibliothèques internes partagées entre
+plusieurs binaires. Le reste de l'arborescence répartit les éléments non liés au
+code applicatif: la configuration du noyau et les éléments annexes sont situés
+dans `linux/`, les définitions de services et de messages gRPC dans `proto/`, et
+les documents propres au travail de diplôme dans `docs/internal`.
 
 La compilation s'effectue via le compilateur nightly de Rust. Ce choix est
 motivé par le recours à la fonctionnalité `build-std`, permettant la
@@ -134,9 +133,9 @@ l'ensemble des étapes suivantes, dans l'ordre. Une phase de linting est exécut
 en premier lieu, portant à la fois sur la documentation et sur le code. Une
 phase de test lui succède, structurée séquentiellement: les tests unitaires et
 les doctests de Rust#footnote[
-    Un doctest constitue un exemple de code intégré à la documentation d'une
-    fonction ou d'un module, compilé et exécuté automatiquement lors de la suite
-    de test, garantissant ainsi la validité des exemples fournis.
+    Un doctest est un exemple de code intégré à la documentation d'une fonction
+    ou d'un module, compilé et exécuté automatiquement lors de l'exécution des
+    tests afin de garantir la validité des exemples fournis @bib-rust-doctest.
 ] sont exécutés en parallèle, suivis des tests d'intégration. La phase de build
 est ensuite exécutée, suivie enfin des tests de bout en bout.
 
@@ -476,16 +475,17 @@ redémarrage.
 
 #include "../diagrams/sysinit.typ"
 
-La #figure-num-ref(<sysinit>) illustre les étapes principales de ce démarrage. L'étape
-initiale, prise en charge par le superviseur, consiste à localiser et monter la
-partition racine, puis à constituer l'environnement de base du système, incluant
-les points de montage `/dev` et `/proc` ainsi que l'interface réseau locale. Le
-superviseur localise ensuite et monte une configuration minimale, dite
-configuration précoce. Le contrôle est alors transféré au processus
-core-controller, qui localise, déchiffre et monte la configuration complète
-ainsi que l'état persistant du système, avant de démarrer successivement le
-contrôleur réseau, l'API, puis les autres contrôleurs du système. La
-réconciliation ne débute qu'une fois l'ensemble de ces contrôleurs prêts.
+La #figure-num-ref(<sysinit>) illustre les étapes principales de ce démarrage.
+L'étape initiale, prise en charge par le superviseur, consiste à localiser et
+monter la partition racine, puis à constituer l'environnement de base du
+système, incluant les points de montage `/dev` et `/proc` ainsi que l'interface
+réseau locale. Le superviseur localise ensuite et monte une configuration
+minimale, dite configuration précoce. Le contrôle est alors transféré au
+processus core-controller, qui localise, déchiffre et monte la configuration
+complète ainsi que l'état persistant du système, avant de démarrer
+successivement le contrôleur réseau, l'API, puis les autres contrôleurs du
+système. La réconciliation ne débute qu'une fois l'ensemble de ces contrôleurs
+prêts.
 
 #include "../diagrams/procstart.typ"
 
