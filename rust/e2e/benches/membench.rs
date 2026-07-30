@@ -63,7 +63,7 @@ async fn cos_membench() -> Measurement {
 
 #[tokio::main(flavor = "local")]
 async fn main() {
-    const NUM_ITER: usize = 1;
+    const NUM_ITER: usize = 100;
 
     let mut cos = Vec::with_capacity(NUM_ITER);
     for _ in 0..NUM_ITER {
@@ -74,7 +74,7 @@ async fn main() {
     std::fs::write(
         format!("{}/membench.csv", env!("CARGO_TARGET_TMPDIR")),
         cos.into_iter()
-            .map(|m| format!("cos,{}", m.alloc))
+            .map(|m| format!("{}", m.alloc))
             .collect::<Vec<_>>()
             .join("\n"),
     )
