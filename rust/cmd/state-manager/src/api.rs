@@ -254,6 +254,10 @@ impl ApiService for ApiServer {
         }))
     }
 
+    #[expect(
+        clippy::significant_drop_tightening,
+        reason = "the guard is leaked on purpose"
+    )]
     async fn push_config(
         &self,
         request: Request<PushConfigRequest>,
