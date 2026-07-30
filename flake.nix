@@ -92,7 +92,7 @@
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          paths  = [ supervisor statemgr netctl conctl sysctl pkgs.podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace ];
+          paths  = [ supervisor statemgr netctl conctl sysctl podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace ];
           pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 
@@ -225,7 +225,7 @@
 
         rpi1-rootfsEnv = crossPkgs.buildEnv {
           name = "rootfs-env-rpi1";
-          paths = [ supervisor statemgr netctl sysctl pkgs.podman pkgs.busybox pkgs.cacert pkgs.util-linux ];
+          paths = [ supervisor statemgr netctl sysctl podman pkgs.busybox pkgs.cacert pkgs.util-linux ];
           pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 
@@ -320,12 +320,18 @@
             cp -r . $out/
           '';
         };
+
+        netavark = pkgs.callPackage ./nix/netavark { };
+        podman = pkgs.callPackage ./nix/podman {
+          netavark = netavark;
+        };
       in
       {
         formatter = pkgs.nixfmt-tree;
         packages = {
           inherit qemu-boot-x86_64 iso rootfs initrd init supervisor netctl rpi1-sd-image;
           kernel-x86_64-generic = x86_64-generic.kernel;
+          podman = podman;
         };
         apps = {
           menuconfig-x86_64-generic = {
