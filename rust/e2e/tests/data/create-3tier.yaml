@@ -1,7 +1,3 @@
-# ---
-# schema: install
-# system_disk: /dev/vda
-
 ---
 schema: api
 auth:
@@ -34,8 +30,24 @@ depends_on:
 
 ---
 schema: container:instance
-name: demo
+name: db
 image: docker.io/alpine/curl:latest
 runtime: rootfull
 running: true
-cmd: [https://www.example.com]
+cmd: [http://10.0.2.2:%%PORT1%%]
+
+---
+schema: container:instance
+name: api
+image: docker.io/alpine/curl:latest
+runtime: rootfull
+running: true
+cmd: [http://10.0.2.2:%%PORT2%%]
+
+---
+schema: container:instance
+name: web
+image: docker.io/alpine/curl:latest
+runtime: rootfull
+running: true
+cmd: [http://10.0.2.2:%%PORT3%%]

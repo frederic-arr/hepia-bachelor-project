@@ -14,7 +14,6 @@ impl CosVm {
     pub async fn new(tmp: Option<&str>, disk: Option<u16>) -> Result<Self> {
         let iso = std::env::var("E2E_DISK_IMAGE")?;
         let vm = Vm::new(tmp, &iso, 50000, disk, 256).await?;
-        dbg!(&vm);
 
         Vm::wait_for_str(
             &vm.console_socket,

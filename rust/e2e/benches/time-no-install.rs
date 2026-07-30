@@ -52,7 +52,7 @@ async fn main() {
         cos.into_iter()
             .map(|m| {
                 format!(
-                    "{},{}",
+                    "cos,{},{}",
                     m.time_to_installer.as_millis(),
                     m.time_to_run_container.as_millis()
                 )

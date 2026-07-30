@@ -79,6 +79,31 @@ mod validation {
     }
 
     #[tokio::test]
+    async fn create_3tier() {
+        let port1 = random_port();
+        let port2 = random_port();
+        let port3 = random_port();
+        let data = include_str!("./data/create-3tier.yaml")
+            .replace("%%PORT1%%", &port1.to_string())
+            .replace("%%PORT2%%", &port2.to_string())
+            .replace("%%PORT3%%", &port3.to_string());
+
+        let mut vm = create_vm().await;
+        let () = vm.push_str(&data).await.unwrap();
+
+        let (a, b, c) = tokio::join!(
+            wait_for_request(port1),
+            wait_for_request(port2),
+            wait_for_request(port3),
+        );
+        a.unwrap();
+        b.unwrap();
+        c.unwrap();
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
     async fn install() {
         let port = random_port();
         let data = include_str!("./data/install.yaml")

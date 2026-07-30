@@ -16,7 +16,7 @@ async fn cos_install() -> Measurement {
         .replace("%%PORT%%", &port.to_string());
 
     let start = Instant::now();
-    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(512))
+    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(1024))
         .await
         .unwrap();
     let time_to_installer = start.elapsed();
@@ -49,7 +49,7 @@ async fn main() {
         cos.into_iter()
             .map(|m| {
                 format!(
-                    "{},{}",
+                    "cos,{},{}",
                     m.time_to_installer.as_millis(),
                     m.time_to_run_container.as_millis()
                 )
