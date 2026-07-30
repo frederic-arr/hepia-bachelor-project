@@ -15,4 +15,5 @@
     - Parler de la valeur ajoutée d'un point de vue fonctionnel
     - Parler (aussi!) des contraintes/points négatifs de la solution d'un point
         de vue fonctionnel
+    - Diagram de Gantt
 ]
