@@ -7,6 +7,7 @@ use cos_proto_reconciler::{
     Identity,
     Key,
     Phase,
+    PrivateIdentity,
     Resource,
     ResourceResponse,
     Status,
@@ -268,19 +269,6 @@ impl StateManager {
             ) | (Status::Ready, Status::Done)
         );
 
-        tracing::debug!("notifying dependents of state change");
-        if notify_dependents {
-            let mut last = self.last_state_change.lock().await;
-            *last = Instant::now();
-            drop(last);
-            self.queue
-                .schedule_at_bulk(
-                    dependents.iter().map(Identity::key).cloned().collect(),
-                    Instant::now(),
-                )
-                .await;
-        }
-
         resource.status = reconciled.status.clone();
 
         let old_children: HashSet<_> = resource
@@ -304,6 +292,36 @@ impl StateManager {
         resource.dependencies.clone_from(&reconciled.dependencies);
 
         let id = resource.id.clone();
+        if notify_dependents {
+            let mut last = self.last_state_change.lock().await;
+            *last = Instant::now();
+            drop(last);
+
+            let dependents =
+                dependents.iter().map(Identity::key).cloned().collect_vec();
+
+            let keys = state
+                .values()
+                .filter(|v| dependents.contains(v.id.key()))
+                .map(|v| {
+                    (
+                        SubResourceCreate::<Value> {
+                            id: v.id.clone(),
+                            spec: v.spec.clone(),
+                        },
+                        ValidateResponse::<Value> {
+                            derived_spec: v.derived_spec.clone(),
+                            children: vec![],
+                            dependencies: v.dependencies.clone(),
+                        },
+                    )
+                })
+                .collect_vec();
+
+            Self::schedule_available(keys.iter(), &self.queue, &state, true)
+                .await?;
+        }
+
         Self::bulk_upsert(
             &*self.clients.read().await,
             &self.queue,
@@ -545,11 +563,12 @@ impl StateManager {
             .filter(|(_, b)| {
                 b.dependencies
                     .iter()
-                    .map(|v| self_resources.get(v.key()))
-                    .all(|v| {
-                        v.is_none_or(|v| {
-                            matches!(v.status, Status::Done | Status::Ready)
-                        })
+                    .map(|v| (v, self_resources.get(v.key())))
+                    .all(|(k, v)| {
+                        (matches!(k, Identity::Shared(_)) && v.is_none())
+                            || v.is_some_and(|v| {
+                                matches!(v.status, Status::Done | Status::Ready)
+                            })
                     })
             })
             .map(|(v, _)| v.id.key())
@@ -565,7 +584,15 @@ impl StateManager {
 
     pub async fn to_bundle(&self) -> Result<Vec<u8>> {
         let guard = self.resources.read().await;
-        let resources = &guard.values().collect_vec();
+        let resources = &guard
+            .values()
+            .filter(|v| {
+                !matches!(
+                    v.id,
+                    Identity::Private(PrivateIdentity::Ephemeral(_))
+                )
+            })
+            .collect_vec();
         let v = serde_json::to_vec(resources)?;
         drop(guard);
         Ok(v)

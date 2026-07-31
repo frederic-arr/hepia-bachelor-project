@@ -6,8 +6,8 @@ use cosc::{CosClient, Key, Resource, SubResourceCreate, Value};
 use crate::Vm;
 
 pub struct CosVm {
-    vm: Vm,
-    client: CosClient,
+    pub vm: Vm,
+    pub client: CosClient,
     pub time_to_kernel: Duration,
     pub time_to_init: Duration,
     pub time_to_supervisor: Duration,
@@ -20,40 +20,13 @@ impl CosVm {
         let iso = std::env::var("E2E_DISK_IMAGE")?;
         let vm = Vm::new(tmp, &iso, 50000, disk, 256).await?;
 
-        Vm::wait_for_str(
-            &vm.console_socket,
-            "Linux version",
-            Duration::from_secs(10),
-        )?;
-        let time_to_kernel = vm.elapsed();
-
-        Vm::wait_for_str(
-            &vm.console_socket,
-            "Run /init as init process",
-            Duration::from_secs(10),
-        )?;
-        let time_to_init = vm.elapsed();
-
-        Vm::wait_for_str(
-            &vm.console_socket,
-            "/bin/supervisor",
-            Duration::from_secs(10),
-        )?;
-        let time_to_supervisor = vm.elapsed();
-
-        Vm::wait_for_str(
-            &vm.console_socket,
-            "attempting to reconcile",
-            Duration::from_secs(10),
-        )?;
-        let time_to_reconcile = vm.elapsed();
-
-        Vm::wait_for_str(
-            &vm.console_socket,
-            "reconciled resource status=Ready key=network:route/eth0-dhcp",
-            Duration::from_secs(10),
-        )?;
-        let time_to_dhcp = vm.elapsed();
+        let (
+            time_to_kernel,
+            time_to_init,
+            time_to_supervisor,
+            time_to_reconcile,
+            time_to_dhcp,
+        ) = Self::wait_for_init(&vm).await?;
 
         let client =
             CosClient::new(&format!("http://127.0.0.1:{}", vm.port), None)?;
@@ -69,16 +42,83 @@ impl CosVm {
         })
     }
 
+    pub async fn wait_for_init(
+        vm: &Vm,
+    ) -> Result<(Duration, Duration, Duration, Duration, Duration)> {
+        Vm::wait_for_str(
+            &vm.console_socket,
+            "Linux version",
+            Duration::from_secs(10),
+        )
+        .await?;
+        let time_to_kernel = vm.elapsed();
+
+        Vm::wait_for_str(
+            &vm.console_socket,
+            "Run /init as init process",
+            Duration::from_secs(10),
+        )
+        .await?;
+        let time_to_init = vm.elapsed();
+
+        Vm::wait_for_str(
+            &vm.console_socket,
+            "/bin/supervisor",
+            Duration::from_secs(10),
+        )
+        .await?;
+        let time_to_supervisor = vm.elapsed();
+
+        Vm::wait_for_str(
+            &vm.console_socket,
+            "attempting to reconcile",
+            Duration::from_secs(10),
+        )
+        .await?;
+        let time_to_reconcile = vm.elapsed();
+
+        Vm::wait_for_str(
+            &vm.console_socket,
+            "reconciled resource status=Ready key=network:route/eth0-dhcp",
+            Duration::from_secs(10),
+        )
+        .await?;
+        let time_to_dhcp = vm.elapsed();
+
+        Ok((
+            time_to_kernel,
+            time_to_init,
+            time_to_supervisor,
+            time_to_reconcile,
+            time_to_dhcp,
+        ))
+    }
+
     pub async fn wait_for_str(&self, pattern: &str) -> Result<()> {
         Vm::wait_for_str(
             &self.vm.console_socket,
             pattern,
             Duration::from_secs(60),
         )
+        .await
     }
 
     pub async fn kill(&mut self) -> Result<()> {
         self.vm.kill().await
+    }
+
+    pub async fn reboot(
+        &mut self,
+    ) -> Result<(Duration, Duration, Duration, Duration, Duration)> {
+        self.vm.reboot().await?;
+        let res = Self::wait_for_init(&self.vm).await?;
+        let client = CosClient::new(
+            &format!("http://127.0.0.1:{}", self.vm.port),
+            None,
+        )?;
+
+        self.client = client;
+        Ok(res)
     }
 
     pub async fn reconcile(&mut self, key: &Key) -> Result<()> {

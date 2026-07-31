@@ -35,6 +35,7 @@ pub enum Identity {
 
 #[derive(Debug, Clone, Eq, Serialize, Deserialize)]
 pub enum PrivateIdentity {
+    Ephemeral(Key),
     Dynamic(Key),
     Static(Key),
 }
@@ -179,7 +180,9 @@ impl PrivateIdentity {
     #[must_use]
     pub fn key(&self) -> &Key {
         match self {
-            Self::Static(key) | Self::Dynamic(key) => key,
+            Self::Static(key) | Self::Dynamic(key) | Self::Ephemeral(key) => {
+                key
+            }
         }
     }
 }
@@ -204,6 +207,10 @@ impl std::fmt::Display for Identity {
         let key = match self {
             Self::Private(PrivateIdentity::Dynamic(key)) => {
                 f.write_str("dyn#")?;
+                key
+            }
+            Self::Private(PrivateIdentity::Ephemeral(key)) => {
+                f.write_str("tmp#")?;
                 key
             }
             Self::Private(PrivateIdentity::Static(key)) => {

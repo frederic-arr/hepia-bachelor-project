@@ -3,12 +3,11 @@
 
 use std::time::Duration;
 
-use e2e::{CosVm, random_port, wait_for_request};
+use e2e::{CosVm, Vm, random_port, wait_for_request};
 
 #[derive(Debug, Clone, Copy)]
 #[expect(clippy::struct_field_names, reason = "")]
 struct Measurement {
-    time_to_config: Duration,
     time_to_install: Duration,
     time_to_kernel: Duration,
     time_to_init: Duration,
@@ -29,29 +28,31 @@ async fn cos_install() -> Measurement {
         .await
         .unwrap();
 
-    vm.push_str(&data).await.unwrap();
-    let time_to_config = vm.elapsed();
-    dbg!(time_to_config);
-
-    vm.wait_for_str("install succesfull").await.unwrap();
-    let time_to_install = vm.elapsed();
-    dbg!(time_to_install);
+    let console_socket = vm.vm.console_socket.clone();
+    let start = vm.vm.start;
+    let (a, time_to_install) = tokio::join!(vm.push_str(&data), async {
+        Vm::wait_for_str(
+            &console_socket,
+            "install succesfull",
+            Duration::from_secs(60),
+        )
+        .await
+        .unwrap();
+        start.elapsed()
+    });
+    a.unwrap();
 
     vm.wait_for_str("Linux version").await.unwrap();
     let time_to_kernel = vm.elapsed();
-    dbg!(time_to_kernel);
 
     vm.wait_for_str("Run /init as init process").await.unwrap();
     let time_to_init = vm.elapsed();
-    dbg!(time_to_init);
 
     vm.wait_for_str("/bin/supervisor").await.unwrap();
     let time_to_supervisor = vm.elapsed();
-    dbg!(time_to_supervisor);
 
     vm.wait_for_str("attempting to reconcile").await.unwrap();
     let time_to_reconcile = vm.elapsed();
-    dbg!(time_to_reconcile);
 
     vm.wait_for_str(
         "reconciled resource status=Ready key=network:route/eth0-dhcp",
@@ -59,28 +60,23 @@ async fn cos_install() -> Measurement {
     .await
     .unwrap();
     let time_to_dhcp = vm.elapsed();
-    dbg!(time_to_dhcp);
 
     vm.wait_for_str("attempting to reconcile container:image/")
         .await
         .unwrap();
     let time_to_downloading_image = vm.elapsed();
-    dbg!(time_to_downloading_image);
 
     vm.wait_for_str("econciled resource status=Done key=container:image/")
         .await
         .unwrap();
     let time_to_download_image = vm.elapsed();
-    dbg!(time_to_download_image);
 
     wait_for_request(port).await.unwrap();
     let time_to_run_container = vm.elapsed();
-    dbg!(time_to_run_container);
 
     vm.kill().await.unwrap();
 
     Measurement {
-        time_to_config,
         time_to_install,
         time_to_kernel,
         time_to_init,
@@ -109,8 +105,7 @@ async fn main() {
         cos.into_iter()
             .map(|m| {
                 format!(
-                    "{},{},{},{},{},{},{},{},{},{}",
-                    m.time_to_config.as_millis(),
+                    "{},{},{},{},{},{},{},{},{}",
                     m.time_to_install.as_millis(),
                     m.time_to_kernel.as_millis(),
                     m.time_to_init.as_millis(),

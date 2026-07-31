@@ -8,6 +8,7 @@ mod timeout;
 
 use std::collections::{HashMap, HashSet};
 use std::hash_map;
+use std::io::Write;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -19,10 +20,12 @@ use cos_proto_reconciler::{
     PrivateIdentity,
     SubResourceCreate,
     TerminalResource,
+    ValidateResponse,
 };
 use cos_proto_reconciler_client::v1::ReconcilerServiceClient;
 use cos_proto_state::v1::{ReconcileNowRequest, ReconcileNowResponse};
 use cos_proto_state_server::v1::{StateService, StateServiceServer};
+use itertools::Itertools as _;
 use network_controller::{
     DhcpSpec,
     DnsSpec,
@@ -39,6 +42,7 @@ use tonic::transport::{Channel, Endpoint, Server};
 use tonic::{Request, Response, Status};
 use tracing::Level;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::fmt::MakeWriter;
 
 use crate::api::{ApiAuth, ApiConfig, ApiServer};
 use crate::queue::Queue;
@@ -202,24 +206,63 @@ async fn create_state_manager_from_disk() -> Result<(
         .context("an api configuration must exist")?
         .clone();
 
-    queue
-        .schedule_at_bulk(
-            resources
-                .values()
-                .filter(|&v| v.dependencies.is_empty())
-                .map(|v| v.id.key().clone())
-                .collect(),
-            Instant::now(),
-        )
-        .await;
+    let keys = resources
+        .values()
+        .map(|v| {
+            (
+                SubResourceCreate::<Value> {
+                    id: v.id.clone(),
+                    spec: v.spec.clone(),
+                },
+                ValidateResponse::<Value> {
+                    derived_spec: v.derived_spec.clone(),
+                    children: vec![],
+                    dependencies: v.dependencies.clone(),
+                },
+            )
+        })
+        .collect_vec();
+
+    StateManager::schedule_available(keys.iter(), &queue, &resources, true)
+        .await?;
 
     let sm = StateManager::new(clients, resources, queue).await;
     Ok((sm, config))
 }
 
+struct ImmediateWriter;
+
+impl<'writer> MakeWriter<'writer> for ImmediateWriter {
+    type Writer = ImmediateStdout;
+
+    fn make_writer(&'writer self) -> Self::Writer {
+        ImmediateStdout(std::io::stdout())
+    }
+}
+
+struct ImmediateStdout(std::io::Stdout);
+
+impl Write for ImmediateStdout {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let n = self.0.write(buf)?;
+        self.0.flush()?;
+        Ok(n)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.0.flush()
+    }
+
+    fn write_all(&mut self, buf: &[u8]) -> std::io::Result<()> {
+        self.0.write_all(buf)?;
+        self.0.flush()
+    }
+}
+
 #[tokio::main(flavor = "local")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
+        .with_writer(ImmediateWriter)
         .with_env_filter(
             EnvFilter::builder()
                 .with_default_directive(Level::INFO.into())

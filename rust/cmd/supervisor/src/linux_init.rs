@@ -106,6 +106,7 @@ fn create_rfs() -> Result<()> {
     let dirs = [
         "/etc/containers",
         "/var/lib/podman-data",
+        "/var/lib/containers/storage/overlay/diff",
         "/etc/opt",
         "/usr/bin",
         "/usr/include",

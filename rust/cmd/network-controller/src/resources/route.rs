@@ -363,21 +363,10 @@ impl RouteReconciler {
                 let is_matching_len =
                     route.header.destination_prefix_length == prefix_len;
 
-                // dbg!(route);
-                // dbg!(&route_gw);
-                // dbg!(&gateway);
-                // dbg!(&route_destination);
-                // dbg!(&destination);
-
                 let is_matching_gw = route_gw == Some(gateway);
                 let is_matching = is_matching_destination
                     && is_matching_len
                     && is_matching_gw;
-
-                // dbg!(&is_matching_destination);
-                // dbg!(&is_matching_gw);
-                // dbg!(&is_matching_len);
-                // dbg!(&is_matching);
 
                 std::future::ready(is_matching)
             });
@@ -394,8 +383,6 @@ impl RouteReconciler {
         let Some(route) = route else {
             return Ok(RouteContext::NoRoute);
         };
-
-        // dbg!(&route);
 
         RouteState::try_from_message(&route).map(RouteContext::Route)
     }
@@ -452,7 +439,6 @@ impl RouteReconciler {
                         .gateway(gateway)
                         .build(),
                 };
-                // dbg!(&msg);
 
                 Ok(RoutePlan::Create(msg))
             }

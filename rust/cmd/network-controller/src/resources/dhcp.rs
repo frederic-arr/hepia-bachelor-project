@@ -166,7 +166,7 @@ impl DhcpReconciler {
             // SAFETY: TODO
             let fd = unsafe { OwnedFd::from_raw_fd(device.as_raw_fd()) };
 
-            let ret = loop {
+            let _ = loop {
                 if token.is_cancelled() {
                     break Ok(());
                 }
@@ -233,8 +233,6 @@ impl DhcpReconciler {
             let mut clients = (*CLIENTS).lock().await;
             clients.remove(&dev);
             drop(clients);
-
-            let _ = dbg!(ret);
         });
 
         Ok(ret_token)
@@ -313,7 +311,7 @@ impl DhcpReconciler {
             .clone()
             .map(|v| {
                 anyhow::Ok(SubResourceCreate::<Value> {
-                    id: Identity::Private(PrivateIdentity::Dynamic(Key {
+                    id: Identity::Private(PrivateIdentity::Ephemeral(Key {
                         schema: "network:address".to_owned(),
                         name: Some(format!(
                             "{}-dhcp",
@@ -333,7 +331,7 @@ impl DhcpReconciler {
             .clone()
             .map(|v| {
                 anyhow::Ok(SubResourceCreate::<Value> {
-                    id: Identity::Private(PrivateIdentity::Dynamic(Key {
+                    id: Identity::Private(PrivateIdentity::Ephemeral(Key {
                         schema: "network:route".to_owned(),
                         name: Some(format!(
                             "{}-dhcp",

@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod validation {
 
+    use std::time::Duration;
+
     use cosc::Key;
     use e2e::{CosVm, random_port, wait_for_request};
     use serde_json::json;
@@ -113,6 +115,28 @@ mod validation {
             .await
             .unwrap();
         let () = vm.push_str(&data).await.unwrap();
+        wait_for_request(port).await.unwrap();
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn reboot() {
+        let port = random_port();
+        let data = include_str!("./data/install.yaml")
+            .replace("%%PORT%%", &port.to_string());
+
+        let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(1024))
+            .await
+            .unwrap();
+        let () = vm.push_str(&data).await.unwrap();
+        wait_for_request(port).await.unwrap();
+
+        // TODO: Should have a proper reboot command instead of just killing the
+        // VM
+        tokio::time::sleep(Duration::from_secs(5)).await;
+
+        vm.reboot().await.unwrap();
         wait_for_request(port).await.unwrap();
 
         vm.kill().await.unwrap();
