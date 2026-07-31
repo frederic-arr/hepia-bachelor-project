@@ -15,6 +15,7 @@ languageSettings:
       - péjorer
       - débuggage
       - débugger
+      - replanification
   - languageId: typst
     ignoreRegExpList:
       - string
@@ -35,7 +36,14 @@ languageSettings:
       - sbref
       - dhcpd
       - resolv
-      - declarativity
+      - smoltcp
+      - hviolin
+      - xaxis
+      - yaxis
+      - xlabel
+      - ylabel
+      - lilaq
+      - hyph
 overrides:
   - filename: "docs/**/*.typ"
     languageId: typst
@@ -59,3 +67,4 @@ words:
   - Glück
   - HEPIA
   - Codeberg
+  - declarativity

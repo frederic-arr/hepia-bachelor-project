@@ -15,7 +15,7 @@
         Temps entre le la soumission d'une configuration créant un conteneur, le
         téléchargement de l'image et la réception d'une requête sur un port
         arbitraire de l'hôte faite par le conteneur. \
-        Taille de l'échantillion: 100
+        Taille de l’échantillon: 100
     ],
     source: made-by-self,
     lq.diagram(

@@ -213,7 +213,7 @@ validation, une spécification dite dérivée, calculée uniquement à partir de
 spécification soumise. Cette spécification dérivée n'est mise à jour que lorsque
 la spécification change; il n'est pas possible de la modifier lors d'une
 réconciliation normale. Ce mécanisme dispense l'utilisateur de renseigner
-manuellement des champs entièrement déductibles, tout en évitant un recalcul
+manuellement des champs entièrement déductibles, tout en évitant un recalcule
 systématique de ces champs à chaque réconciliation. La garantie d'existence de
 la spécification dérivée à chaque réconciliation permet en outre au contrôleur
 de traiter ce champ comme systématiquement disponible, ce qui allège la logique
@@ -314,7 +314,7 @@ réconciliation dépend d'une file d'attente, représentée ici par la structure
 `Queue<K>`. Cette file est implémentée de manière générique: elle permet de
 planifier n'importe quel élément de type `K` à un moment précis. Dans le cadre
 du présent système, `K` représente l'identifiant unique d'une ressource. Son
-état interne est principalement inclu dans la structure `QueueInner<K>`:
+état interne est principalement inclut dans la structure `QueueInner<K>`:
 
 #figure(
     caption: [Structure interne de la file d'attente],

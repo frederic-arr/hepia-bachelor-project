@@ -31,5 +31,6 @@
         "${exact}",
         "${include_ignored}"
     ],
-    "tinymist.projectResolution": "lockDatabase"
+    "tinymist.projectResolution": "lockDatabase",
+    "nixEnvSelector.useFlakes": true
 }

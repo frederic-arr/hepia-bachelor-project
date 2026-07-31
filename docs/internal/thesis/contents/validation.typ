@@ -16,12 +16,12 @@ d'une ressource déjà gérée par un autre composant, ainsi que la suppression
 d'une ressource. Seul une partie des contrôleurs sont testés via des tests
 d'intégration. En effet, l'environement dans lequel les tests sont isolé ne
 dispose pas de tous les éléments nécessaires pour mener a bien le test de
-certains composants. C'est nottemetn le cas du contrôleur de conteneurs:
-l'environement de test disposant d'une système de fichier raçine vide, la
+certains composants. C'est notamment le cas du contrôleur de conteneurs:
+l'environement de test disposant d'une système de fichier racine vide, la
 runtime de conteneur n'est pas présente et celle-ci nécessite un nombre
 important de dépendance qu'il serait fastidieux de lier dans cet environement.
 
-Toutefois, des tests de bout en bout (end-to-end, E2E) viennent complèter la
+Toutefois, des tests de bout en bout (end-to-end, E2E) viennent completer la
 couverture. Ces tests reposent fortement sur Nix afin de build le système
 d'exploitation et crée une image ISO. Chaque test est effectué dans une machine
 virtuelle séparée. De manière générale, le test va lancer la VM, attendre que
@@ -35,10 +35,10 @@ retourne un état cohérent, mais que celui-ci reflète l'état réel.
 == Validation
 
 Parmis les tests de bout en bout, trois test notable existent: l'exécution d'un
-conteneur dans un environement ephémère, l'installation du système, et
+conteneur dans un environement éphémère, l'installation du système, et
 l'installation d'une application 3 tier classique.
 
-=== Exécution dans un environement ephémère
+=== Exécution dans un environement éphémère
 
 // TODO: Pareil que le benchmark de rapidité d'exécution
 
@@ -55,16 +55,16 @@ l'installation d'une application 3 tier classique.
 === Rapidité
 
 La #figure-num-ref(<val-boot-time-noinstall>) présente la distribution du temps
-de démarrage de l'OS, mesuré entre le lancement de le lancement du noyeau par le
+de démarrage de l'OS, mesuré entre le lancement de le lancement du noyau par le
 bootloader et la réception d'une route via DHCP, moment à partir duquel l'API
 devient accessible.
 
 #include "../diagrams/val-boot-time-noinstall.typ"
 
-Au total, environ 1.5s s'écoulent entre le démarrage du noyeau et le moment ou
+Au total, environ 1.5s s'écoulent entre le démarrage du noyau et le moment ou
 l'API devient joignable (en orange). La majorité de ce temps (\~1s, en bleu) est
-passé dans l'initialisation du noyeau, les 0.5s restantes (en rouge) étant liée
-à la réconciliation et au protocol DHCP.
+passé dans l'initialisation du noyau, les 0.5s restantes (en rouge) étant liée à
+la réconciliation et au protocol DHCP.
 
 De même, la #figure-num-ref(<val-container-time-noinstall>) présente le temps de
 démarrage d'un conteneur, mesuré entre la soumission d'une configuration créant
@@ -73,12 +73,12 @@ le conteneur et la réception d'une requête sur un port arbitraire de l'hôte,
 
 #include "../diagrams/val-container-time-noinstall.typ"
 
-Entre le démarrage du noyeau et la réception de la requête du conteneur, 5s
+Entre le démarrage du noyau et la réception de la requête du conteneur, 5s
 s'écoulent (en orange), la majorité du temps, environ 2.3s (en rouge), est passé
 à télécharger l'image, ce qui surivent un peu moins de 3s après le démarrage du
-noyeau (en blue).
+noyau (en blue).
 
-#todo[Validation  mémoire installation][
+#todo[Validation mémoire installation][
     - Test pas 100% représentatif de la réalité. il peut y avoir du délai DHCP,
         surcharge CPU, délai réseau, etc. Cela représente ici le meilleur cas
         (modulo le téléchargement)
@@ -107,13 +107,13 @@ interquartile s'étendant de 205~à~209~MiB. Les valeurs extrêmes observées se
 situent entre 193~et~213 MiB. La mémoire disponible est donc autour des 80% de
 la mémoire allouée à la VM. Par extension, le système d'exploitation complet ne
 consomme donc qu'environ 20~MiB. Toutefois, il n'est pas pour autant possible de
-démarrer une VM avec seulemetn 20~MiB de mémoire. En effet, durant le démarrage,
+démarrer une VM avec seulement 20~MiB de mémoire. En effet, durant le démarrage,
 un minimum de 90~MiB sont requis afin que le système démarre, et dans l'optique
 de télécharger une image et exécuter un conteneur au minimum 164~MiB sont
 requis.
 
 Enfin, l'image ISO final occupe 261~MiB d'espace disque et inclut l'ensemble du
-système sans besoin de téléchargement additionel. Elle inclut 260 binaires.
+système sans besoin de téléchargement additionnel. Elle inclut 260 binaires.
 
 == Limitations
 #todo[Limitation validation][

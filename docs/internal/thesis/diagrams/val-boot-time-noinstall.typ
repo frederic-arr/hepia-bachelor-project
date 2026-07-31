@@ -12,10 +12,10 @@
         Temps jusqu'au ce que l'API soit accessible
     ],
     note: [
-        Temps entre le démarrage du noyeau (après le bootloader) et la
+        Temps entre le démarrage du noyau (après le bootloader) et la
         configuration d'une route via DHCP. L'API devient accessible à partir de
         ce moment. \
-        Taille de l'échantillion: 100
+        Taille de l’échantillon: 100
     ],
     source: made-by-self,
     lq.diagram(
@@ -36,7 +36,7 @@
         lq.hviolin(
             delta(time_to_dhcp, time_to_kernel),
             trim: false,
-            label: [Time until DHCP route recieved],
+            label: [Time until DHCP route received],
             side: "low",
         ),
         lq.hviolin(
