@@ -1,9 +1,0 @@
-[toolchain]
-channel = "nightly-2026-05-30"
-targets = ["x86_64-unknown-linux-musl"]
-profile = "default"
-components = [
-    "rust-analyzer",
-    "miri",
-    "rust-src"
-]
