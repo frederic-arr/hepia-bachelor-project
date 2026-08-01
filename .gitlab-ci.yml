@@ -8,8 +8,8 @@ workflow:
 
 stages:
   - check
-  - build
   - test
+  - build
 
 variables:
   NIX_CONFIG: "experimental-features = nix-command flakes"
