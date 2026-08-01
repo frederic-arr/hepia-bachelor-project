@@ -69,16 +69,15 @@ test-rust-integration:
 
 build-iso:
   stage: build
-  script:
-    - nix build -L .#iso
-    - mkdir -p ./output/
-    - cp -L result ./output/container.iso
-  artifacts:
-    when: on_success
-    access: all
-    name: ISO
-    expire_in: 7 days
-    paths: [output/*.iso]
+  script: nix build -L .#iso
+  #   - mkdir -p ./output/
+  #   - cp -L result ./output/container.iso
+  # artifacts:
+  #   when: on_success
+  #   access: all
+  #   name: ISO
+  #   expire_in: 7 days
+  #   paths: [output/*.iso]
   needs: [test-rust-integration]
 
 e2e-rust:
