@@ -1,0 +1,15 @@
+[package]
+name = "cos-proto-api-server"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+cos-proto-api.path = "../cos-proto-api"
+tonic = { workspace = true, features = ["codegen"] }
+tonic-prost.workspace = true
+
+[build-dependencies]
+tonic-prost-build.workspace = true

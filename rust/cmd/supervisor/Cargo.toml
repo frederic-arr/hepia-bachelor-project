@@ -1,0 +1,15 @@
+[package]
+name = "supervisor"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+linux-utils.path = "../../crates/linux-utils"
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
+rustix.workspace = true
+anyhow.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "process", "io-util"] }

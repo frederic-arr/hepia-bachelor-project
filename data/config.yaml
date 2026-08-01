@@ -1,0 +1,40 @@
+---
+schema: install
+system_disk: /dev/vda
+
+---
+schema: api
+auth:
+  password: $argon2id$v=19$m=16,t=2,p=1$c3I3UjliaUZ4QXc5aGd3OQ$BYMQWM+Hj/21PCj0NIeIhQ
+
+---
+schema: network:dns
+nameservers:
+  - 9.9.9.9
+
+---
+schema: network:link
+name: eth0
+admin_up: true
+
+---
+schema: network:dhcp
+name: eth0
+
+---
+schema: container:runtime
+name: rootfull
+engine: podman
+uid: 0
+gid: 0
+depends_on:
+  - network:dns
+  - network:route/eth0-dhcp
+
+---
+schema: container:instance
+name: demo
+image: docker.io/alpine/curl:latest
+runtime: rootfull
+running: true
+cmd: [http://10.0.2.2:1234]

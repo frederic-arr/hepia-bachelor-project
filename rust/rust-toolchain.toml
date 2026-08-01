@@ -1,0 +1,5 @@
+[toolchain]
+channel = "nightly-2026-07-18"
+targets = ["x86_64-unknown-linux-musl"]
+profile = "default"
+components = ["rust-analyzer", "miri", "rust-src"]

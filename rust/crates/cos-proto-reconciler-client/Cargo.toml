@@ -1,0 +1,15 @@
+[package]
+name = "cos-proto-reconciler-client"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+cos-proto-reconciler.path = "../cos-proto-reconciler"
+tonic = { workspace = true, features = ["codegen"] }
+tonic-prost.workspace = true
+
+[build-dependencies]
+tonic-prost-build = {workspace = true, features = ["transport"] }

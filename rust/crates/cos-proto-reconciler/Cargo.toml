@@ -1,0 +1,17 @@
+[package]
+name = "cos-proto-reconciler"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+tonic.workspace = true
+prost.workspace = true
+serde = { workspace = true, features = ["std", "derive"] }
+serde_json = { workspace = true, features = ["std"] }
+anyhow.workspace = true
+
+[build-dependencies]
+tonic-prost-build.workspace = true

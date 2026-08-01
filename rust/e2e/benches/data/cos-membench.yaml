@@ -1,0 +1,47 @@
+---
+schema: api
+auth:
+  # hepia2026demo
+  password: $argon2id$v=19$m=16,t=2,p=1$c3I3UjliaUZ4QXc5aGd3OQ$BYMQWM+Hj/21PCj0NIeIhQ
+
+---
+schema: network:dns
+nameservers:
+  - 9.9.9.9
+
+---
+schema: network:link
+name: eth0
+admin_up: true
+
+---
+schema: network:dhcp
+name: eth0
+
+---
+schema: network:route
+name: nowhere
+ipv4:
+  destination: 192.168.0.0
+  prefix_len: 24
+  gateway: 10.0.2.99
+
+---
+schema: container:runtime
+name: rootfull
+engine: podman
+uid: 0
+gid: 0
+depends_on:
+  - network:dns
+  - network:route/eth0-dhcp
+
+---
+schema: container:instance
+name: membench
+image: docker.io/fredericarr/membench:latest
+runtime: rootfull
+running: true
+cmd:
+  - 10.0.2.2:%%PORT%%
+  - "10"

@@ -1,0 +1,17 @@
+---
+schema: api
+auth: "none"
+
+---
+schema: network:dns
+nameservers:
+  - 9.9.9.9
+
+---
+schema: network:link
+name: eth0
+admin_up: true
+
+---
+schema: network:dhcp
+name: eth0

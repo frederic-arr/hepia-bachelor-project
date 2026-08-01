@@ -1,0 +1,34 @@
+[package]
+name = "e2e"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+tempfile.workspace = true
+anyhow.workspace = true
+regex.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "process"] }
+cosc.path = "../cmd/cosc"
+rand = { workspace = true, features = ["thread_rng"] }
+serde_json.workspace = true
+qapi = { workspace = true, features = ["qmp", "async-tokio", "async-tokio-net", "async-tokio-spawn"]}
+reqwest = { workspace = true, features = ["charset"]}
+
+[dev-dependencies]
+criterion = { workspace = true, features = ["html_reports"] }
+
+[[bench]]
+name = "time-no-install"
+harness = false
+
+[[bench]]
+name = "time-install"
+harness = false
+
+[[bench]]
+name = "membench"
+harness = false
+

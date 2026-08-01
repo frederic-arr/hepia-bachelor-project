@@ -1,0 +1,8 @@
+[unstable]
+# build-std = ["std"]
+# build-std-features = ["optimize_for_size"]
+cargo-lints = true
+
+[env]
+PROTO_ROOT = { value = "../proto/", relative = true }
+COS_ISO = { value = "../result", relative = true }

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package containeros.state.v1;
+
+service StateService {
+  rpc ReconcileNow(ReconcileNowRequest) returns (ReconcileNowResponse) {}
+}
+
+message ReconcileNowRequest {
+  bytes raw = 1;
+}
+
+message ReconcileNowResponse {
+  bytes raw = 1;
+}
