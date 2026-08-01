@@ -10,5 +10,5 @@ proc-macro = true
 workspace = true
 
 [dependencies]
-syn.workspace = true
-quote.workspace = true
+quote = { workspace = true, features = ["proc-macro"] }
+syn = { workspace = true, features = ["proc-macro", "parsing"] }

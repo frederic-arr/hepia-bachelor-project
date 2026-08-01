@@ -8,8 +8,9 @@ workflow:
 
 stages:
   - check
-  - build
   - test
+  - build
+  - e2e
 
 variables:
   NIX_CONFIG: "experimental-features = nix-command flakes"
@@ -66,10 +67,23 @@ test-rust-integration:
     reports:
       junit: rust/target/nextest/default/junit.xml
 
-test-e2e:
-  stage: test
-  script: nix build -L .#checks.x86_64-linux.e2e
+build-iso:
+  stage: build
+  script: nix build -L .#iso
+  #   - mkdir -p ./output/
+  #   - cp -L result ./output/container.iso
+  # artifacts:
+  #   when: on_success
+  #   access: all
+  #   name: ISO
+  #   expire_in: 7 days
+  #   paths: [output/*.iso]
   needs: [test-rust-integration]
+
+e2e-rust:
+  stage: e2e
+  script: nix build -L .#checks.x86_64-linux.e2e
+  needs: [build-iso]
   artifacts:
     when: always
     reports:

@@ -28,13 +28,13 @@ test-doc:
     cargo test --doc
 
 test-unit:
-    cargo nextest run -E '(kind(lib) or kind(bin)) and not package(e2e-tests)'
+    cargo nextest run -E '(kind(lib) or kind(bin)) and not package(e2e)'
 
 test-integration:
-    cargo nextest run -E 'kind(test) and not package(e2e-tests)'
+    cargo nextest run -E 'kind(test) and not package(e2e)'
 
 rebuild-proto:
-    {{ cargo-cmd }} clean -p cos-api-reconciler -p cos-api-reconciler-server -p cos-api-reconciler-client
-    {{ cargo-cmd }} check -p cos-api-reconciler
-    {{ cargo-cmd }} check -p cos-api-reconciler-server
-    {{ cargo-cmd }} check -p cos-api-reconciler-client
+    {{ cargo-cmd }} clean -p cos-proto-reconciler -p cos-proto-reconciler-server -p cos-proto-reconciler-client
+    {{ cargo-cmd }} check -p cos-proto-reconciler
+    {{ cargo-cmd }} check -p cos-proto-reconciler-server
+    {{ cargo-cmd }} check -p cos-proto-reconciler-client

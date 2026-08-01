@@ -1,68 +1,82 @@
-#![cfg(unix)]
+#![allow(
+    clippy::unwrap_used,
+    reason = "This crate is intended to be used only from tests."
+)]
 
-use std::fs::File;
-use std::io::Read;
-use std::os::fd::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
+use std::io::{Read as _, Write as _};
 use std::path::Path;
-use std::sync::{Arc, Barrier};
-use std::time::Duration;
 
+pub use isolation_macros::isolate;
 use linux_utils::{SpecialFs, mount_special};
 use nix::sched::{CloneFlags, clone};
+use nix::sys::prctl;
 use nix::sys::signal::Signal;
 use nix::sys::wait::{WaitStatus, waitpid};
-use nix::unistd::{
-    close,
-    dup2_stderr,
-    dup2_stdout,
-    getgid,
-    getuid,
-    pipe,
-    read,
-    write,
-};
-use rustix::mount::{MountFlags, MountPropagationFlags, mount, mount_change};
+use nix::unistd::{getgid, getuid, pipe};
+use rustix::mount::{MountFlags, MountPropagationFlags, mount_change};
 use rustix::process::chroot;
 
 const STACK_SIZE: usize = 1024 * 1024;
 
+// The code bellow is inspired from https://github.com/canndrew/netsim/blob/1766dee89256f561df99e8f72d27ce75e45bd1cf/src/namespace.rs
+
 /// Run a function as root in an isolated network namespace and an empty `/`.
 ///
 /// # SHOULD ONLY BE USED IN INTEGRATIONS TESTS
-pub fn namespaced<Root, F, Fut>(root: Root, f: F)
+pub fn namespaced<Root, F>(root: Root, f: F)
 where
     Root: AsRef<Path>,
-    F: FnOnce() -> Fut + std::panic::UnwindSafe,
-    Fut: std::future::Future<Output = ()>,
+    F: FnOnce() + Send + std::panic::UnwindSafe + 'static,
 {
-    let (sync_r, sync_w) = pipe().unwrap();
-    let sync_r = sync_r.into_raw_fd();
-    let sync_w = sync_w.into_raw_fd();
+    let mut stack = vec![0_u8; STACK_SIZE];
+    let (panic_r, panic_w) = pipe().unwrap();
 
-    let mut tmpdir = tempfile::tempdir_in(root).unwrap();
+    let uid = getuid();
+    let gid = getgid();
+
+    let tmpdir = tempfile::tempdir_in(root).unwrap();
     let tmpdir_path = tmpdir.path();
 
-    let mut stack = vec![0u8; STACK_SIZE];
-
     let mut f = Some(f);
+    let mut panic_w = Some(panic_w);
+
+    // SAFETY: TODO
     let child_pid = unsafe {
         clone(
             Box::new(move || {
-                let result = std::panic::catch_unwind(
-                    std::panic::AssertUnwindSafe(|| {
-                        let tmpdir = tmpdir_path.to_owned();
-                        let mut buf = [0u8; 1];
-                        read(File::from_raw_fd(sync_r), &mut buf).unwrap();
-                        close(File::from_raw_fd(sync_r));
+                let panic_w = panic_w.take().unwrap();
+                let writer = std::fs::File::from(panic_w);
 
-                        let f = f.take().unwrap();
+                std::panic::set_hook(Box::new(move |info| {
+                    let mut w = &writer;
+                    let _ = writeln!(w, "{info}");
+                    std::process::abort();
+                }));
+
+                let f = f.take().unwrap();
+                let result = std::panic::catch_unwind(
+                    std::panic::AssertUnwindSafe(move || {
+                        prctl::set_pdeathsig(Signal::SIGTERM).unwrap();
+                        std::fs::write(
+                            "/proc/self/uid_map",
+                            format!("0 {uid} 1\n"),
+                        )
+                        .unwrap();
+                        std::fs::write("/proc/self/setgroups", "deny").unwrap();
+                        std::fs::write(
+                            "/proc/self/gid_map",
+                            format!("0 {gid} 1\n"),
+                        )
+                        .unwrap();
 
                         mount_change(
                             "/",
                             MountPropagationFlags::DOWNSTREAM
                                 | MountPropagationFlags::REC,
-                        );
+                        )
+                        .unwrap();
 
+                        let tmpdir = tmpdir_path.to_path_buf();
                         std::fs::create_dir(tmpdir.join("proc")).unwrap();
                         mount_special(
                             &SpecialFs::Proc,
@@ -74,57 +88,53 @@ where
                             &[],
                         )
                         .unwrap();
-                        chroot(tmpdir).unwrap();
 
-                        let rt = tokio::runtime::Runtime::new().unwrap();
-                        rt.block_on(async {
-                            f().await;
-                        });
+                        chroot(tmpdir).unwrap();
+                        std::env::set_current_dir("/").unwrap();
+
+                        let () = std::thread::spawn(move || {
+                            let () = std::panic::catch_unwind(
+                                std::panic::AssertUnwindSafe(f),
+                            )
+                            .unwrap();
+                        })
+                        .join()
+                        .unwrap();
                     }),
                 );
+
+                #[expect(clippy::exit, reason = "TODO")]
                 match result {
-                    Ok(()) => 0,
-                    Err(_) => 1,
+                    Ok(()) => std::process::exit(0),
+                    Err(_err) => std::process::exit(1),
                 }
             }),
             &mut stack,
-            CloneFlags::CLONE_NEWUSER
+            CloneFlags::CLONE_NEWCGROUP
+                | CloneFlags::CLONE_NEWIPC
+                | CloneFlags::CLONE_NEWNET
                 | CloneFlags::CLONE_NEWNS
                 | CloneFlags::CLONE_NEWPID
-                | CloneFlags::CLONE_NEWNET,
-            #[expect(clippy::as_conversions)]
+                | CloneFlags::CLONE_NEWUSER
+                | CloneFlags::CLONE_NEWUTS,
+            #[expect(
+                clippy::as_conversions,
+                reason = "API expects an i32 and Signal is #[repr(i32)]"
+            )]
             Some(Signal::SIGCHLD as i32),
         )
-    }
-    .expect("clone failed");
-
-    let uid = getuid();
-    let gid = getgid();
-
-    std::fs::write(
-        format!("/proc/{child_pid}/uid_map"),
-        format!("0 {uid} 1\n"),
-    )
-    .unwrap();
-    std::fs::write(format!("/proc/{child_pid}/setgroups"), "deny").unwrap();
-    std::fs::write(
-        format!("/proc/{child_pid}/gid_map"),
-        format!("0 {gid} 1\n"),
-    )
-    .unwrap();
-
-    unsafe {
-        write(File::from_raw_fd(sync_w), &[1]).unwrap();
-        close(File::from_raw_fd(sync_w));
-    }
+        .unwrap()
+    };
 
     let status = waitpid(child_pid, None).unwrap();
-    if let WaitStatus::Exited(_, 0) = status {
-        return;
-    }
+    tmpdir.close().unwrap();
 
-    tmpdir.disable_cleanup(true);
-    panic!()
+    #[expect(clippy::panic, reason = "TODO")]
+    let WaitStatus::Exited(_, 0) = status else {
+        let mut reader = std::fs::File::from(panic_r);
+        let mut panic_msg = String::new();
+        reader.read_to_string(&mut panic_msg).unwrap();
+
+        panic!("{panic_msg}")
+    };
 }
-
-pub use isolation_macros::isolate;

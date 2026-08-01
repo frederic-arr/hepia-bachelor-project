@@ -7,6 +7,7 @@ edition = "2024"
 workspace = true
 
 [dependencies]
-rustix.workspace = true
+rustix = { workspace = true, features = ["std", "mount"] }
 tracing.workspace = true
-loopdev.workspace = true
+anyhow.workspace = true
+loopdev-3.workspace = true

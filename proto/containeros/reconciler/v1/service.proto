@@ -2,76 +2,23 @@ syntax = "proto3";
 
 package containeros.reconciler.v1;
 
-import "google/protobuf/empty.proto";
-
 service ReconcilerService {
-  // rpc ValidateResource, DeleteResource, Plan
-
-  // GUARANTEES:
-  // - CreateXYZ is always the first call made for any given resource.
-  // - CreateXYZ is retried rescheduled until it returns a gRPC-level success response. A gRPC error will
-  //   never advance the resource past this stage.
-  // - At most one concurrent call to either Create or Reconcile will be made per service.
-
-  rpc ReconcileUserConfig(ReconcileUserConfigRequest) returns (ReconcileUserConfigResponse) {}
-  rpc ReconcileDynamicResource(ReconcileDynamicResourceRequest) returns (ReconcileDynamicResourceResponse) {}
+  rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+  rpc Reconcile(ReconcileRequest) returns (ReconcileResponse) {}
 }
 
-message Identity {
-  string schema = 1;
-  string name = 2;
+message ValidateRequest {
+  bytes raw = 1;
 }
 
-message SubResourceWrite {
-  string schema = 1;
-  string name = 2;
-  bytes spec = 3;
+message ValidateResponse {
+  bytes raw = 1;
 }
 
-message SubResourceRead {
-  string schema = 1;
-  string name = 2;
-  bytes spec = 3;
-
-  oneof state {
-    google.protobuf.Empty unset = 4;
-    bytes ready = 5;
-  }
+message ReconcileRequest {
+  bytes raw = 1;
 }
 
-message ReconcileUserConfigRequest {
-  string schema = 1;
-  string name = 2;
-  bytes spec = 3;
-
-  oneof state {
-    google.protobuf.Empty unset = 4;
-    bytes ready = 5;
-  }
-
-  repeated SubResourceRead children = 6;
-}
-
-message ReconcileUserConfigResponse {
-  bytes state = 1;
-  repeated SubResourceWrite children = 2;
-}
-
-message ReconcileDynamicResourceRequest {
-  string schema = 1;
-  string name = 2;
-  bytes spec = 3;
-
-  oneof state {
-    google.protobuf.Empty unset = 4;
-    bytes ready = 5;
-  }
-
-  repeated SubResourceRead children = 6;
-  Identity owner = 7;
-}
-
-message ReconcileDynamicResourceResponse {
-  bytes state = 1;
-  repeated SubResourceWrite children = 2;
+message ReconcileResponse {
+  bytes raw = 1;
 }

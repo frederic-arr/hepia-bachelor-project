@@ -1,18 +1,22 @@
-use linux_utils::{SpecialFs, is_maintenance, mount_special};
+use std::fs::set_permissions;
+use std::os::unix::fs::PermissionsExt;
+
+use anyhow::{Result, bail};
+use linux_utils::{SpecialFs, get_config_disk, get_data_disk, mount_special};
 use rustix::mount::{MountFlags, mount};
 
 const INIT_PID: u32 = 1;
 
-pub fn linux_init() {
+pub fn linux_init() -> Result<()> {
     let pid = std::process::id();
 
     if pid != INIT_PID {
         tracing::error!("PID mismatch, expected PID {INIT_PID}, got PID {pid}");
-        panic!("not PID1");
+        bail!("not PID1");
     }
 
     tracing::trace!("creating rootfs structure");
-    create_rfs().unwrap();
+    create_rfs()
 }
 
 const MFSEC: MountFlags = MountFlags::from_bits_truncate(
@@ -22,36 +26,32 @@ const MFSEC: MountFlags = MountFlags::from_bits_truncate(
         | MountFlags::RELATIME.bits(),
 );
 
-#[expect(clippy::unnecessary_wraps, reason = "will be dealt with later")]
-fn create_rfs() -> std::io::Result<()> {
-    mount_special(&SpecialFs::Sys, "/sys", MFSEC, &[]).unwrap();
-    mount_special(&SpecialFs::Tmp, "/tmp", MFSEC, &[]).unwrap();
-    mount_special(&SpecialFs::Tmp, "/run", MFSEC, &[]).unwrap();
-    mount_special(&SpecialFs::Tmp, "/dev/shm", MFSEC, &[]).unwrap();
+fn create_rfs() -> Result<()> {
+    mount_special(&SpecialFs::Sys, "/sys", MFSEC, &[])?;
+    mount_special(&SpecialFs::Tmp, "/tmp", MFSEC, &[])?;
+    mount_special(&SpecialFs::Tmp, "/run", MFSEC, &[])?;
+    mount_special(&SpecialFs::Tmp, "/dev/shm", MFSEC, &[])?;
 
     mount_special(
         &SpecialFs::DevPts,
         "/dev/pts",
         MountFlags::NOSUID | MountFlags::NOEXEC | MountFlags::RELATIME,
         &["mode=620"],
-    )
-    .unwrap();
+    )?;
 
     mount_special(
         &SpecialFs::Hugetlbfs,
         "/dev/hugepages",
         MountFlags::NOSUID | MountFlags::NODEV | MountFlags::RELATIME,
         &["pagesize=2M"],
-    )
-    .unwrap();
+    )?;
 
     mount_special(
         &SpecialFs::Trace,
         "/sys/kernel/tracing",
         MFSEC,
         &[],
-    )
-    .unwrap();
+    )?;
 
     // TODO: Enable Kernel flag
     // mount_special(
@@ -60,7 +60,7 @@ fn create_rfs() -> std::io::Result<()> {
     //     MFSEC,
     //     &[],
     // )
-    // .unwrap();
+    // ?;
 
     // TODO: Enable Kernel flag
     // mount_special(
@@ -69,7 +69,7 @@ fn create_rfs() -> std::io::Result<()> {
     //     MFSEC,
     //     &[],
     // )
-    // .unwrap();
+    // ?;
 
     // TODO: Enable Kernel flag
     // mount_special(
@@ -78,43 +78,35 @@ fn create_rfs() -> std::io::Result<()> {
     //     MountFlags::RELATIME,
     //     &[],
     // )
-    // .unwrap();
+    // ?;
 
-    mount_special(&SpecialFs::Cgroup2, "/sys/fs/cgroup", MFSEC, &[]).unwrap();
+    mount_special(&SpecialFs::Cgroup2, "/sys/fs/cgroup", MFSEC, &[])?;
 
     let mut tmpfs = vec![
         "/home", "/media", "/mnt", "/opt", "/run", "/sbin", "/srv", "/tmp",
         "/usr", // "/var",
     ];
 
-    if is_maintenance() {
-        tmpfs.push("/var");
-    } else {
-        std::fs::create_dir("/config").unwrap();
-        mount(
-            "/dev/vda3",
-            "/config",
-            "vfat",
-            MountFlags::empty(),
-            None,
-        )
-        .unwrap();
+    if let Some(disk) = get_config_disk() {
+        std::fs::create_dir_all("/config")?;
+        mount(disk, "/config", "vfat", MountFlags::empty(), None)?;
+    }
 
-        mount(
-            "/dev/vda4",
-            "/var",
-            "ext4",
-            MountFlags::empty(),
-            None,
-        )
-        .unwrap();
+    if let Some(disk) = get_data_disk() {
+        std::fs::create_dir_all("/var")?;
+        mount(disk, "/var", "ext4", MountFlags::empty(), None)?;
+    } else {
+        tmpfs.push("/var");
     }
 
     for target in tmpfs {
-        mount_special(&SpecialFs::Tmp, target, MFSEC, &[]).unwrap();
+        mount_special(&SpecialFs::Tmp, target, MFSEC, &[])?;
     }
 
     let dirs = [
+        "/etc/containers",
+        "/var/lib/podman-data",
+        "/var/lib/containers/storage/overlay/diff",
         "/etc/opt",
         "/usr/bin",
         "/usr/include",
@@ -148,8 +140,10 @@ fn create_rfs() -> std::io::Result<()> {
     ];
 
     for dir in dirs {
-        std::fs::create_dir_all(dir).unwrap();
+        std::fs::create_dir_all(dir)?;
     }
+
+    set_permissions("/var/tmp", PermissionsExt::from_mode(0o1777))?;
 
     Ok(())
 }

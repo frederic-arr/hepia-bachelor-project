@@ -1,16 +1,9 @@
 use std::ffi::CString;
 use std::path::Path;
 
+use anyhow::Result;
 use loopdev::{LoopControl, LoopDevice};
 use rustix::mount::MountFlags;
-
-pub fn switchroot<Target, Init>(target: Target, init: Init)
-where
-    Target: AsRef<Path>,
-    Init: AsRef<Path>,
-{
-    todo!()
-}
 
 pub enum SpecialFs {
     Sys,
@@ -59,7 +52,7 @@ pub fn mount_special<Target>(
     target: Target,
     flags: MountFlags,
     options: &[&str],
-) -> std::io::Result<()>
+) -> Result<()>
 where
     Target: AsRef<Path>,
 {
@@ -106,8 +99,8 @@ where
     Target: AsRef<Path>,
     Image: AsRef<Path>,
 {
-    if !std::fs::exists(&target).unwrap() {
-        std::fs::create_dir_all(&target).unwrap();
+    if !std::fs::exists(&target)? {
+        std::fs::create_dir_all(&target)?;
     }
 
     let opts = CString::new(options.join(","))?;
@@ -210,6 +203,33 @@ where
 
 #[must_use]
 pub fn is_maintenance() -> bool {
-    let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap();
+    let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap_or_default();
     cmdline.contains("cos.maintenance")
+}
+
+#[must_use]
+pub fn get_boot_disk() -> Option<String> {
+    let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap_or_default();
+    let (_, rest) = cmdline.split_once("cos.bootdisk=")?;
+    rest.split_whitespace()
+        .next()
+        .map(std::borrow::ToOwned::to_owned)
+}
+
+#[must_use]
+pub fn get_config_disk() -> Option<String> {
+    let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap_or_default();
+    let (_, rest) = cmdline.split_once("cos.configdisk=")?;
+    rest.split_whitespace()
+        .next()
+        .map(std::borrow::ToOwned::to_owned)
+}
+
+#[must_use]
+pub fn get_data_disk() -> Option<String> {
+    let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap_or_default();
+    let (_, rest) = cmdline.split_once("cos.datadisk=")?;
+    rest.split_whitespace()
+        .next()
+        .map(std::borrow::ToOwned::to_owned)
 }

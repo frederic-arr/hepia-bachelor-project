@@ -9,5 +9,6 @@ workspace = true
 [dependencies]
 linux-utils.path = "../../crates/linux-utils"
 tracing.workspace = true
-tracing-subscriber.workspace = true
-rustix.workspace = true
+tracing-subscriber = { workspace = true, features = ["std", "fmt", "ansi"] }
+rustix = { workspace = true, features = ["mount", "fs", "process"] }
+anyhow.workspace = true

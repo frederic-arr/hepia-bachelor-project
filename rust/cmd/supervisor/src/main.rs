@@ -1,19 +1,43 @@
+#![feature(never_type)]
+
 mod linux_init;
 
-use std::process::{Command, Stdio};
-use std::thread;
-use std::time::Duration;
+use std::process::Stdio;
+
+use anyhow::Result;
+use tokio::io::{AsyncBufReadExt as _, BufReader};
+use tokio::process::{ChildStdout, Command};
+use tokio::task::JoinSet;
 
 use crate::linux_init::linux_init;
 
-fn main() {
+async fn wait_for_line(mut f: Option<ChildStdout>, ln: &str) -> Result<()> {
+    if let Some(stdout) = f.take() {
+        let mut lines = BufReader::new(stdout).lines();
+
+        #[expect(clippy::print_stdout, reason = "TODO")]
+        while let Some(line) = lines.next_line().await? {
+            println!("{line}");
+
+            if line.contains(ln) {
+                break;
+            }
+        }
+
+        Ok(())
+    } else {
+        Ok(())
+    }
+}
+
+#[tokio::main(flavor = "local")]
+async fn main() -> Result<!> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::TRACE)
         .init();
 
-    linux_init();
+    linux_init()?;
 
-    // println!("Hello from supervisor!");
     let mut busybox = Command::new("/bin/busybox")
         .arg("sh")
         .arg("-c")
@@ -21,30 +45,35 @@ fn main() {
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .unwrap();
+        .spawn()?;
 
-    busybox.wait().unwrap();
+    busybox.wait().await?;
 
-    let mut conmgr = Command::new("/bin/container-manager")
+    let netctl = Command::new("/bin/network-controller")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .unwrap();
+        .spawn()?;
 
-    let mut netmgr = Command::new("/bin/network-manager")
+    let sysctl = Command::new("/bin/system-controller")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .unwrap();
+        .spawn()?;
 
-    thread::sleep(Duration::from_secs(5));
-
-    let mut sysmgr = Command::new("/bin/system-manager")
+    let conctl = Command::new("/bin/container-controller")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .unwrap();
+        .spawn()?;
+
+    let mut set = JoinSet::new();
+    set.spawn(wait_for_line(netctl.stdout, "listening"));
+    set.spawn(wait_for_line(sysctl.stdout, "listening"));
+    set.spawn(wait_for_line(conctl.stdout, "listening"));
+
+    set.join_all().await;
+    let mut statemgr = Command::new("/bin/state-manager")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()?;
 
     // mkdir -p /sys/fs/cgroup/cpu
     // mkdir -p /sys/fs/cgroup/cpuacct
@@ -64,13 +93,10 @@ fn main() {
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()
-        .unwrap();
+        .spawn()?;
 
-    busybox.wait().unwrap();
-    conmgr.wait().unwrap();
-    sysmgr.wait().unwrap();
-    netmgr.wait().unwrap();
+    busybox.wait().await?;
+    statemgr.wait().await?;
 
     loop {
         std::thread::park();
