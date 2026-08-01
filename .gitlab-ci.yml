@@ -71,7 +71,7 @@ build-iso:
   stage: build
   script:
     - nix build -L .#iso
-    - cp -r result ./output/container.iso
+    - cp -L result ./output/container.iso
   artifacts:
     when: on_success
     access: all
