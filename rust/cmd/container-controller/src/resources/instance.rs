@@ -52,6 +52,9 @@ pub struct InstanceSpec {
     pub user: Option<String>,
     pub working_dir: Option<String>,
     pub depends_on: Option<HashSet<Key>>,
+    pub cap_add: Option<Vec<String>>,
+    pub cap_drop: Option<Vec<String>>,
+    pub privileged: Option<bool>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -356,49 +359,57 @@ impl InstanceReconciler {
                     .name(&resource.derived_spec.name)
                     .build();
 
-                let cfg = ContainerCreateBody {
-                    image: Some(resource.spec.image.clone()),
-                    cmd: resource.spec.cmd.clone(),
-                    entrypoint: resource.spec.entrypoint.clone(),
-                    env: resource.spec.env.clone(),
-                    volumes: resource.spec.volumes.clone(),
-                    domainname: resource.spec.domainname.clone(),
-                    hostname: resource.spec.hostname.clone(),
-                    user: resource.spec.user.clone(),
-                    working_dir: resource.spec.working_dir.clone(),
-                    host_config: Some(HostConfig {
-                        port_bindings: resource.spec.ports.clone().map(
-                            |ports| {
-                                let bindings = ports.iter().map(|port| {
-                                    (
-                                        port.container_port.to_string(),
-                                        Some(vec![PortBinding {
-                                            host_ip: port
-                                                .host_ip
-                                                .map(|v| v.to_string()),
-                                            host_port: port
-                                                .host_port
-                                                .map(|v| v.to_string()),
-                                        }]),
-                                    )
-                                });
+                let cfg =
+                    ContainerCreateBody {
+                        image: Some(resource.spec.image.clone()),
+                        cmd: resource.spec.cmd.clone(),
+                        entrypoint: resource.spec.entrypoint.clone(),
+                        env: resource.spec.env.clone(),
+                        volumes: resource.spec.volumes.clone(),
+                        domainname: resource.spec.domainname.clone().or_else(
+                            || Some(resource.derived_spec.name.clone()),
+                        ),
+                        hostname: resource.spec.hostname.clone().or_else(
+                            || Some(resource.derived_spec.name.clone()),
+                        ),
+                        user: resource.spec.user.clone(),
+                        working_dir: resource.spec.working_dir.clone(),
+                        host_config: Some(HostConfig {
+                            cap_add: resource.spec.cap_add.clone(),
+                            cap_drop: resource.spec.cap_drop.clone(),
+                            privileged: resource.spec.privileged,
+                            port_bindings: resource.spec.ports.clone().map(
+                                |ports| {
+                                    let bindings = ports.iter().map(|port| {
+                                        (
+                                            port.container_port.to_string(),
+                                            Some(vec![PortBinding {
+                                                host_ip: port
+                                                    .host_ip
+                                                    .map(|v| v.to_string()),
+                                                host_port: port
+                                                    .host_port
+                                                    .map(|v| v.to_string()),
+                                            }]),
+                                        )
+                                    });
 
-                                bindings.collect()
+                                    bindings.collect()
+                                },
+                            ),
+                            ..Default::default()
+                        }),
+                        networking_config: resource.spec.networks.clone().map(
+                            |nets| NetworkingConfig {
+                                endpoints_config: Some(HashMap::from_iter(
+                                    nets.into_iter().map(|net| {
+                                        (net, EndpointSettings::default())
+                                    }),
+                                )),
                             },
                         ),
                         ..Default::default()
-                    }),
-                    networking_config: resource.spec.networks.clone().map(
-                        |nets| NetworkingConfig {
-                            endpoints_config: Some(HashMap::from_iter(
-                                nets.into_iter().map(|net| {
-                                    (net, EndpointSettings::default())
-                                }),
-                            )),
-                        },
-                    ),
-                    ..Default::default()
-                };
+                    };
                 ctx.create_container(Some(opts), cfg).await?;
                 if resource.spec.running.unwrap_or(true) {
                     ctx.start_container(&resource.derived_spec.name, None)

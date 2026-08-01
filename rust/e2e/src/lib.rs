@@ -13,7 +13,7 @@ pub fn random_port() -> u16 {
     rand::random_range(32768..60999)
 }
 
-pub async fn wait_for_request(port: u16) -> Result<()> {
+pub async fn wait_for_request(port: u16) -> Result<String> {
     let listener = TcpListener::bind(&format!("0.0.0.0:{port}")).await?;
 
     let (mut socket, _) = listener.accept().await?;
@@ -26,5 +26,5 @@ pub async fn wait_for_request(port: u16) -> Result<()> {
 
     socket.write_all(response.as_bytes()).await?;
 
-    Ok(())
+    Ok(String::from_utf8_lossy(&buf).to_string())
 }

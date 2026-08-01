@@ -4,6 +4,8 @@ use container_controller::{
     ImageResource,
     InstanceReconciler,
     InstanceResource,
+    NetworkReconciler,
+    NetworkResource,
     RuntimeReconciler,
     RuntimeResource,
 };
@@ -67,6 +69,14 @@ impl ReconcilerService for Reconciler {
                     ImageReconciler::new()
                 );
             }
+            "container:network" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    NetworkResource,
+                    NetworkReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -98,6 +108,13 @@ impl ReconcilerService for Reconciler {
             }
             "container:image" => {
                 reconcile!(resource, ImageResource, ImageReconciler::new());
+            }
+            "container:network" => {
+                reconcile!(
+                    resource,
+                    NetworkResource,
+                    NetworkReconciler::new()
+                );
             }
             _ => return Err(Status::not_found("schema does not exist")),
         }
