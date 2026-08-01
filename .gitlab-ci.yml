@@ -35,19 +35,6 @@ build-docs-internal:
     paths: [output/**/*.pdf]
   needs: [check-docs-internal]
 
-build-iso:
-  stage: build
-  script:
-    - nix build -L .#iso
-    - cp -r result ./output/container.iso
-  artifacts:
-    when: on_success
-    access: all
-    name: ISO
-    expire_in: 7 days
-    paths: [output/*.iso]
-  needs: [test-rust-integration]
-
 check-proto:
   stage: check
   script: nix develop -c just proto check
@@ -87,6 +74,19 @@ test-e2e:
     when: always
     reports:
       junit: result/junit.xml
+
+build-iso:
+  stage: build
+  script:
+    - nix build -L .#iso
+    - cp -r result ./output/container.iso
+  artifacts:
+    when: on_success
+    access: all
+    name: ISO
+    expire_in: 7 days
+    paths: [output/*.iso]
+  needs: [test-rust-integration]
 
 # cache:
 #   key: ${CI_COMMIT_REF_SLUG}
