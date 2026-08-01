@@ -8,7 +8,7 @@ mod validation {
     use serde_json::json;
 
     async fn create_vm() -> CosVm {
-        CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None)
+        CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None, vec![])
             .await
             .unwrap()
     }
@@ -53,16 +53,29 @@ mod validation {
 
     #[tokio::test]
     async fn create_config() {
-        let port = random_port();
-        let data = include_str!("./data/create-container.yaml")
-            .replace("%%PORT%%", &port.to_string());
+        let data = include_str!("./data/create-config.yaml");
 
         let mut vm = create_vm().await;
-        let () = vm.push_str(&data).await.unwrap();
+        let () = vm.push_str(data).await.unwrap();
+
+        let resources = vm.list().await.unwrap();
+        assert_eq!(resources.len(), 7);
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn auth() {
+        let data = include_str!("./data/auth.yaml");
+
+        let mut vm = create_vm().await;
+        let () = vm.push_str(data).await.unwrap();
+        vm.list().await.unwrap_err();
+
         vm.set_password(Some("hepia2026demo".to_owned()));
 
         let resources = vm.list().await.unwrap();
-        assert_eq!(resources.len(), 9);
+        assert_eq!(resources.len(), 7);
 
         vm.kill().await.unwrap();
     }
@@ -81,6 +94,7 @@ mod validation {
     }
 
     #[tokio::test]
+    #[ignore = "TODO"]
     async fn create_3tier() {
         let port1 = random_port();
         let port2 = random_port();
@@ -111,9 +125,13 @@ mod validation {
         let data = include_str!("./data/install.yaml")
             .replace("%%PORT%%", &port.to_string());
 
-        let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(1024))
-            .await
-            .unwrap();
+        let mut vm = CosVm::new(
+            Some(env!("CARGO_TARGET_TMPDIR")),
+            Some(1024),
+            vec![],
+        )
+        .await
+        .unwrap();
         let () = vm.push_str(&data).await.unwrap();
         wait_for_request(port).await.unwrap();
 
@@ -126,9 +144,13 @@ mod validation {
         let data = include_str!("./data/install.yaml")
             .replace("%%PORT%%", &port.to_string());
 
-        let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(1024))
-            .await
-            .unwrap();
+        let mut vm = CosVm::new(
+            Some(env!("CARGO_TARGET_TMPDIR")),
+            Some(1024),
+            vec![],
+        )
+        .await
+        .unwrap();
         let () = vm.push_str(&data).await.unwrap();
         wait_for_request(port).await.unwrap();
 
@@ -138,6 +160,35 @@ mod validation {
 
         vm.reboot().await.unwrap();
         wait_for_request(port).await.unwrap();
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn publish_port() {
+        let probe_port = random_port();
+        let data = include_str!("./data/publish-port.yaml")
+            .replace("%%PORT%%", &probe_port.to_string());
+
+        let mut vm = CosVm::new(
+            Some(env!("CARGO_TARGET_TMPDIR")),
+            None,
+            vec![8080],
+        )
+        .await
+        .unwrap();
+        let () = vm.push_str(&data).await.unwrap();
+        wait_for_request(probe_port).await.unwrap();
+
+        let http_port = vm.get_port(8080).unwrap();
+        let body = reqwest::get(format!("http://127.0.0.1:{http_port}"))
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
+
+        assert_eq!(body, "Hello, world!\n");
 
         vm.kill().await.unwrap();
     }

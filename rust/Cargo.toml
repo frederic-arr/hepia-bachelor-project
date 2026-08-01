@@ -133,6 +133,7 @@ argon2 = { version = "0.5.3", default-features = false }
 regex = { version = "1.13.1", default-features = false }
 criterion = { version = "0.8.2", default-features = false }
 qapi = { version = "0.15.0", default-features = false }
+reqwest = { version = "0.13.4", default-features = false }
 
 [workspace.dependencies.smoltcp]
 git = "https://github.com/smoltcp-rs/smoltcp"

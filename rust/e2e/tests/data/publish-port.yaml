@@ -28,24 +28,19 @@ depends_on:
 
 ---
 schema: container:instance
-name: db
-image: docker.io/alpine/curl:latest
+name: http
+image: docker.io/fredericarr/simple-http-server:latest
 runtime: rootfull
-running: true
-cmd: [http://10.0.2.2:%%PORT1%%]
+cmd: []
+ports:
+  - container_port: 80
+    host_port: 8080
 
 ---
 schema: container:instance
-name: api
+name: probe
 image: docker.io/alpine/curl:latest
 runtime: rootfull
-running: true
-cmd: [http://10.0.2.2:%%PORT2%%]
-
----
-schema: container:instance
-name: web
-image: docker.io/alpine/curl:latest
-runtime: rootfull
-running: true
-cmd: [http://10.0.2.2:%%PORT3%%]
+cmd: [http://10.0.2.2:%%PORT%%]
+depends_on:
+  - container:instance/http

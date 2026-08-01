@@ -16,9 +16,15 @@ pub struct CosVm {
 }
 
 impl CosVm {
-    pub async fn new(tmp: Option<&str>, disk: Option<u16>) -> Result<Self> {
+    #[expect(clippy::unwrap_used, reason = "API port should always exist")]
+    pub async fn new(
+        tmp: Option<&str>,
+        disk: Option<u16>,
+        mut ports: Vec<u16>,
+    ) -> Result<Self> {
+        ports.push(50000);
         let iso = std::env::var("E2E_DISK_IMAGE")?;
-        let vm = Vm::new(tmp, &iso, 50000, disk, 256).await?;
+        let vm = Vm::new(tmp, &iso, disk, 256, ports).await?;
 
         let (
             time_to_kernel,
@@ -28,8 +34,10 @@ impl CosVm {
             time_to_dhcp,
         ) = Self::wait_for_init(&vm).await?;
 
-        let client =
-            CosClient::new(&format!("http://127.0.0.1:{}", vm.port), None)?;
+        let client = CosClient::new(
+            &format!("http://127.0.0.1:{}", vm.get_port(50000).unwrap()),
+            None,
+        )?;
 
         Ok(Self {
             vm,
@@ -40,6 +48,15 @@ impl CosVm {
             time_to_reconcile,
             time_to_dhcp,
         })
+    }
+
+    #[expect(clippy::unwrap_used, reason = "API port should always exist")]
+    pub fn api_port(&self) -> u16 {
+        self.vm.get_port(50000).unwrap()
+    }
+
+    pub fn get_port(&self, target: u16) -> Option<u16> {
+        self.vm.get_port(target)
     }
 
     pub async fn wait_for_init(
@@ -113,7 +130,7 @@ impl CosVm {
         self.vm.reboot().await?;
         let res = Self::wait_for_init(&self.vm).await?;
         let client = CosClient::new(
-            &format!("http://127.0.0.1:{}", self.vm.port),
+            &format!("http://127.0.0.1:{}", self.api_port()),
             None,
         )?;
 

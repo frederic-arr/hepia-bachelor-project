@@ -14,24 +14,23 @@ use crate::random_port;
 #[derive(Debug)]
 pub struct Vm {
     pub iso: String,
-    pub target_port: u16,
     pub memory_size: u16,
     pub tmpdir: TempDir,
     pub child: Child,
     pub disk: Option<PathBuf>,
     pub console_socket: PathBuf,
     pub qmp_socket: PathBuf,
-    pub port: u16,
     pub start: Instant,
+    pub ports: Vec<(u16, u16)>,
 }
 
 impl Vm {
     pub async fn new(
         tmp: Option<&str>,
         image: &str,
-        target_port: u16,
         disk_size: Option<u16>,
         memory_size: u16,
+        ports: Vec<u16>,
     ) -> Result<Self> {
         let iso = image;
         let tmpdir = match tmp {
@@ -41,7 +40,10 @@ impl Vm {
 
         let console_socket = tmpdir.path().join("console.sock");
         let qmp_socket = tmpdir.path().join("qmp.sock");
-        let port = random_port();
+        let ports = ports
+            .iter()
+            .map(|dest| (random_port(), *dest))
+            .collect::<Vec<_>>();
 
         let disk = if let Some(disk_size) = disk_size {
             let disk = tmpdir.path().join("disk.img");
@@ -63,38 +65,48 @@ impl Vm {
         let start = Instant::now();
         let child = Self::create_qemu(
             iso,
-            target_port,
             disk.as_ref(),
             memory_size,
             &console_socket,
             &qmp_socket,
-            port,
+            &ports,
         )
         .await?;
 
         Ok(Self {
             iso: iso.to_owned(),
-            target_port,
             memory_size,
             tmpdir,
             child,
             disk,
             console_socket,
             qmp_socket,
-            port,
             start,
+            ports,
         })
+    }
+
+    #[must_use]
+    pub fn get_port(&self, target: u16) -> Option<u16> {
+        self.ports
+            .iter()
+            .find_map(|(src, dest)| (*dest == target).then_some(*src))
     }
 
     async fn create_qemu(
         iso: &str,
-        target_port: u16,
         disk: Option<&PathBuf>,
         memory_size: u16,
         console_socket: &Path,
         qmp_socket: &Path,
-        port: u16,
+        ports: &[(u16, u16)],
     ) -> Result<Child> {
+        let ports = ports
+            .iter()
+            .map(|(src, dest)| format!("hostfwd=tcp::{src}-:{dest}"))
+            .collect::<Vec<_>>()
+            .join(",");
+
         let mut cmd = Command::new("qemu-system-x86_64");
         cmd.args(["-enable-kvm"])
             .args(["-cdrom", iso])
@@ -114,10 +126,7 @@ impl Vm {
                 "-qmp",
                 &format!("unix:{},server,wait=off", qmp_socket.display()),
             ])
-            .args([
-                "-netdev",
-                &format!("user,id=net0,hostfwd=tcp::{port}-:{target_port}"),
-            ])
+            .args(["-netdev", &format!("user,id=net0,{ports}")])
             .args(["-device", "virtio-net-pci,netdev=net0"])
             .kill_on_drop(true);
 

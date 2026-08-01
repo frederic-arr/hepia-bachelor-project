@@ -1,8 +1,16 @@
 use std::collections::{HashMap, HashSet};
+use std::net::IpAddr;
 
 use anyhow::{Context as _, Result, anyhow};
 use bollard::Docker;
-use bollard::plugin::{ContainerCreateBody, ContainerSummaryStateEnum};
+use bollard::plugin::{
+    ContainerCreateBody,
+    ContainerSummaryStateEnum,
+    EndpointSettings,
+    HostConfig,
+    NetworkingConfig,
+    PortBinding,
+};
 use bollard::query_parameters::{
     CreateContainerOptionsBuilder,
     ListContainersOptionsBuilder,
@@ -32,8 +40,25 @@ pub type InstanceResource =
 pub struct InstanceSpec {
     pub image: String,
     pub runtime: String,
-    pub running: bool,
-    pub cmd: Vec<String>,
+    pub cmd: Option<Vec<String>>,
+    pub running: Option<bool>,
+    pub ports: Option<Vec<InstancePortSpec>>,
+    pub entrypoint: Option<Vec<String>>,
+    pub env: Option<Vec<String>>,
+    pub volumes: Option<Vec<String>>,
+    pub networks: Option<Vec<String>>,
+    pub domainname: Option<String>,
+    pub hostname: Option<String>,
+    pub user: Option<String>,
+    pub working_dir: Option<String>,
+    pub depends_on: Option<HashSet<Key>>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct InstancePortSpec {
+    container_port: u16,
+    host_port: Option<u16>,
+    host_ip: Option<IpAddr>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Builder, Deserialize, Serialize)]
@@ -291,12 +316,11 @@ impl InstanceReconciler {
             (Phase::Running, None) => InstancePlan::Create,
             (Phase::Deleting, Some(_)) => InstancePlan::Delete,
             (Phase::Running, Some(refreshed_state)) => {
-                if resource.spec.image != refreshed_state.image
-                    || resource.spec.cmd.join(" ") != refreshed_state.cmd
-                {
-                    InstancePlan::Delete
-                } else {
-                    match (resource.spec.running, refreshed_state.running) {
+                if resource.spec.image == refreshed_state.image {
+                    match (
+                        resource.spec.running.unwrap_or(true),
+                        refreshed_state.running,
+                    ) {
                         (true, false) => InstancePlan::Start(
                             resource.derived_spec.name.clone(),
                         ),
@@ -305,6 +329,8 @@ impl InstanceReconciler {
                         ),
                         (true, true) | (false, false) => InstancePlan::Noop,
                     }
+                } else {
+                    InstancePlan::Delete
                 }
             }
             (Phase::Shutdown, Some(_))
@@ -332,11 +358,49 @@ impl InstanceReconciler {
 
                 let cfg = ContainerCreateBody {
                     image: Some(resource.spec.image.clone()),
-                    cmd: Some(resource.spec.cmd.clone()),
+                    cmd: resource.spec.cmd.clone(),
+                    entrypoint: resource.spec.entrypoint.clone(),
+                    env: resource.spec.env.clone(),
+                    volumes: resource.spec.volumes.clone(),
+                    domainname: resource.spec.domainname.clone(),
+                    hostname: resource.spec.hostname.clone(),
+                    user: resource.spec.user.clone(),
+                    working_dir: resource.spec.working_dir.clone(),
+                    host_config: Some(HostConfig {
+                        port_bindings: resource.spec.ports.clone().map(
+                            |ports| {
+                                let bindings = ports.iter().map(|port| {
+                                    (
+                                        port.container_port.to_string(),
+                                        Some(vec![PortBinding {
+                                            host_ip: port
+                                                .host_ip
+                                                .map(|v| v.to_string()),
+                                            host_port: port
+                                                .host_port
+                                                .map(|v| v.to_string()),
+                                        }]),
+                                    )
+                                });
+
+                                bindings.collect()
+                            },
+                        ),
+                        ..Default::default()
+                    }),
+                    networking_config: resource.spec.networks.clone().map(
+                        |nets| NetworkingConfig {
+                            endpoints_config: Some(HashMap::from_iter(
+                                nets.into_iter().map(|net| {
+                                    (net, EndpointSettings::default())
+                                }),
+                            )),
+                        },
+                    ),
                     ..Default::default()
                 };
                 ctx.create_container(Some(opts), cfg).await?;
-                if resource.spec.running {
+                if resource.spec.running.unwrap_or(true) {
                     ctx.start_container(&resource.derived_spec.name, None)
                         .await?;
                 }
@@ -378,7 +442,38 @@ impl InstanceReconciler {
     }
 
     fn get_deps(spec: &InstanceSpec) -> HashSet<Identity> {
-        HashSet::from([
+        let networks = spec
+            .networks
+            .clone()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|net| {
+                Identity::Private(PrivateIdentity::Dynamic(Key {
+                    schema: "container:network".to_owned(),
+                    name: Some(net),
+                }))
+            });
+
+        let volumes =
+            spec.volumes
+                .clone()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|net| {
+                    Identity::Private(PrivateIdentity::Dynamic(Key {
+                        schema: "container:volume".to_owned(),
+                        name: Some(net),
+                    }))
+                });
+
+        let additional = spec
+            .depends_on
+            .clone()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|v| Identity::Private(PrivateIdentity::Dynamic(v)));
+
+        let mut deps = HashSet::from([
             Identity::Private(PrivateIdentity::Dynamic(Key {
                 schema: "container:runtime".to_owned(),
                 name: Some(spec.runtime.clone()),
@@ -387,6 +482,12 @@ impl InstanceReconciler {
                 schema: "container:image".to_owned(),
                 name: Some(format!("{}#{}", spec.runtime, spec.image)),
             }),
-        ])
+        ]);
+
+        deps.extend(networks);
+        deps.extend(volumes);
+        deps.extend(additional);
+
+        deps
     }
 }
