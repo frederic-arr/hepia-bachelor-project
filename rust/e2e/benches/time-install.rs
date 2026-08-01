@@ -32,9 +32,13 @@ async fn cos_install() -> Measurement {
     let data = include_str!("./data/cos-install.yaml")
         .replace("%%PORT%%", &port.to_string());
 
-    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), Some(1024))
-        .await
-        .unwrap();
+    let mut vm = CosVm::new(
+        Some(env!("CARGO_TARGET_TMPDIR")),
+        Some(1024),
+        vec![],
+    )
+    .await
+    .unwrap();
 
     let console_socket = vm.vm.console_socket.clone();
     let start = vm.vm.start;

@@ -49,7 +49,7 @@ async fn cos_membench() -> Measurement {
     let data = include_str!("./data/cos-membench.yaml")
         .replace("%%PORT%%", &port.to_string());
 
-    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None)
+    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None, vec![])
         .await
         .unwrap();
 

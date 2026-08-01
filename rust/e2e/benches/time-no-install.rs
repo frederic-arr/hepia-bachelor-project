@@ -23,7 +23,7 @@ async fn cos_no_install() -> Measurement {
     let data = include_str!("./data/cos-no-install.yaml")
         .replace("%%PORT%%", &port.to_string());
 
-    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None)
+    let mut vm = CosVm::new(Some(env!("CARGO_TARGET_TMPDIR")), None, vec![])
         .await
         .unwrap();
 
