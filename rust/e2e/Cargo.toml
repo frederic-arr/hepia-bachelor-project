@@ -19,15 +19,15 @@ qapi = { workspace = true, features = ["qmp", "async-tokio", "async-tokio-net", 
 [dev-dependencies]
 criterion = { workspace = true, features = ["html_reports"] }
 
-# [[bench]]
-# name = "time-no-install"
-# harness = false
+[[bench]]
+name = "time-no-install"
+harness = false
 
 [[bench]]
 name = "time-install"
 harness = false
 
-# [[bench]]
-# name = "membench"
-# harness = false
+[[bench]]
+name = "membench"
+harness = false
 
