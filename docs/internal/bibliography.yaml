@@ -1475,3 +1475,73 @@ bib-rust-std-drop:
     type: web
     title: The Rust Standard Library
     url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-smoltcp-issue:
+  type: web
+  title: The `impl From<std::Instant>` for `smoltcp::Instant` seems buggy
+  author: Robin Lambertz
+  url:
+    value: https://github.com/smoltcp-rs/smoltcp/issues/347
+    date: 2026-08-01
+  parent:
+    type: web
+    title: smoltcp
+    url: https://github.com/smoltcp-rs/smoltcp
+
+bib-smoltcp-pull:
+  type: web
+  title: "fix: incorrect conversion from `std::time::Instant` to `Instant`"
+  author: Frédéric Arroyo
+  url:
+    value: https://github.com/smoltcp-rs/smoltcp/pull/1177
+    date: 2026-08-01
+  parent:
+    type: web
+    title: smoltcp
+    url: https://github.com/smoltcp-rs/smoltcp
+
+bib-podman-issue:
+  type: web
+  title: Alignment with moby swagger definition for ContainerState.Status
+  author: Jiri Daněk
+  url:
+    value: https://github.com/podman-container-tools/podman/issues/17728
+    date: 2026-08-01
+  parent:
+    type: web
+    title: Podman
+    url: https://github.com/podman-container-tools/podman
+
+bib-podman-pull:
+  type: web
+  title: "compat: map internal states to Docker equivalents in LibpodToContainer"
+  author: crawfordxx
+  url:
+    value: https://github.com/podman-container-tools/podman/pull/28390
+    date: 2026-08-01
+  parent:
+    type: web
+    title: Podman
+    url: https://github.com/podman-container-tools/podman
+
+bib-podman-release:
+  type: web
+  title: v6.0.0
+  url:
+    value: https://github.com/podman-container-tools/podman/releases/tag/v6.0.0
+    date: 2026-08-01
+  parent:
+    type: web
+    title: Podman
+    url: https://github.com/podman-container-tools/podman
+
+bib-podman-nix:
+  type: web
+  title: "Podman 6.0: BoltDB removal and SQLite migration plan"
+  url:
+    value: https://github.com/NixOS/nixpkgs/issues/489717
+    date: 2026-08-01
+  parent:
+    type: web
+    title: nixpkgs
+    url: https://github.com/NixOS/nixpkgs

@@ -44,6 +44,10 @@ languageSettings:
       - ylabel
       - lilaq
       - hyph
+      - nixos
+      - mkcell
+      - hline
+      - networkd
 overrides:
   - filename: "docs/**/*.typ"
     languageId: typst

@@ -2,83 +2,135 @@
 
 = Comparaison avec les solutions existantes
 
-== Empreinte mémoire
+== Critères
 
-La #figure-num-ref(<val-memory>) présentée au chapitre précédent établit une
-allocation mémoire médiane de 208~MiB pour un conteneur exécuté sur une VM
-disposant de 256~MiB de RAM, ce qui correspond à une consommation propre au
-système d'exploitation d'environ 20~MiB une fois le conteneur démarré.
+=== Automatisation
 
-Une mesure équivalente n'a pas été reproduite sur NixOS ni sur Talos Linux, en
-raison de la charge de travail que représenterait l'instrumentation de ces deux
-systèmes selon un protocole strictement comparable. La documentation officielle
-de Talos Linux rapporte une consommation mémoire au repos de l'ordre de
-300~à~500~MiB pour un nœud fraîchement démarré, soit un ordre de grandeur
-supérieur d'un facteur 15 à 25 par rapport au système développé. Aucune donnée
-équivalente n'est disponible pour NixOS, la consommation mémoire d'une
-installation NixOS dépendant fortement de l'ensemble de services activés dans la
-configuration, ce qui rend toute comparaison ponctuelle peu représentative sans
-protocole de mesure dédié.
+Le cycle de vie de la solution doit être entièrement automatisable, dès la phase
+d'installation. Plus spécifiquement, l'installation, la configuration initiale
+et le déploiement de l'hôte doivent pouvoir être réalisés à distance, de manière
+programmatique et sans intervention humaine. Ce critère implique que tous les
+artefacts nécessaires au déploiement de la solution, à l'exception des fichiers
+de configuration, soient déjà disponibles sous leur forme finale. Dans le cadre
+de cette évaluation, les approches reposant uniquement sur des mécanismes
+d'initialisation dépendants de l'environnement sont écartées, car elles
+supposent que la configuration soit injectée dès l'installation initiale, mise à
+disposition par un service externe ou intégré à l'artefact déployé.
 
-Cette différence d'ordre de grandeur s'explique en partie par la vocation de
-Talos Linux, conçu pour exécuter un nœud Kubernetes complet, incluant `kubelet`,
-`containerd` et les composants du plan de contrôle, alors que le système
-développé se limite à l'exécution d'un runtime de conteneur unique.
+=== Légèreté
 
-== Taille de l'image de démarrage
+#todo[Légèreté][
+    - Parler de l'empreinte mémoire requise + disponible
+    - Cible: pouvoir démarrer sur 512 MiB de RAM
+]
 
-L'image ISO du système développé occupe 261~MiB et inclut l'ensemble des
-composants nécessaires à l'exécution du système, sans téléchargement additionnel
-requis au démarrage.
+=== Rapidité
 
-Les images ISO minimales de NixOS distribuées officiellement occupent environ
-1,5~GiB, soit un facteur supérieur à 5 par rapport au système développé; cette
-taille s'explique notamment par l'inclusion du paquet `linux-firmware`,
-représentant à lui seul une part importante du volume compressé. La taille
-exacte de l'ISO officielle de Talos Linux n'a pas pu être établie avec certitude
-à partir des sources consultées et devrait être mesurée directement à partir
-d'une image téléchargée depuis Image Factory avant intégration définitive de
-cette comparaison.
+#todo[Rapidité][
+    - Parler de l'empreinte mémoire requise + disponible
+    - Cible: pouvoir démarrer sur 512 MiB de RAM
+]
 
-== Nombre de binaires embarqués
+=== Simplicité
 
-L'image du système développé inclut 260 binaires. Talos Linux revendique
-l'absence de shell interactif, de gestionnaire de paquets et de SSH, ainsi qu'un
-nombre de binaires embarqués nettement inférieur à celui d'une distribution
-Linux généraliste. Cette caractéristique constitue un critère de comparaison
-qualitatif pertinent, la réduction du nombre de binaires exécutables diminuant
-la surface d'attaque du système. Une mesure exacte et directement comparable
-devrait être effectuée sur une installation Talos Linux de référence afin de
-fonder cette comparaison sur des valeurs mesurées plutôt que déclaratives.
+La solution doit être aussi simple que possible à l'utilisation. La
+configuration doit être centralisée, clairement structurée et facilement
+modifiable par une personne ayant des connaissances dans le domaine concerné. La
+mise à jour ne doit pas exiger de procédures fastidieuses, risquées ou
+nécessitant des compétences spécialisées autres que celles liées au domaine
+configuré.
 
-== Workflow d'installation
+== NixOS
 
-Le système développé repose sur une configuration déclarative unique, structurée
-en documents YAML distincts par domaine fonctionnel (installation,
-authentification, réseau, conteneurs), appliquée en une seule opération lors du
-démarrage initial.
+NixOS @bib-nix est une distribution basée sur le gestionnaire Nix, qui permet la
+création de systèmes reproductibles selon une approche déclarative. Nix cherche
+à simplifier le partage et la reproduction des configurations et reste avant
+tout générique. Toutefois, la gestion des conteneurs est intégrée à NixOS et
+cette solution tend à être l'une des plus recommandées pour créer des parcs de
+machines déclaratives.
 
-Le workflow d'installation de Talos Linux repose sur la génération d'une
-configuration via l'outil `talosctl`, suivie de son application à un nœud
-démarré depuis une image ISO ou une image disque, puis d'une étape de bootstrap
-distincte pour l'initialisation du plan de contrôle Kubernetes. Le workflow de
-NixOS repose quant à lui sur la rédaction d'un fichier de configuration Nix,
-suivi d'une phase de build locale ou distante avant application au système
-cible. Contrairement à ces deux approches, le système développé ne nécessite ni
-étape de build préalable côté utilisateur, ni étape de bootstrap distincte, la
-configuration étant appliquée directement au premier démarrage.
+L'évaluation de la solution a été réalisée sur la version 25.11, qui utilise la
+version 6.12.62 du noyau Linux, publiée le 30 novembre 2025. Cette version est
+disponible sous la licence MIT.
 
-== Taille du fichier de configuration
+#todo[NixOS][
+    - Parler de l'empreinte mémoire requise + disponible
+    - Parler du temps d'installation et de démarrage
+    - Parler du workflow et du fichier de configuration
+]
 
-La configuration minimale du système développé, incluant l'installation,
-l'authentification, le réseau et le déploiement d'un conteneur, occupe moins de
-40 lignes au format YAML.
+== Talos Linux
 
-Une configuration Talos Linux générée par `talosctl gen config` occupe
-typiquement plusieurs centaines de lignes par nœud, incluant les certificats,
-les clés et les paramètres du plan de contrôle. Une configuration NixOS minimale
-occupe généralement entre 20 et 50 lignes pour un système de base, mais croît
-rapidement avec l'ajout de modules et de services. Cette comparaison doit être
-interprétée avec prudence méthodologique, la complexité fonctionnelle couverte
-par chaque configuration n'étant pas strictement équivalente entre les trois
-systèmes.
+Talos Linux @bib-talos a été conçu dès le départ comme un système d'exploitation
+sécurisé, immuable et minimaliste afin de faciliter la gestion de _clusters_
+Kubernetes. Son objectif est d'éliminer les dérives de configuration,
+c'est-à-dire les écarts progressifs entre l'état réel du système et sa
+configuration attendue, en traitant la configuration du système comme du code
+déclaratif. Toute la gestion du système s'effectue au travers d'une API gRPC et
+d'un client en ligne de commande. De plus, Talos Linux cherche à réduire le
+risque de dépendance à un fournisseur _cloud_ particulier en proposant une
+distribution pouvant s'exécuter dans différents environnements de manière
+homogène.
+
+L'évaluation a porté sur la version 1.11.5, qui utilise la version 6.12.52 du
+noyau Linux, et a été publiée le 6 novembre 2025. Ce logiciel est sous la
+licence MPL-2.0.
+
+#todo[Talos Linux][
+    - Parler de l'empreinte mémoire requise + disponible
+    - Parler du temps d'installation et de démarrage
+    - Parler du workflow et du fichier de configuration
+]
+
+== Synthèse
+
+// TODO
+
+// @typstyle off
+#{
+  set text(size: 10pt)
+  show table.cell.where(y: 0): set text(weight: "bold")
+  show table.cell.where(x: 0): set text(weight: "bold")
+
+  let mkcell(fill: none, default: none) = {
+    return (..args) => {
+      if args.pos().len() == 0 {
+        table.cell(fill: fill, default)
+      } else {
+        table.cell(fill: fill, args.pos().at(0))
+      }
+    }
+  }
+
+  let y = mkcell(fill: green.transparentize(70%), default: sym.checkmark)
+  let n = mkcell(fill: red.transparentize(70%), default: sym.crossmark)
+  let o = mkcell(fill: gray.transparentize(70%), default: sym.nothing)
+  let w = mkcell(fill: orange.transparentize(70%), default: sym.star)
+
+
+  figure(
+    label: <fig-sota-comp>,
+    caption: [Comparaison des solutions existantes],
+    note: [
+      \ #sym.checkmark signifie que le critère est atteint
+      \ #sym.crossmark signifie que le critère n'est pas atteint
+    ],
+    table(
+      columns: (auto, 1fr, 1fr, 1fr),
+      table.header([Critères],           [ContainerOS],  [NixOS],       [Talos]),
+      [Dernière date],                   o[N/A],         o[2025-11-30], o[2025-11-06],
+      [Version évaluée],                 o[N/A],         o[25.11],      o[1.11.5],
+      [Version du kernel],               o[6.18],        o[6.12],       o[6.12],
+      [Licence],                         o[N/A],         o[MIT],        o[MPL-2.0],
+      table.hline(stroke: 2pt + black),
+      [Automatisation],                  y(),            n(),           y(),
+      [Mémoire requise],                 y[160 MiB],     w[?],          n[1.3 GiB],
+      [Mémoire disponible],              y[211 MiB],     w[?],          n[1.3 GiB],
+      [Rapidité d'installation],         y[36s],         [4mn],         [98s],
+      [Rapidité de démarrage],           y[5.6s],        [1mn],         [98s],
+      [Simplicité],                      y(),            n(),           n(),
+    )
+  )
+}
+
+// TODO

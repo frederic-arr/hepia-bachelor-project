@@ -1,5 +1,4 @@
 #import "../lib.typ": *
-#import "../../packages.typ": *
 
 = Conception du système
 

@@ -5,8 +5,12 @@
         target: figure.where(kind: image),
     )
     outline(
-        title: none,
+        title: [Table des tableaux],
         target: figure.where(kind: table),
+    )
+    outline(
+        title: [Table des extraits de code],
+        target: figure.where(kind: raw),
     )
     state("use-short-caption", false).update(_ => false)
 }

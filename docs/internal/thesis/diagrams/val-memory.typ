@@ -10,13 +10,12 @@
     ],
     note: [
         Allocation mémoire maximale faisable par un conteneur sur une VM
-        disposant de 256~MiB. \
-        Taille de l’échantillon: 100
+        disposant de 256~MiB sur 100 échantillons.
     ],
     source: made-by-self,
     lq.diagram(
         width: 100%,
-        xlabel: [Allocation mémoire \[MiB\]],
+        xlabel: [Allocation mémoire maximale \[MiB\]],
         yaxis: (
             ticks: none,
         ),

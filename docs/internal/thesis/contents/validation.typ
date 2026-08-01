@@ -1,6 +1,12 @@
 #import "../lib.typ": *
-#import "../../packages.typ": *
-#import packages.lilaq as lq
+
+#let vl(v) = box(
+    [],
+    height: 6pt,
+    width: 10pt,
+    fill: v.transparentize(75%),
+    stroke: v,
+)
 
 = Tests et validation
 
@@ -34,55 +40,113 @@ retourne un état cohérent, mais que celui-ci reflète l'état réel.
 
 == Validation
 
-Parmis les tests de bout en bout, trois test notable existent: l'exécution d'un
-conteneur dans un environement éphémère, l'installation du système, et
-l'installation d'une application 3 tier classique.
+Parmi les tests de bout en bout, trois scénarios notables sont définis:
+l'exécution d'un conteneur dans un environnement éphémère, l'installation du
+système suivi de l'exécution d'un conteneur, et le déploiement d'une application
+3 tiers.
 
-=== Exécution dans un environement éphémère
+=== Exécution dans un environnement éphémère
 
-// TODO: Pareil que le benchmark de rapidité d'exécution
+La configuration est appliquée directement sur le système démarré depuis l'image
+ISO, sans écriture sur disque, et définit un unique conteneur exécutant une
+requête HTTP vers un service exposé par l'hôte de test. La validation consiste à
+vérifier que l'état rapporté par l'API à l'issue du cycle de démarrage
+correspond à l'état attendu (conteneur en cours d'exécution), et que la requête
+HTTP émise par le conteneur est effectivement reçue par l'hôte de test.
 
 === Installation du système
 
-// TODO: Pareil que le benchmark de rapidité d'installation
+Le système est installé sur le disque de la machine virtuelle à partir de
+l'image ISO, puis redémarré. La configuration appliquée définit également un
+conteneur, dont l'exécution est vérifiée selon les mêmes critères que ceux du
+scénario précédent. La validation porte en outre sur la persistance de l'état à
+travers le redémarrage: l'état de la configuration et du conteneur, tel que
+rapporté par l'API après réinstallation, doit correspondre à l'état appliqué
+avant redémarrage.
 
-=== Application 3 tier
+=== Application 3 tiers
 
-#todo-missing[]
+Ce scénario met en œuvre une configuration composée de quatre conteneurs:: une
+base de données, un service backend dépendant de la base de données, un service
+web dépendant du backend, et un conteneur de "probe" dépendant du service web,
+chargé d'émettre une requête HTTP l'hôte.
 
-== Validation & Benchmarking
+Lorsque l'hôte reçoit la requête HTTP, le test va alors initier une requête sur
+le conteneur "web" qui va transmettre celle-ci au conteneur "backend", puis la
+persister sur la base de données. Le résultat est ensuite vérifié, puis la
+machine redémarré puis le résultat revérifié afin de valider que la données a
+bien été persisté.
+
+== Benchmarking
+
+Les scénarios d'exécution en environnement éphémère et d'installation du
+système, décrits à la section précédente, sont repris ici selon le même
+protocole, en y ajoutant une instrumentation permettant de mesurer le temps
+écoulé entre chaque étape du cycle de vie, ainsi que la mémoire consommée par le
+système, le tout sur 100 échantillon.
 
 === Rapidité
 
-La #figure-num-ref(<val-boot-time-noinstall>) présente la distribution du temps
-de démarrage de l'OS, mesuré entre le lancement de le lancement du noyau par le
-bootloader et la réception d'une route via DHCP, moment à partir duquel l'API
-devient accessible.
+La #figure-num-ref(<val-boot-time>) présente la chronologie des étapes de
+démarrage jusqu'à l'exécution d'un conteneur, pour deux modes de démarrage: une
+installation préalable sur disque (plan supérieur) et un démarrage éphémère
+depuis l'image ISO, sans installation (plan inférieur). Cinq instants sont
+mesurés depuis le démarrage du noyau par le bootloader: le passage à `/init`
+("Time until /init", en vert~#vl(green)), la réception d'une route via DHCP
+("Time until DHCP route received", en bleu~#vl(blue)), moment à partir duquel
+l'API devient accessible, le début du téléchargement d'une image de conteneur
+("Time until image downloading", en turquoise~#vl(teal)), le démarrage d'un
+conteneur dont l'image est déjà présente localement ("Time until container
+started (no pull)", en violet~#vl(purple)), et le démarrage d'un conteneur dont
+l'image doit être téléchargée ("Time until container started (pull)", en
+rouge~#vl(red)).
 
-#include "../diagrams/val-boot-time-noinstall.typ"
+#include "../diagrams/val-boot-time.typ"
 
-Au total, environ 1.5s s'écoulent entre le démarrage du noyau et le moment ou
-l'API devient joignable (en orange). La majorité de ce temps (\~1s, en bleu) est
-passé dans l'initialisation du noyau, les 0.5s restantes (en rouge) étant liée à
-la réconciliation et au protocol DHCP.
+Dans les deux modes de démarrage, un peu moins d'une seconde s'écoule entre le
+démarrage du noyau et le passage à `/init`, puis environ 0.6 secondes
+supplémentaire est nécessaire à la réconciliation et au protocole DHCP, portant
+à environ 1.5 secondes le délai avant que l'API ne devienne joignable.
 
-De même, la #figure-num-ref(<val-container-time-noinstall>) présente le temps de
-démarrage d'un conteneur, mesuré entre la soumission d'une configuration créant
-le conteneur et la réception d'une requête sur un port arbitraire de l'hôte,
-émise par ce conteneur.
+Le téléchargement de l'image du conteneur, s'il y a lieu, commence environ 0.5
+secondes après la configuration DHCP dans le contexte d'un démarrage sur disque,
+contre 1.5 secondes dans le contexte d'un démarrage depuis l'image ISO. Cette
+différence s'explique par le fait que, lorsqu'une configuration est initialement
+poussée sur le système éphémère, aucun runtime de conteneur n'est encore lancé
+et doit donc être démarré, alors que, dans le contexte d'un démarrage sur
+disque, celui-ci est démarré plus tôt, certaines dépendances étant déjà
+présentes.
 
-#include "../diagrams/val-container-time-noinstall.typ"
+Une fois le téléchargement commencé, environ 2.1 secondes sont nécessaires pour
+qu'il arrive à son terme. Le conteneur est immédiatement démarré une fois ce
+téléchargement terminé . Lorsque l'image est déjà téléchargée, le téléchargement
+se termine instantanément et le conteneur est aussitôt démarré, ce qui crée une
+superposition des deux événements sur la #figure-num-ref(<val-boot-time>). Le
+cas d'une image déjà téléchargée n'est, par nature, pas possible pour un
+environnement éphémère et n'est donc pas représenté sur le plan inférieur.
 
-Entre le démarrage du noyau et la réception de la requête du conteneur, 5s
-s'écoulent (en orange), la majorité du temps, environ 2.3s (en rouge), est passé
-à télécharger l'image, ce qui surivent un peu moins de 3s après le démarrage du
-noyau (en blue).
+Au total, entre le démarrage de la machine et le démarrage du conteneur, le
+temps médian est de 5.1 secondes dans le cas d'un téléchargement d'image, contre
+environ 2.1 secondes lorsque l'image est déjà présente localement.
 
-#todo[Validation mémoire installation][
-    - Test pas 100% représentatif de la réalité. il peut y avoir du délai DHCP,
-        surcharge CPU, délai réseau, etc. Cela représente ici le meilleur cas
-        (modulo le téléchargement)
-]
+La #figure-num-ref(<val-install-time>) présente la durée du processus
+d'installation ("Time to install", en bleu~#vl(blue)), ainsi que la durée totale
+jusqu'au démarrage effectif d'un conteneur après installation ("Time until
+container started", en orange~#vl(orange)). La première mesure l'intervalle
+entre la réception de la configuration et la fin de l'écriture des artefacts sur
+le disque cible, avant redémarrage. La seconde mesure l'intervalle entre ce même
+instant de référence et le démarrage effectif du conteneur, incluant le
+redémarrage du système, la réconciliation réseau et le téléchargement de
+l'image.
+
+#include "../diagrams/val-install-time.typ"
+
+L'installation proprement dite se conclut en environ 6.3 secondes. Le démarrage
+complet du conteneur, incluant le redémarrage du système et le cycle décrit à la
+#figure-num-ref(<val-boot-time>), se conclut quant à lui en environ 19.3
+secondes. Ce total inclus le temps nécessaire à l'hyperviseur pour redémarrer la
+machine virtuelle (par exemple le chargement du BIOS) et le délais de sélection
+du bootloader (environ 5 secondes).
 
 === Légèreté
 
@@ -112,12 +176,17 @@ un minimum de 90~MiB sont requis afin que le système démarre, et dans l'optiqu
 de télécharger une image et exécuter un conteneur au minimum 164~MiB sont
 requis.
 
-Enfin, l'image ISO final occupe 261~MiB d'espace disque et inclut l'ensemble du
-système sans besoin de téléchargement additionnel. Elle inclut 260 binaires.
-
 == Limitations
-#todo[Limitation validation][
-    - Test pas 100% représentatif de la réalité. il peut y avoir du délai DHCP,
-        surcharge CPU, délai réseau, etc. Cela représente ici le meilleur cas
-        (modulo le téléchargement)
-]
+
+Le protocole de mesure employé pour les benchmarks de rapidité et de légèreté ne
+reflète pas nécessairement l'ensemble des conditions rencontrées en usage réel.
+Les mesures présentées correspondent à un scénario favorable, dans lequel le
+délai d'obtention d'une adresse via DHCP, la charge du processeur hôte et la
+latence réseau ne sont pas artificiellement dégradés. Une charge processeur ou
+un délai réseau plus élevés que ceux observés durant les mesures conduiraient à
+une augmentation des temps rapportés, notamment pour les étapes dépendant du
+réseau, telles que la réconciliation DHCP et le téléchargement d'image. En
+outre, le test de légèreté détermine l'allocation mémoire maximale atteignable
+par un unique conteneur exécuté seul sur le système. Ce protocole ne rend pas
+compte du comportement du système en présence de plusieurs conteneurs
+concurrents.

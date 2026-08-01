@@ -20,6 +20,18 @@
     ref(label, supplement: supplement)
 }
 
+#let named-ref(label) = {
+    show ref: it => {
+        let el = it.element
+        if el.func() != heading { return it }
+
+        link(el.location(), [#el.body])
+    }
+
+    ref(label)
+}
+
+
 #let nota-bene(body) = {
     text(style: "italic")[N.B.: #body]
 }
