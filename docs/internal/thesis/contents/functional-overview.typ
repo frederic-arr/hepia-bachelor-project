@@ -1,219 +1,452 @@
 #import "../lib.typ": *
 
-#show heading.where(level: 3): set heading(outlined: false)
+= Présentation du système <ch:functional-overview>
+Ce chapitre présente le système du point de vue de l'utilisateur, sans entrer
+dans les détails d'implémentation, et illustre la manière dont les objectifs
+présentés dans l'introduction se traduisent concrètement dans son mode
+d'administration. Le modèle d'administration général est d'abord introduit,
+avant que le modèle de ressources sous-jacent, ainsi que les principes de
+déclarativité et d'immutabilité qui en découlent, ne soient détaillés.
+L'administration du système via l'API et son client en ligne de commande est
+ensuite présentée, suivie des mécanismes d'installation, de la gestion des
+conteneurs et des prérequis matériels. Le chapitre se conclut par un exemple
+d'utilisation combinant l'ensemble des éléments présentés.
 
-= Présentation du système
+== Vue d'ensemble <ch:functional-overview:overview>
+Le système est administré intégralement via une API, à laquelle l'accès est
+possible soit directement au moyen d'un client en ligne de commande (CLI), soit
+via un provider Terraform, ce dernier étant, par nature, limité à la
+configuration du système. En particulier, l'administrateur n'a pas besoin de
+télécharger des paquets additional ou de configurer préalablement l'hôte avant
+de pouvoir l'administrer et l'utiliser pour y exécuter des conteneurs.
+L'ensemble de la configuration est décrit dans un unique fichier au format YAML,
+structuré sous la forme de plusieurs documents distincts, séparés par `---`.
 
-#todo-note[
-    - Présente le système pour un utilisateur.
-    - Mélange un petit peu un "Quick Start" / "Getting Started" et un "Learn
-        More" de haut niveau
-    - Volume estimé: ~10-13 vrai pages
-]
+Une configuration minimale, définissant un accès à l'API sans authentification
+ainsi qu'une interface réseau configurée en DHCP, est présentée dans le
+#code-num-ref(<code-config-default>):
 
-#todo-inline[Amorce du chapitre + plan interne + synthèse brève.]
+#figure(
+    label: <code-config-default>,
+    caption: [Configuration par défaut],
+    note: [
+        Configuration par défaut lors du démarrage du système depuis l'image
+        ISO.
+    ],
+    source: made-by-self,
+    ```yaml
+    ---
+    schema: api
+    auth: none
+    listen: [0.0.0.0/0]
+    ---
+    schema: network:link
+    name: eth0
+    admin_up: true
+    ---
+    schema: network:dhcp
+    name: eth0
+    ```,
+)
 
-#todo-inline[Référencer les divers outils.]
+Cette configuration, qui est la configuration par défaut lors du démarrage du
+système depuis une image ISO, permet de mettre en place le strict minimum pour
+que le système soit accessible: l'interface réseau est activée, une
+configuration réseau est réceptionnée par DHCP, et l'API est accessible sans
+authentification.
 
-== Principes
+Chaque document de ce fichier correspond à la configuration d'une ressource. Au
+sein du système, une ressource représente un aspect administrable de celui-ci,
+tel qu'une interface réseau, un conteneur ou un client DHCP. L'utilisateur
+décrit l'état souhaité pour cet aspect du système, sans se préoccuper de la
+manière dont cet état est atteint et le système va automatiquement tenter de
+faire réconcilier son état vers l'état désiré.
 
-#[
-    #show heading.where(level: 3): set heading(outlined: false)
+== Ressources <ch:functional-overview:resources>
+Les ressources sont regroupées par domaine fonctionnel, tel que `network`,
+`container` ou `system`, puis par type au sein de ce domaine, par exemple
+`network:link` pour le lien réseau ou `container:instance` pour une instance de
+conteneur. Les ressources peuvent aussi être nommées, cette propriété dépendant
+du type: une ressource unique et globale, telle que la configuration DNS, ne
+nécessite pas de nom, tandis qu'une ressource pouvant être instanciée plusieurs
+fois doit être nommée afin de pouvoir la distinguer des autres instances du même
+type. Outre les éléments permettant d'identifier de manière unique une
+ressource, le document de configuration contient également la spécification de
+la ressource, aussi appelée l'état désiré. Cette spécification contient les
+paramètres propres à l'instance spécifique de la ressource, tels que l'image
+d'un conteneur, l'état d'une interface réseau, ou les paramètres
+d'authentification de l'API.
 
-    // TODO: référencer le projet de semestre
-    Le système s'articule autour de cinq principes fondamentaux: la
-    déclarativité, l'automatisation, la légèreté, la sécurité par défaut et la
-    portabilité. Ces principes ont été dégagés de l'analyse des besoins
-    présentés dans le projet de semestre, et répondent à un contexte de
-    déploiement particulier: des environnements hétérogènes, non distribués,
-    parfois sur du matériel aux ressources contraintes et administrés par un
-    utilisateur seul.
+Il existe ainsi douze ressources, brièvement décrites dans le #table-num-ref(
+    <tab-resource-types>,
+):
 
-    === Déclarativité
+#figure(
+    label: <tab-resource-types>,
+    caption: [Vue d'ensemble des types de ressources disponibles],
+    table(
+        columns: 2,
+        align: left,
+        ..([*Schéma*], [*Description*]),
+        ..([`api`], [Configuration de l'accès à l'API du système]),
+        ..([`install`], [Configuration de l'installation sur disque]),
+        ..([`system:etc`], [Configuration d'un fichier dans /etc/]),
+        ..([`network:dns`], [Configuration de la résolution DNS]),
+        ..(
+            [`network:dhcp`],
+            [Configuration d'un client DHCP sur une interface],
+        ),
+        ..([`network:link`], [Configuration d'une interface réseau]),
+        ..([`network:address`], [Configuration d'une adresse réseau]),
+        ..([`network:route`], [Configuration d'une route réseau]),
+        ..([`container:runtime`], [Configuration d'un runtime de conteneurs]),
+        ..([`container:network`], [Configuration d'un réseau de conteneurs]),
+        ..([`container:volume`], [Configuration d'un volume de conteneurs]),
+        ..(
+            [`container:instance`],
+            [Configuration d'une instance de conteneur],
+        ),
+    ),
+)
 
-    Tout d'abord, plutôt que de décrire les étapes à exécuter pour atteindre un
-    état donné, l'administrateur décrit directement l'état final souhaité. Le
-    système détermine lui-même les actions nécessaires pour y parvenir, quelle
-    que soit l'état courant de la machine.
+Ces ressources constituent l'ensemble des aspects configurables du système et
+permettent de disposer d'un hôte de conteneurisation à part entière, sans
+qu'aucun composant ou service supplémentaire ne soit requis en dehors de ceux
+décrits par ces douze types de ressources. Les domaines `network` et `container`
+couvrent respectivement l'ensemble de la configuration réseau et l'ensemble du
+cycle de vie des conteneurs, tandis que les domaines `api`, `install` et
+`system` couvrent l'administration du système lui-même.
 
-    // TODO: Besoin de dire pourquoi ça facilite le retour arrière?
-    Ce choix est particulièrement adapté à un contexte de reconfiguration
-    fréquente sur des environnements variés. Une approche impérative obligerait
-    l'administrateur à prendre en compte l'état courant avant chaque opération
-    et rend plus difficile la récupération en cas d'erreur durant la
-    configuration du système. La déclarativité permet d'améliorer la
-    reproductibilité des déploiements et simplifie le retour à un état antérieur
-    en cas d'erreur humaine.
+== Déclarativité et immutabilité <ch:functional-overview:declarativity>
+Le système tentant automatiquement de réconcilier son état avec celui décrit par
+l'utilisateur, il s'agit donc d'un système déclaratif. Outre l'avantage de
+simplifier l'administration au jour le jour, la déclarativité s'inscrit
+particulièrement bien dans un contexte GitOps. Le fichier de configuration
+constitue la seule source de vérité du système, toute autre modification étant
+généralement impossible. Le système peut néanmoins être amené à réagir à des
+événements particuliers, tels que la déconnexion d'un câble réseau ou l'arrêt
+inattendu du runtime de conteneurs. Se basant uniquement sur l'état désiré et
+sur l'état actuel, et n'effectuant que le plus petit nombre d'actions
+nécessaires pour réconcilier ces deux états, le système est en mesure de gérer
+automatiquement ce type de situation.
 
-    === Automatisation
+Le système reste, dans son fonctionnement normal, entièrement immuable: la
+configuration ne peut être modifiée autrement que par l'API, et les fichiers
+nécessaires au démarrage, tels que ceux du répertoire `/bin`, sont stockés et
+exposés de manière immuable lorsque le système est en cours d'exécution. À
+chaque redémarrage, le système se reconstruit entièrement à partir de ces seuls
+fichiers de démarrage et de la configuration, garantissant un état initial
+cohérent. Ces contraintes garantissent que l'état du système reste en permanence
+traçable et reproductible à partir du seul fichier de configuration.
 
-    Toute opération administrative, depuis l'installation initiale jusqu'à la
-    reconfiguration, doit pouvoir être réalisée sans intervention manuelle.
-    L'objectif recherché est de permettre une intégration simple dans le
-    processus de déploiement, en particulier lorsque celui-ci repose sur une
-    approche GitOps/DevOps.
+== Administration du système et API
+Le système étant entièrement administré au travers de l'API, il est nécessaire
+de fournir un client permettant d'intéragir avec celle-ci. Ce client s'appelle
+`cos-cli` et permet d'effectuer les actions essentielles sur le système à
+travers divers commandes décrites dans le #table-num-ref(<tab-cli-commands>):
 
-    Les interventions manuelles pour le diagnostic ou la récupération restent
-    possibles, mais doivent demeurer exceptionnelles et clairement distinctes du
-    mode normal d'exploitation.
+#figure(
+    label: <tab-cli-commands>,
+    caption: [Commandes disponibles],
+    note: [
+        La syntaxe est ```sh subsystem command <MANDATORY> [OPTIONAL]```.
+    ],
+    table(
+        columns: 2,
+        align: left,
+        ..([*Commande*], [*Description*]),
+        ..(
+            [
+                ```sh config push <PATH>```
+            ],
+            [upload la config],
+        ),
+        ..([```sh config pull```], [télécharge la config]),
+        ..(
+            [```sh fs write <LOCAL_PATH> <VOLUME>:<PATH>```],
+            [écrit un fichier sur un volume de conteneur (jamais sur le système
+                de fichier racine)],
+        ),
+        ..([```sh fs list [VOLUME:]<PATH>```], [list les fichiers]),
+        ..(
+            [```sh fs read [VOLUME:]<PATH>```],
+            [télécharger un fichier depuis le server (soit sur un volume, soit
+                directement sur le système de fichier racine)],
+        ),
+        ..(
+            [```sh resources list [SCHEMA]```],
+            [lister les ressources, éventuellement filtré par type],
+        ),
+        ..(
+            [```sh resources get <SCHEMA> [NAME]```],
+            [consulter l'état d'une ressource],
+        ),
+        ..([```sh system reboot```], [redémarrer ou éteindre le système]),
+        ..([```sh container logs```], [consulter les logs d'un conteneur]),
+    ),
+)
 
-    === Légèreté
+Ce client permet notamment de transmettre une nouvelle configuration au système,
+de consulter l'état des ressources existantes, ou d'interagir directement avec
+les volumes des conteneurs, sans que l'utilisateur ait à se connecter
+directement à la machine hôte.
 
-    Le système doit présenter une empreinte mémoire minimale afin de laisser un
-    maximum de ressources aux services déployés par l'administrateur. De fait,
-    il n'assume qu'un seul rôle: servir de plateforme d'exécution pour des
-    services conteneurisés et aucun composant superflu n'est présent.
+L'accès à l'API est lui-même régi par une ressource dédiée, au même titre que
+toute autre ressource du système, comme illustré dans le #code-num-ref(
+    <code-config-default>,
+). Cette ressource permet de définir le mécanisme d'authentification requis,
+ainsi que l'ensemble des adresses depuis lesquelles l'API demeure accessible,
+restreignant ainsi la surface d'exposition du système sur le réseau. L'absence
+d'authentification, utilisée dans la configuration par défaut, convient à un
+usage de test ou d'évaluation rapide, mais n'est pas recommandée pour un
+déploiement exposé à Internet.
 
-    Ce principe se justifie par des déploiement sur des appareils basse
-    consommation disposant de peu de resources. Cela présente en outre deux
-    effets secondaires bénéfiques: une configuration plus simple en raison du
-    petit nombre de composants et une surface d'attaque plus réduite.
+== Installation du système et modes de fonctionnement
+L'installation du système s'effectue de la même manière que l'administration des
+ressources courante: en ajoutant un document d'installation dans la
+configuration. Ce document est présenté dans le #code-num-ref(
+    <code-config-install>,
+):
 
-    === Sécurité par défaut
+#figure(
+    label: <code-config-install>,
+    caption: [Configuration d'installation],
+    note: [
+        Installation du système entièrement sur le disk /dev/vda, sans
+        chiffrement.
+    ],
+    source: made-by-self,
+    ```yaml
+    ---
+    schema: install
+    boot:
+        disk: /dev/vda1
+    config:
+        disk: /dev/vda2
+        encryption:
+            provider: static
+            key: this-is-a-very-secure-password
+            autounlock: true
+    data:
+        disk: /dev/vda3
+        encryption:
+            provider: tpm2
+    ```,
+)
 
-    Le système adopte des paramètres restrictifs dès l'installation, sans
-    configuration supplémentaire. Les services internes et ceux déployés par
-    l'administrateur sont isolés aussi fortement que possible, afin de limiter
-    les risques de mouvement latéral en cas de compromission d'un composant.
+Ce document de configuration décrit les trois volumes de stockages sur lequel le
+système se repose: le disque de démarrage, contenant les divers artefacts tel
+que le noyau, les binaires du système, et le bootloader. Ensuite, le volume
+contenant la configuration du système, puis un volume de donné dans lequel
+seront stockés les images et les volumes des conteneurs.
 
-    L'analyse des besoins révèle principalement un usage pour l’hébergement de
-    services accessible via Internet et donc soumis en permanence à des
-    tentatives d'intrusion. Des mécanismes d'exception strictement contrôlés
-    restent disponibles pour les cas qui le requièrent, notamment lorsque l'hôte
-    assume un rôle de routeur ou de pare-feu réseau.
+Aucun de ces disque n'est obligatoire. Omettre le disque de boot fait qu'il est
+toujours nécessaire de disposer d'un support externe afin de démarrer le
+système, mais que ce support externe n'a pas besoin de stocker la configuration
+ou des données. Omettre le disque de configuration et le disque de données
+permet d'avoir un système entièrement éphémère. Chaque redémarrage fourni un
+système complètement neuf ce qui peut s'avérer particulièrement pratique dans le
+cadre de tests. En outre, dans le cas ou un disque est omis, il est toujours
+possible de le rajouter plus tard sans pertes de données.
 
-    === Portabilité
+Les disques supportent le chiffrement à travers un TMP1 ou TMP2, ou à travers
+une clef statique. Dans le cas de la clef, celle-ci peut optionellement être
+stockés conjointement avec la configuration, au détriment de la sécurité mais
+permettant de déverrouiller le volume de manière autonome.
 
-    L'interface d'administration et le format de configuration doivent rester
-    identiques quelle que soit la configuration matérielle ou réseau
-    sous-jacente. En dehors des dépendances introduites explicitement par
-    l'administrateur, le transfert du système d'un environnement à un autre ne
-    doit nécessiter aucune adaptation de la configuration existante.
+Enfin, il est possible d'omettre complètement le document de configuration,
+auquel cas rien ne sera sauvegardé et le système sera restitué dans son état
+d'origine après un redémarrage. Dans ce mode de fonctionnement, le système
+demeure entièrement utilisable, y compris les volumes de conteneurs, qui seront
+stockés en memoire.
 
-    Dans un contexte où un même administrateur administre plusieurs machines aux
-    profils distincts, cette homogénéité réduit la charge cognitive et rend les
-    procédures opérationnelles transférables sans friction.
-]
+== Conteneurs
+La conteneurisation repose sur le concept de runtime, qui est simplement
+l'interface permettant d'exécuter des conteneurs. Chaque conteneur est associé à
+une runtime qui sera en charge de l'administrer. Actuellement, seul Podman est
+disponible comme runtime, mais il est toujours utile de pouvoir instancier
+plusieurs fois cette runtime, par exemple lorsqu'il est souhaitable de disposer
+de container entièrement "rootless". Le #code-num-ref(<code-config-runtime>)
+décrit une telle configuration:
 
-== Ressources
+#figure(
+    label: <code-config-runtime>,
+    caption: [Configuration d'une runtime de conteneur],
+    note: [
+        Une runtime de conteneur utilisant Podman est configurée en mode
+        "rootfull".
+    ],
+    source: made-by-self,
+    ```yaml
+    ---
+    schema: container:runtime
+    name: rootfull
+    engine: podman
+    uid: 0
+    gid: 0
+    depends_on:
+      - network:dns
+      - network:route/eth0-dhcp
+    ```,
+)
 
-=== Définition <simple-res-def>
-L'administration et la configuration du système est organisé autour des
-ressources. Une ressource est simplement l'abstraction d'un ou plusieurs objets
-concrets au sein du système. Par exemple, la ressource "conteneur" représente le
-concept du même nom; la ressource "interface réseau" représente quant à elle un
-lien réseau, une ou plusieurs routes, et une ou plusieurs addresses.
+Le #code-num-ref(<code-config-runtime>) spécifie l'id utilisateur et groupe
+root, mais aussi un ensemble de dépendances à des ressources DNS et réseau. Ces
+dépendances ne sont pas strictement nécessaire mais permette d'éviter
+d'instantier la runtime tant que la couche réseau n'est pas disponible, ce qui
+pourrait avoir pour effet d'empêcher le téléchargement d'images de conteneurs,
+et créerait des messages d'erreur temporaire. La nature déclarative du système
+décrite dans le #chapter-num-ref(<ch:functional-overview:declarativity>) rend
+toutefois ces dépendances optionelles car il est capable de se rétablir seul.
 
-=== Réseau
-#todo[Firewall, VPN, DHCP, IP statique, IPv6, etc.]
+Une fois une runtime configurée, il est possible d'y créer divers ressources tel
+que des réseaux de conteneurs ou des instances de conteneurs, comme décrit dans
+le #code-num-ref(<code-config-container>):
 
-=== Conteneurisation
-#todo[Conteneur, gestion des images, registres privé, Podman, Secrets, Limites]
+#figure(
+    label: <code-config-container>,
+    caption: [Configuration d'un conteneur],
+    note: [
+        TODO
+    ],
+    source: made-by-self,
+    ```yaml
+    ---
+    schema: container:instance
+    name: demo
+    image: docker.io/alpine/curl:latest
+    restart: never
+    runtime: rootfull
+    cmd: [http://10.0.2.2:1234]
+    ```,
+)
 
-=== Stockage et volumes
-#todo[
-    Partitionnement disque, volume, cache, data, chiffrement (on peut combiner
-    plusieurs methodes de chiffrement!)
-]
+Le #code-num-ref(<code-config-container>) crée une instance de conteneur nommé
+"demo" et ayant pour image la dernière version de cURL sur Alpine Linux. Cette
+instance va être démarré, elle va requêter un URL, et si cela réussi, alors le
+conteneur s'arrête. Il est aussi possible de supporter des cas plus complexe
+grâce aux réseaux de conteneurs et à la publication de ports sur l'hôte via une
+syntaxe similaire à Docker Compose. La création de réseau de conteneurs se fait
+via une ressource dédiée, illustrée dans le #code-num-ref(
+    <code-config-container-network>,
+):
 
-=== Portabilité de la configuration
-#todo[Portabilité][
-    - On peut matcher une interface par une MAC address (partielle), nom, index,
-        etc.
-    - Idem pour les disques
-    - En tous les cas, si une config a trois interface réseau mais que
-        physiquement il y en a que une sur la nouvelle machine, pas de magie
-]
+#figure(
+    label: <code-config-container-network>,
+    caption: [Configuration d'un réseau de conteneurs],
+    note: [
+        TODO
+    ],
+    source: made-by-self,
+    ```yaml
+    ---
+    schema: container:network
+    name: my-network
+    runtime: rootfull
+    ```,
+)
 
-== Administration du système
-=== Exigences matérielles
-#todo[Hardware requirements][
-    - RAM
-    - Storage
-]
+Tout comme pour la création de conteneurs, il est nécessaire de spécifier la
+runtime sur laquelle crée ce réseau, et il est naturellement impossible
+d'adjoindre des conteneurs extérieur à cette runtime sur le réseau ainsi créé.
 
-=== Interface d'administration
-#todo[Interface d'administration][
-    - Parler de la CLI avec un tableau des commandes les plus importantes
-    - Parler de Terraform vite fait
-    - Parler de comment on s'authentifie a l'interface (token, mTLS, etc.)
-    - Parler des commandes importantes
-        - Push config
-        - Voir l'état
-        - Téléverser des fichiers
-        - Diagnostic réseau
-        - exec dans un conteneurs
-        - les logs
-        - reboot
-]
+== Prérequis matériels <ch:functional-overview:hardware>
+Le système nécessite très peu de ressources: sur un processeur 64 bits, il est
+possible de démarrer un server web minimale avec seulement 170 MiB de mémoire
+vive. Il est même possible de démarrer le système sur moins de 90 MiB de RAM si
+les aspects liés à la conteneurisation ne sont pas nécessaire, par exemple afin
+de fournir un routeur rudimentaire. En outre, dans le cadre d'une installation
+complète, le système ne nécessite que 1 GiB de stockage.
 
-=== Sources de configuration
-#todo[Config src][
-    - disk
-    - remote
-    - cloud-init
-    - etc.
-    - Schéma des sources
-]
+== Exemple d'utilisation <ch:functional-overview:example>
+Le scénario suivant illustre l'ensemble des éléments présentés dans ce chapitre:
+une instance de machine virtuelle, fraîchement créée chez un fournisseur cloud
+et démarrée depuis l'image ISO du système, est configurée, installée sur son
+disque, puis déployée avec un serveur HTTP retournant le message "Hello,
+world!".
 
-=== Monitoring et observabilité
-#todo[Monitoring][
-    - En gros logs accessible via le CLI, ou exporté via les trucs standard
-        (Loki, ES, etc.)
-    - Pour l'observabilité, idem + exporté via Prometheus
-    - Export des métriques et logs host *ET* conteneurs
-]
+L'ensemble des ressources nécessaires à ce scénario est combiné au sein d'un
+unique fichier de configuration, versionnable dans un dépôt Git. Ce fichier doit
+se situer sur la machine depuis laquelle le client `cos-cli` est exécuté. Le
+#appendix-num-ref(<appendix-full-config>) illustre une telle configuration,
+combinant l'installation du système sur disque, l'accès à l'API, la
+configuration réseau, ainsi qu'un conteneur exécutant un serveur HTTP minimal.
 
-=== Persistence des données
-#todo[Persistence des données][
-    - Comment consulter le stockage
-    - Parler du fait que le disque est auto-déverrouillé + risques que cela
-        implique
-    - Parler en particulier du risque du mode "passphrase" pour le chiffrement
-    - On peut aussi utiliser une passphrase en mode manuel, dans ce cas le
-        système n'est pas auto-déverrouillé
-]
+Une fois la machine virtuelle démarrée depuis l'image ISO, la commande suivante
+permet d'appliquer cette configuration au serveur dont l'adresse est désignée
+par `$IP`; elle déclenche à la fois l'installation du système sur le disque de
+l'instance et le déploiement du serveur HTTP:
 
-== Cycle de vie du système
-=== Personnalisation de l'image
-#todo[Personnalisation][
-    - Comment intégrer de nouvelles options du noyau
-    - De nouveau drivers
-    - Pre-bake une image conteneur ou une config
-    - etc
-]
-=== Méthodes de démarrage
-#todo[Boot][
-    - boot en réseau
-    - mode in-memory
-    - différent bootloader
-]
+#figure(
+    label: <cmd-install>,
+    caption: [Commande d'installation],
+    note: [
+        La commande est exécutée depuis un poste distinct du serveur cible,
+        disposant d'un accès réseau à celui-ci; `$IP` désigne l'adresse de ce
+        serveur.
+    ],
+    ```sh
+    $ cos-cli --server $IP config push ./config.yaml
+    ```,
+)
 
-=== Installation initiale
-#todo[
-    Parler du fait qu'il suffit simplement de push une configuration valide sur
-    un système vierge en maintenance.
-]
+Le serveur HTTP est accessible depuis l'adresse `$IP` et le port 80 de
+l'instance moins de 30 secondes après l'exécution de la commande précédente,
+cette durée étant mesurée et détaillée au #chapter-full-ref(
+    <ch:validation:speed>,
+). Aucune configuration supplémentaire n'est nécessaire sur le fournisseur cloud
+au-delà de l'ouverture du port correspondant. La même commande est réutilisée
+pour toute mise à jour ultérieure de la configuration, par exemple pour modifier
+l'image du conteneur ou ajouter un second service. Le système se charge de
+réconcilier automatiquement l'état effectif avec la nouvelle configuration
+transmise, sans redémarrage ni interruption des ressources déjà en place,
+conformément au modèle de réconciliation présenté au #chapter-num-ref(
+    <ch:functional-overview:declarativity>,
+).
 
-=== Mise à jour et retours en arrière
-#todo[
-    - Parler du mécanisme de mise à jour du système avec le champ `osVersion` et
-        l'installation A/B.
-    - Parler du fait qu'on peut rollback la config ou la version du système (ou
-        les deux).
-]
+Le même processus est également accessible via Terraform, dans le cas où
+l'instance cloud et le déploiement du système sont administrés au sein d'une
+même infrastructure:
 
-=== Maintenance
-#todo[
-    Parler du mode de maintenance et du mode d'authentication additionnel propre
-    à celui-ci.
-]
+#figure(
+    label: <code-terraform>,
+    caption: [Administration via Terraform],
+    ```terraform
+    resource "cos_push_config" "my_server" {
+        server = some_cloud_provider.vm.ip
+        config = file("./config.yaml")
+    }
+    ```,
+)
 
-=== Sauvegarde et restauration
-#todo[
-    - Parler de comment backup/restore le système
-    - Comment exporter un volume/conteneur individuellement aussi
-]
+/*
+Le système permet également de configurer des conteneurs privilégiés, capables
+d'interagir directement avec le système et, potentiellement, de le modifier.
+Dans ce cas, il n'est pas possible de garantir que le conteneur ne modifie pas
+l'état du système d'une manière qui le rendrait irréconciliable. Le système
+reste, dans le cas général, immuable: la configuration ne peut être modifiée
+autrement que par l'API, et les fichiers nécessaires au démarrage, tels que ceux
+du répertoire `/bin`, sont stockés et exposés de manière immuable lorsque le
+système est en cours d'exécution. À chaque redémarrage, le système se
+reconstruit entièrement à partir de ces seuls fichiers de démarrage et de la
+configuration, garantissant un état initial cohérent, tant que l'intégrité de
+ces fichiers eux-mêmes n'est pas compromise.
 
-== Exemple d'utilisation
-#todo[Deployer un conteneur simple avec un serveur HTTP]
+Cette garantie d'immutabilité cesse en effet de s'appliquer dès qu'un conteneur
+privilégié dispose d'un accès direct à un périphérique bloc sous-jacent, tel que
+le disque de démarrage. Un tel accès permet d'écrire directement sur la
+partition contenant les fichiers de démarrage immuables, en dehors de tout
+contrôle exercé par le système de fichiers en cours d'exécution. Ce cas ne
+constitue donc pas une simple exception marginale au modèle d'immutabilité, mais
+une limite structurelle de celui-ci: l'octroi d'un accès bloc bas niveau à un
+conteneur revient à lui accorder un contrôle équivalent à celui d'un accès
+physique à la machine.
+
+Ces contraintes garantissent que l'état du système reste, dans la grande
+majorité des cas, traçable et reproductible à partir du seul fichier de
+configuration #footnote[
+    L'exception principale à cette garantie concerne les conteneurs privilégiés
+    disposant d'un accès direct à un périphérique bloc; un tel accès doit donc
+    être accordé avec la même prudence qu'un accès physique à la machine.
+].
+*/

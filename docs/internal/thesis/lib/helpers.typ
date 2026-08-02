@@ -20,24 +20,20 @@
     ref(label, supplement: supplement)
 }
 
-#let named-ref(label) = {
-    show ref: it => {
-        let el = it.element
-        if el.func() != heading { return it }
-
-        link(el.location(), [#el.body])
-    }
-
-    ref(label)
-}
-
-
 #let nota-bene(body) = {
     text(style: "italic")[N.B.: #body]
 }
 
+#let chapter-num-ref(label) = {
+    num-ref(label, supplement: "chapitre")
+}
+
 #let chapter-full-ref(label) = {
     full-ref(label, supplement: "chapitre")
+}
+
+#let appendix-full-ref(label) = {
+    full-ref(label, supplement: "annexe")
 }
 
 #let chapters-full-ref(..labels) = [
@@ -60,4 +56,12 @@
 
 #let table-num-ref(label) = {
     num-ref(label, supplement: "tableau")
+}
+
+#let code-num-ref(label) = {
+    num-ref(label, supplement: "code")
+}
+
+#let appendix-num-ref(label) = {
+    num-ref(label, supplement: "annexe")
 }

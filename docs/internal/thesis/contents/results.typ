@@ -36,7 +36,7 @@ complique la détection et le diagnostic d'une défaillance. En outre, seul une
 partie des options de configuration du réseau et des conteneurs ont été
 implémenté, principalement dans un soucis de temps.
 
-== Plan académique
+== Résultats académiques <results-academic>
 
 L'ensemble des objectifs techniques formulés dans l'énoncé du sujet sont remplis
 par le système développé. Les résultats fonctionnels présentés à la section

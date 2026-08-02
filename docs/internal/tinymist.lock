@@ -47,10 +47,6 @@ id = "file:thesis/main.typ"
 priority = 256
 
 [[route]]
-id = "file:subject-statement/main.typ"
-priority = 256
-
-[[route]]
 id = "file:slides/main.typ"
 priority = 256
 
@@ -60,6 +56,10 @@ priority = 256
 
 [[route]]
 id = "file:abstract/main.typ"
+priority = 256
+
+[[route]]
+id = "file:subject-statement/main.typ"
 priority = 256
 
 [[task]]

@@ -12,7 +12,7 @@
         disk.time_to_kernel,
     ),
 )
-#let lim = calc.ceil(lim / 1000) * 1000 * 1.1
+#let lim = calc.ceil(lim) * 1.1
 
 #figure(
     label: <val-boot-time>,
@@ -20,7 +20,7 @@
         Chronologie des étapes de démarrage jusqu'à l'exécution d'un conteneur
     ],
     note: [
-        Temps absolu en millisecondes mesuré à partir du démarrage du noyau,
+        Temps absolu en secondes mesuré à partir du démarrage du noyau,
         après le bootloader, des différentes étapes du cycle de vie sur un
         échantillon de 100.
 
@@ -31,10 +31,10 @@
     source: made-by-self,
     lq.diagram(
         width: 100%,
-        xlabel: [Temps \[ms\]],
+        xlabel: [Temps \[s\]],
         height: 6cm,
         xaxis: (
-            exponent: 3,
+            exponent: 0,
             lim: (0, lim),
         ),
         yaxis: (

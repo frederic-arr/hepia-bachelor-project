@@ -71,4 +71,11 @@
 #set heading(numbering: none)
 #include "contents/conclusion.typ"
 
+
+#set heading(numbering: "A.1.", supplement: "Annexe")
+#counter(heading).update(0)
+#include "appendices/ai.typ"
+#include "appendices/full-config.typ"
+
+#set heading(numbering: none)
 #bibliography("../bibliography.yaml")

@@ -1527,6 +1527,7 @@ bib-podman-pull:
 bib-podman-release:
   type: web
   title: v6.0.0
+  author: The Linux Foundation
   url:
     value: https://github.com/podman-container-tools/podman/releases/tag/v6.0.0
     date: 2026-08-01
@@ -1538,6 +1539,7 @@ bib-podman-release:
 bib-podman-nix:
   type: web
   title: "Podman 6.0: BoltDB removal and SQLite migration plan"
+  author: Sascha Grunert
   url:
     value: https://github.com/NixOS/nixpkgs/issues/489717
     date: 2026-08-01
@@ -1545,3 +1547,56 @@ bib-podman-nix:
     type: web
     title: nixpkgs
     url: https://github.com/NixOS/nixpkgs
+
+bib-docker-compose:
+  type: web
+  title: Docker Compose
+  author: Docker Inc.
+  url:
+    value: https://docs.docker.com/compose/
+    date: 2026-08-02
+  parent:
+    type: web
+    title: Docker Documentation
+    url: https://docs.docker.com/
+
+bib-kubernetes:
+  type: web
+  title: Kubernetes
+  author: The Linux Foundation
+  url:
+    value: https://kubernetes.io/
+    date: 2026-08-02
+
+bib-terraform:
+  type: web
+  title: Terraform
+  author: Hashicorp
+  url:
+    value: https://www.hashicorp.com/en/products/terraform
+    date: 2026-08-02
+
+bib-semester-projet:
+  type: web
+  title: OS pour le déploiemetn d'infrastructures et services conteneurisés
+  author: Frédéric Arroyo
+  date: 2026-03
+  url:
+    value: https://gitedu.hesge.ch/flg_bachelors/ps/2025/container_os/-/raw/bachelor/final/arroyo-frederic-sp-2026.pdf
+    date: 2026-08-02
+
+bib-linux-kernel:
+  type: web
+  title: The Linux Kernel Archives
+  author: The Linux Kernel Organization
+  url:
+    value: https://www.kernel.org/
+    date: 2026-08-02
+
+bib-clevis:
+  type: web
+  title: Clevis - An Automated Encryption Framework
+  author: The Clevis Contributors
+  url:
+    value: https://github.com/latchset/clevis/
+    date: 2026-08-02

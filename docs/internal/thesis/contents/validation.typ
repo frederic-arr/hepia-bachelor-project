@@ -85,7 +85,7 @@ protocole, en y ajoutant une instrumentation permettant de mesurer le temps
 écoulé entre chaque étape du cycle de vie, ainsi que la mémoire consommée par le
 système, le tout sur 100 échantillon.
 
-=== Rapidité
+=== Rapidité <ch:validation:speed>
 
 La #figure-num-ref(<val-boot-time>) présente la chronologie des étapes de
 démarrage jusqu'à l'exécution d'un conteneur, pour deux modes de démarrage: une

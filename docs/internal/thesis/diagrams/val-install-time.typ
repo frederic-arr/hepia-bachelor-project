@@ -9,7 +9,7 @@
         time_to_config,
     ),
 )
-#let lim = calc.ceil(lim / 1000) * 1000
+#let lim = calc.ceil(lim)
 
 #figure(
     label: <val-install-time>,
@@ -17,7 +17,7 @@
         Durée d'installation et de démarrage du conteneur après installation
     ],
     note: [
-        Temps absolu en millisecondes mesuré à partir de la réception de la
+        Temps absolu en secondes mesuré à partir de la réception de la
         configuration jusqu'à l'installation du système, et temps entre le
         démarrage du noyau et l'exécution d'un conteneur, installation incluse,
         sur un échantillon de 100.
@@ -25,13 +25,13 @@
     source: made-by-self,
     lq.diagram(
         width: 100%,
-        xlabel: [Temps \[ms\]],
+        xlabel: [Temps \[s\]],
         legend: (
             position: top,
             dx: 10%,
         ),
         xaxis: (
-            exponent: 3,
+            exponent: 0,
             lim: (0, lim),
         ),
         yaxis: (

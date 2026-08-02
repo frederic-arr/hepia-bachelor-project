@@ -14,8 +14,10 @@ languageSettings:
       - contrôleur
       - péjorer
       - débuggage
+      - débuggages
       - débugger
       - replanification
+      - requêter
   - languageId: typst
     ignoreRegExpList:
       - string
