@@ -84,6 +84,8 @@ Il existe ainsi douze ressources, brièvement décrites dans le #table-num-ref(
 #figure(
     label: <tab-resource-types>,
     caption: [Vue d'ensemble des types de ressources disponibles],
+    note: [TODO],
+    source: made-by-self,
     table(
         columns: 2,
         align: left,
@@ -151,6 +153,7 @@ travers divers commandes décrites dans le #table-num-ref(<tab-cli-commands>):
     note: [
         La syntaxe est ```sh subsystem command <MANDATORY> [OPTIONAL]```.
     ],
+    source: made-by-self,
     table(
         columns: 2,
         align: left,
@@ -307,7 +310,8 @@ le #code-num-ref(<code-config-container>):
     label: <code-config-container>,
     caption: [Configuration d'un conteneur],
     note: [
-        TODO
+        Configuration d'un conteneur qui va requêter une fois un server HTTP
+        puis s'arrêter.
     ],
     source: made-by-self,
     ```yaml
@@ -335,7 +339,8 @@ via une ressource dédiée, illustrée dans le #code-num-ref(
     label: <code-config-container-network>,
     caption: [Configuration d'un réseau de conteneurs],
     note: [
-        TODO
+        Configuration d'un réseau de conteneur sur la runtime de conteneur
+        nommée "rootfull".
     ],
     source: made-by-self,
     ```yaml
@@ -385,6 +390,7 @@ l'instance et le déploiement du serveur HTTP:
         disposant d'un accès réseau à celui-ci; `$IP` désigne l'adresse de ce
         serveur.
     ],
+    source: made-by-self,
     ```sh
     $ cos-cli --server $IP config push ./config.yaml
     ```,
@@ -411,6 +417,8 @@ même infrastructure:
 #figure(
     label: <code-terraform>,
     caption: [Administration via Terraform],
+    note: [TODO],
+    source: made-by-self,
     ```terraform
     resource "cos_push_config" "my_server" {
         server = some_cloud_provider.vm.ip
