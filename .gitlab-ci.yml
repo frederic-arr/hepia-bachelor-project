@@ -70,14 +70,6 @@ test-rust-integration:
 build-iso:
   stage: build
   script: nix build -L .#iso
-  #   - mkdir -p ./output/
-  #   - cp -L result ./output/container.iso
-  # artifacts:
-  #   when: on_success
-  #   access: all
-  #   name: ISO
-  #   expire_in: 7 days
-  #   paths: [output/*.iso]
   needs: [test-rust-integration]
 
 e2e-rust:
@@ -89,18 +81,9 @@ e2e-rust:
     reports:
       junit: result/junit.xml
 
-# cache:
-#   key: ${CI_COMMIT_REF_SLUG}
-#   paths:
-#     - .cargo-cache/registry
-#     - .cargo-cache/git
-#     - target/
-
 # https://rustprojectprimer.com/ci/index.html
 
 # TODO:
-# - typos
-# - unit tests (cargo test)
 # - doc generation (cargo doc)
 # - book generation (cargo book)
 
@@ -113,7 +96,6 @@ e2e-rust:
 # - fuzzing
 # - mutation testing (cargo mutants)
 # - test coverage
-# - integration tests
 # - concurrency testing (tokio)
 # - undefiend behavior (cargo miri)
 # - llvm/asan/etc
