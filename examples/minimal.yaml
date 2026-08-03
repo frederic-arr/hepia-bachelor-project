@@ -1,4 +1,8 @@
 ---
+schema: install
+system_disk: /dev/vda
+
+---
 schema: api
 auth: "none"
 

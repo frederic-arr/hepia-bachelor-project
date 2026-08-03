@@ -43,10 +43,6 @@ root = "file:."
 system-fonts = true
 
 [[route]]
-id = "file:thesis/main.typ"
-priority = 256
-
-[[route]]
 id = "file:slides/main.typ"
 priority = 256
 
@@ -60,6 +56,10 @@ priority = 256
 
 [[route]]
 id = "file:subject-statement/main.typ"
+priority = 256
+
+[[route]]
+id = "file:thesis/main.typ"
 priority = 256
 
 [[task]]

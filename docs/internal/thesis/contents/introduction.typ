@@ -32,7 +32,7 @@ natif pour la conteneurisation, mais elles souffrent de lacunes diverses.
 NixOS~@bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
 conteneurs, mais cette déclarativité est ponctuelle: l'état désiré n'est
 appliqué qu'à un moment donné, et aucune boucle de contrôle ne corrige les
-dérives ultérieures. D'autres solutions, telles que ~Linux~@bib-talos,
+dérives ultérieures. D'autres solutions, telles que Talos~Linux~@bib-talos,
 permettent une administration entièrement déclarative et continue, mais
 s'intègrent étroitement avec Kubernetes, au prix d'une complexité opérationnelle
 et d'une empreinte mémoire disproportionnées pour le simple déploiement de

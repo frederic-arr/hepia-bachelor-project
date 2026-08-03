@@ -21,9 +21,10 @@
             width: 6cm,
         )[
             ```yaml
-            kind: Container
+            schema: container:instance
             name: container-a
             image: alpine:latest
+            # ...
             ```
         ])
 
@@ -31,9 +32,10 @@
             width: 6cm,
         )[
             ```yaml
-            kind: Container
+            schema: container:instance
             name: container-b
             image: alpine:latest
+            # ...
             ```
         ])
 

@@ -77,7 +77,7 @@ persister sur la base de données. Le résultat est ensuite vérifié, puis la
 machine redémarré puis le résultat revérifié afin de valider que la données a
 bien été persisté.
 
-== Benchmarking
+== Analyse de performance <ch:validation:bench>
 
 Les scénarios d'exécution en environnement éphémère et d'installation du
 système, décrits à la section précédente, sont repris ici selon le même

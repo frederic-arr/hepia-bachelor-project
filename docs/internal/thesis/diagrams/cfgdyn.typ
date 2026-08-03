@@ -4,10 +4,8 @@
 
 #refdiagram(
     label: <cfgdyn>,
-    caption: [Création de sous-ressources à partir d'un parent],
-    note: [
-        Illustre comment il est possible d'abstraire la gestion complexe de
-        plusieurs ressources derrière une interface simple.
+    caption: [
+        Création de sous-ressources à partir d'une configuration utilisateur
     ],
     source: made-by-self,
 
@@ -20,66 +18,59 @@
                 header: [Original resource],
                 highlighted-lines: (
                     (2, aqua.lighten(60%)),
-                    (3, green.lighten(60%)),
-                    (4, yellow.lighten(60%)),
+                    (3, yellow.lighten(60%)),
                 ),
             )
             ```yaml
-            kind: Network
+            schema: network:interface
             name: eth0
-            up: true
-            address: 10.194.1.42/24
+            address: 10.0.2.15/24
             ```
         ])
 
-        node(label: <cfgdyn-link>, (0, 1), title: box(
-            width: 6cm,
+        node(label: <cfgdyn-link>, (0.875, 2), title: box(
+            width: 7cm,
         )[
             #codly(
                 highlighted-lines: (
-                    (3, aqua.lighten(60%)),
-                    (4, green.lighten(60%)),
+                    (2, aqua.lighten(60%)),
                 ),
             )
             ```yaml
-            kind: Link
-            name: dyn-eth0-link
-            match: eth0
-            up: true
+            schema: network:link
+            name: eth0
+            admin_up: true
             ```
         ])
 
-        node(label: <cfgdyn-addr>, (0.875, 2), title: box(
-            width: 6cm,
+        node(label: <cfgdyn-addr>, (0, 1), title: box(
+            width: 8cm,
         )[
             #codly(
                 highlighted-lines: (
                     (3, aqua.lighten(60%)),
                     (4, yellow.lighten(60%)),
+                    (5, yellow.lighten(60%)),
                 ),
             )
             ```yaml
-            kind: Address
-            name: dyn-eth0-addr
+            schema: network:address
+            name: dyn-eth0-iface
             link: eth0
-            address: 10.194.1.42/24
+            address: 10.0.2.15
+            prefix_len: 24
             ```
         ])
 
         node(label: <cfgdyn-rte>, (0, 2), title: box(
-            width: 6cm,
+            width: 7cm,
         )[
-            #codly(
-                highlighted-lines: (
-                    (3, yellow.lighten(60%)),
-                    (4, yellow.lighten(60%)),
-                ),
-            )
             ```yaml
-            kind: Route
-            name: dyn-eth0-rte
-            network: 0.0.0.0/0
-            via: 10.194.1.1
+            schema: network:route
+            name: dyn-eth0-iface
+            destination: 0.0.0.0
+            prefix_len: 0
+            via: 10.0.2.1
             ```
         ])
 
