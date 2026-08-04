@@ -13,9 +13,8 @@
 
 #figure(
     label: <val-install-time>,
-    caption: [
-        Durée d'installation et de démarrage du conteneur après installation
-    ],
+    caption: [Durée d'installation et de démarrage du conteneur après
+        installation],
     note: [
         Temps absolu en secondes mesuré à partir de la réception de la
         configuration jusqu'à l'installation du système, et temps entre le

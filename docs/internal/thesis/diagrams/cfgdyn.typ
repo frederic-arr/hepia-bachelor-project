@@ -4,8 +4,8 @@
 
 #refdiagram(
     label: <cfgdyn>,
-    caption: [
-        Création de sous-ressources à partir d'une configuration utilisateur
+    caption: [Création de sous-ressources à partir d'une configuration
+        utilisateur
     ],
     source: made-by-self,
 

@@ -70,7 +70,8 @@ fonctionne sans surveillance constante, la sécurité est une exigence
 primordiale. Elle se concrétise par une isolation forte des composants système
 entre eux, une réduction maximale de la surface d'attaque et l'absence de tout
 accès interactif direct (notamment pas d'accès SSH). Le mode d'interaction
-entièrement déclaratif et automatisé permet de rendre cette absence viable.
+entièrement déclaratif et automatisé permet de rendre cette absence d'accès
+direct viable.
 
 Pour garantir une empreinte mémoire minimale et une maîtrise complète sur le
 fonctionnement du système, la solution est construite directement au-dessus du
@@ -86,31 +87,36 @@ externes #footnote[
 limiter encore la surface d'attaque.
 
 == Cadre du travail et méthodologie
+// TODO: Parler du fait que c'est une idée/problématique personnelle
 Ce travail s'inscrit dans l'obtention du titre de Bachelor of Science en
 Informatique et systèmes de communication, orientation Informatique logicielle,
 à la Haute école du paysage, d'ingénierie et d'architecture de Genève~(HEPIA).
 Réalisé à plein temps du 11~mai au 19~août~2026, il reflète l'état des
 connaissances et des technologies à cette période. Il a été précédé d'un projet
-de semestre qui a permis une analyse détaillée de la problématique et
-l'établissement des premiers éléments conceptuels et techniques. L'ensemble du
-code source produit est disponible sur le~#repo("", [dépôt Git institutionnel]).
+de semestre~@bib-semester-projet qui a permis une analyse détaillée de la
+problématique et l'établissement des premiers éléments conceptuels et
+techniques. L'ensemble du code source produit est disponible sur le dépôt Git
+institutionnel à l'adresse suivante:
+https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os.
+L'état du dépôt au moment de la publication du présent document est disponible
+sur le tag~#repo("", [`v0.0.0-dev.3.thesis`]) tandis que le dernier code testé
+est disponible sur la branche `main`.
 
 Des intelligences artificielles~(IA) génératives ont été utilisées de manière
 ponctuelle pour améliorer la qualité rédactionnelle; un texte de base contenant
 l'intégralité du fond et de l'organisation a toujours été fourni en amont. Pour
-le code, elles ont principalement servi d'outil d'analyse qualitative, en
-complément des outils d'analyse de code traditionnels, afin de détecter
-d'éventuelles failles, bogues ou usages contraires aux bonnes pratiques. L'IA a
-également été employée pour conforter l'exhaustivité des recherches
-documentaires et des efforts de débogage: une fois la collecte humaine jugée
-suffisante ou qu'elle se heurtait à une impasse, elle a été interrogée pour
-signaler d'éventuels angles morts, en suggérant des mots-clés ou des références
-complémentaires. Ces suggestions ont toujours été vérifiées avant d'être
-utilisées. L'IA n'a explicitement pas été utilisée dans le cadre de la
-production de code, pour prendre des décisions architecturales ou
-organisationnelles, ainsi que pour effectuer recherches et débogages initiaux.
-Un compte rendu détaillé et exhaustif de ces usages figure au sein de
-l'#appendix-full-ref(
+le code, elles ont principalement servi d'outil d'analyse, en complément des
+outils d'analyse de code traditionnels, afin de détecter d'éventuelles failles,
+bogues ou usages contraires aux bonnes pratiques. L'IA a également été employée
+pour conforter l'exhaustivité des recherches documentaires et des efforts de
+débogage: une fois la collecte humaine jugée suffisante ou qu'elle se heurtait à
+une impasse, l'IA a été interrogée pour signaler d'éventuels angles morts, en
+suggérant des mots-clés ou des références complémentaires. Ces suggestions ont
+toujours été vérifiées avant d'être utilisées. L'IA n'a explicitement pas été
+utilisée dans le cadre de la production de code, pour prendre des décisions
+architecturales ou organisationnelles relatives au code, ainsi que pour
+effectuer recherches et débogages initiaux. Un compte rendu détaillé et
+exhaustif de ces usages figure au sein de l'#appendix-full-ref(
     <appendix-ai>,
 ).
 

@@ -17,23 +17,25 @@
     edge-stroke: 2pt,
     mark-scale: 60%,
     {
-        node(label: <cfgjoint-cfga>, (-1, 0), title: box(
-            width: 6cm,
+        node(label: <cfgjoint-cfga>, (-0.75, 0), title: box(
+            width: 8cm,
         )[
             ```yaml
-            kind: Container
+            schema: container:instance
             name: container-a
             image: alpine:latest
+            # ...
             ```
         ])
 
-        node(label: <cfgjoint-cfgb>, (1, 0), title: box(
-            width: 6cm,
+        node(label: <cfgjoint-cfgb>, (0.75, 0), title: box(
+            width: 8cm,
         )[
             ```yaml
-            kind: Container
+            schema: container:instance
             name: container-b
             image: alpine:latest
+            # ...
             ```
         ])
 
@@ -41,13 +43,13 @@
             width: 8cm,
         )[
             ```yaml
-            kind: Image
-            name: alpine:latest@sha256:AAAAA
+            schema: container:image
+            name: alpine:latest@sha256:AAA...
             ```
         ])
 
         node(label: <cfgjoint-podimg>, (0, 3), stroke: 2pt + teal, title: [
-            /var/lib/container/image/alpine/latest
+            /var/lib/container/image/alpine/...
         ])
 
         node(label: <cfgjoint-podruna>, (-1, 3), stroke: 2pt, title: [

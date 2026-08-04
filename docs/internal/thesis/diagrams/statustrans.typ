@@ -79,8 +79,18 @@
             stroke: yellow,
         )
         edge(<statustrans-unk>, <statustrans-nrdy>, "-|>", stroke: yellow)
-        edge(<statustrans-err>, <statustrans-nrdy>, "--", stroke: red.lighten(50%))
-        edge(<statustrans-err>, <statustrans-rdy>, "--", stroke: red.lighten(50%))
+        edge(
+            <statustrans-err>,
+            <statustrans-nrdy>,
+            "--",
+            stroke: red.lighten(50%),
+        )
+        edge(
+            <statustrans-err>,
+            <statustrans-rdy>,
+            "--",
+            stroke: red.lighten(50%),
+        )
         edge(
             label: <statustrans-to-rdy>,
             <statustrans-rdy>,

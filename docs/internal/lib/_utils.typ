@@ -66,13 +66,17 @@
         gutter: 12em,
         align: (left, left),
         {
-            par[
-                #author.statement: \
-                #text(size: 1.2em, smallcaps[*#author.name*])
-            ]
-            v(2em)
+            if author != none {
+                par[
+                    #author.statement: \
+                    #text(size: 1.2em, smallcaps[*#author.name*])
+                ]
+                v(2em)
+            }
 
-            par[#field-of-study.statement: #field-of-study.name]
+            if field-of-study != none {
+                par[#field-of-study.statement: #field-of-study.name]
+            }
         },
         {
             par[

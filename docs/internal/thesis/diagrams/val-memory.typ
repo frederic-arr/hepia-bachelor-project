@@ -5,9 +5,7 @@
 
 #figure(
     label: <val-memory>,
-    caption: [
-        Mémoire disponible sur le système
-    ],
+    caption: [Mémoire disponible sur le système],
     note: [
         Allocation mémoire maximale faisable par un conteneur sur une VM
         disposant de 256~MiB sur 100 échantillons.

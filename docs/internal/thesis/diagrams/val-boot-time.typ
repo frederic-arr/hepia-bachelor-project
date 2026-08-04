@@ -16,13 +16,12 @@
 
 #figure(
     label: <val-boot-time>,
-    caption: [
-        Chronologie des étapes de démarrage jusqu'à l'exécution d'un conteneur
-    ],
+    caption: [Chronologie des étapes de démarrage jusqu'à l'exécution d'un
+        conteneur],
     note: [
-        Temps absolu en secondes mesuré à partir du démarrage du noyau,
-        après le bootloader, des différentes étapes du cycle de vie sur un
-        échantillon de 100.
+        Temps absolu en secondes mesuré à partir du démarrage du noyau, après le
+        bootloader, des différentes étapes du cycle de vie sur un échantillon
+        de 100.
 
         La mesure depuis une installation sur disque sont représentée sur le
         plan supérieur, tandis que les mesures depuis l'image ISO (mode

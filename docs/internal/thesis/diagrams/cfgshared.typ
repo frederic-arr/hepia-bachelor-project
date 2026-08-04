@@ -17,8 +17,8 @@
     edge-stroke: 2pt,
     mark-scale: 60%,
     {
-        node(label: <cfgshared-cfga>, (-1, 0), title: box(
-            width: 6cm,
+        node(label: <cfgshared-cfga>, (-0.75, 0), title: box(
+            width: 8cm,
         )[
             ```yaml
             schema: container:instance
@@ -28,8 +28,8 @@
             ```
         ])
 
-        node(label: <cfgshared-cfgb>, (1, 0), title: box(
-            width: 6cm,
+        node(label: <cfgshared-cfgb>, (0.75, 0), title: box(
+            width: 8cm,
         )[
             ```yaml
             schema: container:instance
@@ -40,7 +40,7 @@
         ])
 
         node(label: <cfgshared-podimg>, (0, 3), stroke: 2pt + teal, title: [
-            /var/lib/container/image/alpine/latest
+            /var/lib/container/image/alpine/...
         ])
 
         node(label: <cfgshared-podruna>, (-1, 3), stroke: 2pt, title: [

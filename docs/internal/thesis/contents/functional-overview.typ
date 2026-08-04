@@ -216,7 +216,10 @@ toutefois contraire aux objectifs et est fourni uniquement à titre
 d'alternative: la phase d'installation étant relativement courte, et le serveur
 ne possédant pas encore de données sensible, il est considéré que laisser un tel
 accès ouvert durant quelques secondes (entre le démarrage de l'API et la
-transmission d'une configuration initiale) est convenable.
+transmission d'une configuration initiale) est convenable#footnote[
+    C'est aussi le parti pris d'autre solutions de références tel que
+    Talos~Linux.
+].
 
 Lorsque la configuration est mise à jour, celle-ci n'est pas immédiatement
 acceptée: le serveur va d'abord valider que celle-ci soit syntaxiquement

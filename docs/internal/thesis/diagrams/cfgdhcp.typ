@@ -13,7 +13,7 @@
     {
         node(label: <cfgdhcp-cfg>, num: [1], (1, 0), title: box(width: 6cm)[
             #codly(
-                header: [Original resource],
+                header: [Static resource],
             )
             ```yaml
             schema: network:dhcp
@@ -41,7 +41,7 @@
             name: dyn-eth0-dhcp
             destination: 0.0.0.0
             prefix_len: 0
-            via: 10.0.2.1
+            gateway: 10.0.2.1
             ```
         ])
 

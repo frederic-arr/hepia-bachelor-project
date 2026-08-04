@@ -1,5 +1,45 @@
-#let outline-figure() = {
+#let full-outline() = {
+    {
+        // show outline.entry: set block(above: 0.6em)
+        show outline.entry.where(level: 1): set block(above: 1.2em)
+        show outline.entry.where(level: 1): set text(weight: "bold")
+        show outline.entry: it => {
+            if it.element.numbering == "A" {
+                let b = it.body()
+                link(
+                    it.element.location(),
+                    block(
+                        inset: (left: 0% + 16.01pt),
+                        [
+                            #h(-16.01pt)
+                            Annexe #it.prefix() #sym.dash
+                            #it.body()
+                            #box(width: 1fr, it.fill)
+                            #it.page()
+                        ],
+                    ),
+                )
+            } else if it.element.numbering == "A.1." {
+                if it.level == 2 {
+                    set text(weight: "bold")
+                    it
+                } else {
+                    it
+                }
+            } else {
+                it
+            }
+        }
+
+        outline()
+    }
+
     state("use-short-caption", false).update(_ => true)
+    outline(
+        title: [Table des annexes],
+        target: figure.where(kind: raw),
+    )
+
     outline(
         title: [Table des illustrations],
         target: figure.where(kind: image),

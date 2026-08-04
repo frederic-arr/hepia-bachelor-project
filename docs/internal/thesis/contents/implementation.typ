@@ -119,12 +119,13 @@ standard de Rust, alors que `cargo nextest` poursuit son exécution, chaque test
 indépendamment.
 
 === Pipeline CI/CD
-L'ensemble du projet reposant sur Nix, la pipeline d'intégration continue en
-hérite également, ce qui simplifie sa mise en œuvre: les étapes exécutées par la
-pipeline se limitent, dans une large mesure, à l'invocation de commandes Nix
-génériques, indépendantes de l'environnement d'exécution. L'ordonnancement des
-tâches repose sur GitLab CI. Le recours à un runner personnalisé est requis, les
-runners institutionnels ne permettant ni l'utilisation de Nix ni la
+L'ensemble du projet reposant sur Nix, la pipeline CI/CD (#repo(
+    ".gitlab-ci.yml",
+)) en hérite également, ce qui simplifie sa mise en œuvre: les étapes exécutées
+par la pipeline se limitent, dans une large mesure, à l'invocation de commandes
+Nix génériques, indépendantes de l'environnement d'exécution. L'ordonnancement
+des tâches repose sur GitLab CI). Le recours à un runner personnalisé est
+requis, les runners institutionnels ne permettant ni l'utilisation de Nix ni la
 virtualisation imbriquée, requise pour l'exécution des tests de bout en bout, et
 disposant par ailleurs de ressources de calcul limitées.
 
@@ -137,13 +138,14 @@ les doctests de Rust#footnote[
     ou d'un module, compilé et exécuté automatiquement lors de l'exécution des
     tests afin de garantir la validité des exemples fournis @bib-rust-doctest.
 ] sont exécutés en parallèle, suivis des tests d'intégration. La phase de build
-est ensuite exécutée, suivie enfin des tests de bout en bout.
+est ensuite exécutée, suivie enfin des tests de bout en bout. L'ensemble du
+processus est illustré dans la~#figure-num-ref(<cicd>):
 
-// TODO: schéma de la pipeline?
+#include "../diagrams/cicd.typ"
 
 Le linting couvre deux aspects distincts: le formatage et l'analyse statique. Le
 formatage est vérifié via `typstfmt` pour la documentation, `buf` pour les
-définitions Protocol Buffers, et `clippy` pour le code Rust. L'analyse statique
+définitions Protocol Buffers, et `fmt` pour le code Rust. L'analyse statique
 repose sur `buf` pour les définitions Protocol Buffers et sur `clippy` pour le
 code Rust. Les options les plus strictes de `clippy` sont activées, interdisant
 notamment le recours à `unwrap` ou à des constructions équivalentes, ainsi que
@@ -361,9 +363,8 @@ masse, replanification) peuvent modifier l'échéance la plus proche et donc
 nécessiter une notification, ces opérations passent par un `QueueInnerGuard`:
 
 #figure(
-    caption: [
-        Encapsulation de la file d'attente pour les opérations d'écriture
-    ],
+    caption: [Encapsulation de la file d'attente pour les opérations
+        d'écriture],
     source: link("cmd/state-manager/src/queue.rs"), // TODO: Verify link
     ```rust
     struct QueueInnerGuard<'a, K> {

@@ -1600,3 +1600,15 @@ bib-clevis:
   url:
     value: https://github.com/latchset/clevis/
     date: 2026-08-02
+
+bib-linux-operstate:
+  type: web
+  title: Operational States
+  url:
+    value: https://docs.kernel.org/networking/operstates.html
+    date: 2026-08-02
+  parent:
+    type: web
+    title: The Linux Kernel Documentation
+    editor:
+      - The kernel development community

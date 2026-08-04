@@ -18,6 +18,8 @@ languageSettings:
       - débugger
       - replanification
       - requêter
+      - replanifiée
+      - replanifier
   - languageId: typst
     ignoreRegExpList:
       - string
@@ -50,6 +52,7 @@ languageSettings:
       - mkcell
       - hline
       - networkd
+      - clippy
 overrides:
   - filename: "docs/**/*.typ"
     languageId: typst
@@ -72,5 +75,7 @@ words:
   - Florent
   - Glück
   - HEPIA
+  - Swapneel
+  - MEHTA
   - Codeberg
   - declarativity

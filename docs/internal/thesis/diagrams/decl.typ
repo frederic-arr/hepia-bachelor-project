@@ -7,7 +7,7 @@
     caption: [Réconciliation d'une ressource],
     note: [
         Le système observe l'état actuel de la ressource, calcule l'écart avec
-        l'état désiré, et applique les actions correctives.
+        la spécification, et applique les actions correctives.
     ],
     source: made-by-self,
 

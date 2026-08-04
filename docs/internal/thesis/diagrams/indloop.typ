@@ -3,7 +3,7 @@
 #import packages.codly: *
 
 #refdiagram(
-    label: <ctrlloop>,
+    label: <indloop>,
     caption: [Orchestraion de la réconciliation dans un modèle décentralisé],
     note: [
         Illustre la manière donc la réconciliation individuelle de chaque
@@ -18,43 +18,43 @@
     mark-scale: 60%,
     {
         node(
-            label: <ctrlloop-a>,
+            label: <indloop-a>,
             (0, 1),
             title: [Resource A],
             subtitle: [Reconciliation],
             stroke: red,
         )
         node(
-            label: <ctrlloop-b>,
+            label: <indloop-b>,
             (1, 1),
             title: [Resource B],
             subtitle: [Reconciliation],
             stroke: red,
         )
         node(
-            label: <ctrlloop-z>,
+            label: <indloop-z>,
             (3, 1),
             title: [Resource Z],
             subtitle: [Reconciliation],
             stroke: red,
         )
         edge(
-            <ctrlloop-a>,
-            <ctrlloop-a>,
+            <indloop-a>,
+            <indloop-a>,
             "-|>",
             title: [Infinitely recurring],
             bend: 120deg,
         )
         edge(
-            <ctrlloop-b>,
-            <ctrlloop-b>,
+            <indloop-b>,
+            <indloop-b>,
             "-|>",
             title: [Infinitely recurring],
             bend: 120deg,
         )
         edge(
-            <ctrlloop-z>,
-            <ctrlloop-z>,
+            <indloop-z>,
+            <indloop-z>,
             "-|>",
             title: [Infinitely recurring],
             bend: 120deg,

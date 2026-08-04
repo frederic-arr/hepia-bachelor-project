@@ -17,9 +17,8 @@
 #set page(flipped: true)
 #figure(
     label: <scheduling>,
-    caption: [
-        Comparaison des modèles d'orchestration centralisés et décentralisés
-    ],
+    caption: [Comparaison des modèles d'orchestration centralisés et
+        décentralisés],
     note: [
         Compare et synthétise les avantages et inconvénients de chaque modèle
         d'orchestration.

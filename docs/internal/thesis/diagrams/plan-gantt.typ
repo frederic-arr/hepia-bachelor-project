@@ -43,9 +43,7 @@
 
 #figure(
     label: <plan-gantt>,
-    caption: [
-        Planification du travail
-    ],
+    caption: [Planification du travail],
     note: [
         Planification du travail sous la forme d'un diagram de Gantt. En vert
         les tâches dont la planification de la durée est correcte. Si il n'ont
