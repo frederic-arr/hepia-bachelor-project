@@ -350,7 +350,7 @@ structure sous-jacente.
 == Contrôleurs
 // TODO
 
-== Contrôleur système
+=== Contrôleur système
 Le contrôleur système, implémenté dans #repo("rust/cmd/system-controller"),
 prend actuellement en charge la seule gestion du contenu du répertoire~`/etc/`,
 à travers la ressource `system:etc`#footnote[
@@ -385,7 +385,7 @@ par une spécification malveillante ou erronée, d'écrire en dehors du réperto
 visé. Ces appels retournant un descripteur de fichier, celui-ci est ensuite
 réutiliser pour y créer le fichier temporaire.
 
-== Contrôleur réseau
+=== Contrôleur réseau
 Le contrôleur réseau, implémenté dans #repo("rust/cmd/network-controller"), gère
 l'ensemble des ressources du domaine `network`. Les ressources `dns` et
 `address` ne présentent pas de particularité notable: l'état physique
@@ -451,7 +451,7 @@ réconciliation de la ressource, à l'occasion de laquelle le contrôleur récup
 la configuration ainsi obtenue et crée les sous-ressources `address` et `route`
 correspondantes.
 
-== Contrôleur de conteneurs
+=== Contrôleur de conteneurs
 Le contrôleur de conteneurs, implémenté dans #repo(
     "rust/cmd/container-controller",
 ), s'appuie sur Podman comme runtime de conteneurs, et sur la bibliothèque
@@ -494,7 +494,7 @@ retirés sans préavis. Cette instabilité porte uniquement sur la stabilité de
 l'interface exposée dans le temps, et non sur la fiabilité d'exécution de la
 fonctionnalité elle-même.
 
-=== Configuration du noyau
+== Configuration du noyau
 La configuration du noyau repose sur la configuration par défaut propre à
 l'architecture cible, complétée par un ensemble d'options supplémentaires
 situées dans le fichier #repo("linux/config/common.conf"). Plusieurs fragments
@@ -512,7 +512,7 @@ références distinctes. La différence par rapport au `defconfig` est exposée 
 `config.merged`, la différence par rapport à la configuration personnalisée sous
 `config.diff`, et la configuration complète sous `config.full`.
 
-=== Génération de l'image du système
+== Génération de l'image du système
 L'image finale du système, qu'il s'agisse d'une image ISO ou d'une image disque
 brute, est assemblée entièrement au moyen de Nix. Chaque crate Rust du projet
 correspond à un output Nix; l'ensemble de ces outputs est regroupé dans un
@@ -541,7 +541,7 @@ de déploiement. Dans le cas du Raspberry Pi, l'output `rpi-sd-image` regroupe
 les éléments propres à cette plateforme et produit une image directement
 destinée au flashage sur une carte SD.
 
-=== Environement de test
+== Environement de test
 Trois catégories de tests sont mises en œuvre: les tests unitaires, les tests
 d'intégration, et les tests de bout en bout (end-to-end). Les tests unitaires
 sont dépourvus de complexité particulière, n'interagissant pas ou peu avec
@@ -588,7 +588,7 @@ standard de Rust, alors que `cargo nextest` poursuit son exécution, chaque test
 étant exécuté dans un thread distinct dont la terminaison est gérée
 indépendamment.
 
-=== Pipeline CI/CD
+== Pipeline CI/CD
 L'ensemble du projet reposant sur Nix, la pipeline CI/CD (#repo(
     ".gitlab-ci.yml",
 )) en hérite également, ce qui simplifie sa mise en œuvre: les étapes exécutées

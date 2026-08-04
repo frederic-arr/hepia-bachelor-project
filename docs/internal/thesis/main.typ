@@ -128,7 +128,6 @@
 #include "contents/validation.typ"
 #include "contents/comparison.typ"
 #include "contents/results-and-discussion.typ"
-// #include "contents/discussion.typ"
 
 #set heading(numbering: none)
 #include "contents/conclusion.typ"

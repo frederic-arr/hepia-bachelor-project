@@ -22,6 +22,8 @@ languageSettings:
       - replanifier
       - replanifie
       - redéclencher
+      - Ryzen
+      - flushée
   - languageId: typst
     ignoreRegExpList:
       - string

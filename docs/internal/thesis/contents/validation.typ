@@ -9,6 +9,15 @@
 )
 
 = Tests et validation
+Ce chapitre présente la démarche de validation adoptée pour vérifier le
+comportement du système implémenté au regard des objectifs énoncés en
+introduction. La couverture assurée par les tests unitaires et les tests
+d'intégration, propres à chaque composant, est d'abord présentée, avant que les
+tests de bout en bout, reproduisant des scénarios d'utilisation complets du
+système, ne soient détaillés. Ces derniers servent également de base à l'analyse
+de performance, qui mesure la rapidité de démarrage et d'installation du système
+ainsi que son empreinte mémoire. Le chapitre se conclut par une discussion des
+limites du protocole de mesure employé.
 
 == Tests unitaires et tests d'intégration
 
@@ -27,16 +36,17 @@ l'environement de test disposant d'une système de fichier racine vide, la
 runtime de conteneur n'est pas présente et celle-ci nécessite un nombre
 important de dépendance qu'il serait fastidieux de lier dans cet environement.
 
-Toutefois, des tests de bout en bout (end-to-end, E2E) viennent completer la
-couverture. Ces tests reposent fortement sur Nix afin de build le système
-d'exploitation et crée une image ISO. Chaque test est effectué dans une machine
-virtuelle séparée. De manière générale, le test va lancer la VM, attendre que
-l'API soit joignable puis effectuer une suite de commandes. Afin de garantir que
-le système fonctionne correctement, les tests ne reposent pas uniquement sur la
-lecture de l'état courrant de l'API, mais incluent dans la configuration un
-conteneur `cURL` qui va effectuer une requête HTTP vers l'hôte de test, sur un
-port que le test écoute. Cela permet de valider que, non seulement l'API
-retourne un état cohérent, mais que celui-ci reflète l'état réel.
+Toutefois, des tests de bout en bout (end-to-end, E2E), implémentés dans #repo(
+    "rust/e2e/tests/",
+) viennent completer la couverture. Ces tests reposent fortement sur Nix afin de
+build le système d'exploitation et crée une image ISO. Chaque test est effectué
+dans une machine virtuelle séparée. De manière générale, le test va lancer la
+VM, attendre que l'API soit joignable puis effectuer une suite de commandes.
+Afin de garantir que le système fonctionne correctement, les tests ne reposent
+pas uniquement sur la lecture de l'état courrant de l'API, mais incluent dans la
+configuration un conteneur cURL qui va effectuer une requête HTTP vers l'hôte de
+test, sur un port que le test écoute. Cela permet de valider que, non seulement
+l'API retourne un état cohérent, mais que celui-ci reflète l'état réel.
 
 == Validation
 
@@ -65,7 +75,7 @@ rapporté par l'API après réinstallation, doit correspondre à l'état appliqu
 avant redémarrage.
 
 === Application 3 tiers
-
+// TODO: Nextcloud
 Ce scénario met en œuvre une configuration composée de quatre conteneurs:: une
 base de données, un service backend dépendant de la base de données, un service
 web dépendant du backend, et un conteneur de "probe" dépendant du service web,
@@ -84,6 +94,37 @@ système, décrits à la section précédente, sont repris ici selon le même
 protocole, en y ajoutant une instrumentation permettant de mesurer le temps
 écoulé entre chaque étape du cycle de vie, ainsi que la mémoire consommée par le
 système, le tout sur 100 échantillon.
+
+Les mesures reposent sur la configuration QEMU présentée au~#code-num-ref(
+    <code-qemu-bench>,
+), exécutée sur une hôte disposant d'un CPU AMD Ryzen 7 7700X, 64 GiB de RAM, et
+un support de stockage NVMe. L'hôte est une hôte Windows 11, les tests étant
+effectués dans un environement WSL 2.
+
+#figure(
+    label: <code-qemu-bench>,
+    caption: [Commande QEMU utilisée pour les mesures de performance],
+    source: made-by-self,
+    ```sh
+    qemu-system-x86_64 -cdrom result -drive file=disk.img,format=raw,if=virtio \
+      -enable-kvm \
+      -cpu host -m 256M \
+      -netdev user,id=net0,hostfwd=tcp::50000-:50000 \
+      -device e1000,netdev=net0 \
+      -nographic
+    ```,
+)
+
+La majorité des instants mesurés sont déterminés par horodatage, côté hôte, des
+messages émis sur la console serial par les différents composants du système,
+cette dernière étant flushée immédiatement après chaque message afin de garantir
+la fidélité de l'horodatage par rapport à l'instant d'émission. La marge
+d'erreur associée à ce mécanisme est jugée négligeable au regard de l'échelle
+des durées mesurées. Le démarrage effectif d'un conteneur constitue une
+exception à ce mécanisme: cette mesure repose sur le même protocole que les
+tests de bout en bout décrits précédemment, à savoir la réception, par un
+serveur à l'écoute sur l'hôte, d'une requête HTTP émise par le conteneur
+concerné.
 
 === Rapidité <ch:validation:speed>
 
@@ -169,12 +210,12 @@ fois le système démarré avec une VM disposant de 256~MiB de RAM.
 La médiane de l'allocation atteinte se situe à environ 208~MiB, l'intervalle
 interquartile s'étendant de 205~à~209~MiB. Les valeurs extrêmes observées se
 situent entre 193~et~213 MiB. La mémoire disponible est donc autour des 80% de
-la mémoire allouée à la VM. Par extension, le système d'exploitation complet ne
-consomme donc qu'environ 20~MiB. Toutefois, il n'est pas pour autant possible de
-démarrer une VM avec seulement 20~MiB de mémoire. En effet, durant le démarrage,
-un minimum de 90~MiB sont requis afin que le système démarre, et dans l'optique
-de télécharger une image et exécuter un conteneur au minimum 164~MiB sont
-requis.
+la mémoire allouée à la VM. Par extension, le système d'exploitation complet,
+noyau et runtime de conteneur inclus, ne consomme donc qu'environ 40~MiB.
+Toutefois, il n'est pas pour autant possible de démarrer une VM avec seulement
+20~MiB de mémoire. En effet, durant le démarrage, un minimum de 80~MiB sont
+requis afin que le système démarre, et dans l'optique de télécharger une image
+et exécuter un conteneur au minimum 160~MiB sont requis.
 
 == Limitations
 

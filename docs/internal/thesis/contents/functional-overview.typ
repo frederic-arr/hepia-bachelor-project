@@ -384,7 +384,7 @@ d'adjoindre des conteneurs extérieurs à ce runtime sur le réseau ainsi créé
 == Prérequis matériels <ch:functional-overview:hardware>
 Le système nécessite très peu de ressources: sur un processeur 64 bits, il est
 possible de démarrer un server web minimale avec seulement 160 MiB de mémoire
-vive. Il est même possible de démarrer le système sur moins de 90 MiB de RAM si
+vive. Il est même possible de démarrer le système sur moins de 80 MiB de RAM si
 les aspects liés à la conteneurisation ne sont pas nécessaires, par exemple,
 afin de fournir un routeur rudimentaire. En outre, dans le cadre d'une
 installation complète, le système ne nécessite que 1 GiB de stockage. L'ensemble

@@ -1,13 +1,14 @@
 #import "../lib.typ": *
 
 = Résultats et Discussion
-
-// TODO
-
-// TODO: Retrospective?
+Ce chapitre dresse le bilan du travail réalisé. Les résultats obtenus sont
+d'abord présentés, tant sur le plan fonctionnel qu'au regard des objectifs
+académiques fixés en introduction, avant qu'un retour rétrospectif ne soit porté
+sur les principaux choix techniques opérés. Les difficultés rencontrées au cours
+du développement sont ensuite détaillées, avant que le chapitre ne se conclue
+par les perspectives d'évolution envisageables pour le système.
 
 == Résultats fonctionnel
-
 Les scénarios de validation présentés au chapitre précédent démontrent la
 correction fonctionnelle du système dans trois configurations représentatives,
 et la comparaison avec NixOS et Talos Linux établit que le système présente une
@@ -17,8 +18,10 @@ unitaire.
 
 Le système fonctionne également sur un Raspberry Pi 1B, sans qu'aucune
 adaptation notable n'ait été nécessaire pour ce matériel. Bien que le projet
-visait a être déployé sur des Raspberry Pi moderne, le fait qu'il soit
-suffisement léger pour fonctionner sur un modèle aussi vieux est vraiment bien.
+visait a être déployé sur des Raspberry Pi moderne, la capacité du système à
+fonctionner sur un modèle aussi ancien illustre concrètement l'atteinte de
+l'objectif de légèreté, ce matériel disposant de ressources sensiblement
+inférieures à celles des modèles visés initialement.
 
 D'un point de vue fonctionnel, la valeur ajoutée du système réside dans sa
 rapidité de démarrage et dans sa faible empreinte mémoire, deux propriétés
@@ -37,7 +40,6 @@ partie des options de configuration du réseau et des conteneurs ont été
 implémenté, principalement dans un soucis de temps.
 
 == Résultats académiques <results-academic>
-
 L'ensemble des objectifs techniques formulés dans l'énoncé du sujet sont remplis
 par le système développé. Les résultats fonctionnels présentés à la section
 précédente, en particulier la validation des trois scénarios de bout en bout et
@@ -80,12 +82,12 @@ néanmoins menée à son terme avant la fin du projet, avec un léger décalage 
 rapport à la période initialement planifiée.
 
 == Difficultés rencontrées
-
-// TODO: Phrase introductive
-Plusieurs difficultés techniques sont rencontrées durant le développement du
-système. Certaines relèvent de particularités peu documentées du noyau Linux,
-d'autres de bugs identifiés dans des dépendances externes, et d'autres encore de
-contraintes propres à l'environnement de développement utilisé.
+Le développement du système, bien qu'ayant abouti à une solution fonctionnelle
+et conforme aux objectifs fixés, ne s'est pas déroulé sans obstacle. Plusieurs
+difficultés techniques sont rencontrées durant le développement du système.
+Certaines relèvent de particularités peu documentées d'un composant, d'autres de
+bugs identifiés dans des dépendances externes, et d'autres encore de contraintes
+propres à l'environnement de développement utilisé.
 
 Un comportement inattendu est observé lors de la recherche de la borne mémoire
 minimale nécessaire au démarrage du système. Lorsque la mémoire disponible est
@@ -119,11 +121,11 @@ valeur `"stopped"` pour ce même champ. Ce bug est connu depuis 2023
 @bib-podman-issue et n'est corrigé par le projet qu'en mars 2026
 @bib-podman-pull, la correction n'étant intégrée à une version officielle
 qu'avec la publication de la version 6.0.0, le 24 juin 2026 @bib-podman-release.
-L'intégration de cette version dans Nix nécessite un délai supplémentaire, la
-version 6.0.0 constituant une "breaking release" et demeure bloquée
-@bib-podman-nix. Le paquet Nix officiel est alors repris et adapté directement à
-partir de son code source, l'aspect "breaking" de la version 6.0 de Podman
-n'ayant pas d'impacte dans le cadre de ce système.
+L'intégration de cette version dans Nix, celle-ci constituant une "breaking
+release", nécessite un délai supplémentaire et demeure bloquée @bib-podman-nix.
+Le paquet Nix officiel est alors repris et adapté directement à partir de son
+code source, l'aspect "breaking" de la version 6.0 de Podman n'ayant pas
+d'impacte dans le cadre de ce système.
 
 Au-delà de ce bug, Podman présente une autre particularité: son fonctionnement
 sans daemon ("daemon-less") ne s'applique qu'à l'utilisation de la ligne de
@@ -151,7 +153,6 @@ documentation reste limitée et son usage impose une structuration précise du
 projet.
 
 == Rétrospective
-
 Le choix de Rust et de Nix constitue, malgré les difficultés rencontrées, un
 choix technique approprié. Le système présente une robustesse satisfaisante, au
 sens où une erreur ne provoque pas d'arrêt inattendu du système, et la
@@ -166,7 +167,7 @@ particuliers à chacun, ce qui n'est pas imputable au modèle centralisé en tan
 que tel, mais complexifie le composant central à mesure que les cas d'usage se
 diversifient. Ce choix est considéré comme neutre au regard du compromis obtenu.
 
-Le choix de Protobuf pour la communication entre le contrôleur central et les
+Le choix de gRPC pour la communication entre le contrôleur central et les
 contrôleurs répond avant tout à un besoin de rapidité de mise en œuvre. Cette
 communication reste, dans une certaine mesure, lourd à maintenir, bien que cette
 lourdeur soit largement masquée pour l'utilisateur final. Un protocole custom,
@@ -175,10 +176,10 @@ adaptée, mais le système actuel fonctionne de manière satisfaisante, rendant
 cette amélioration secondaire.
 
 == Perspectives
-
-// TODO: Phrase introductive
-Plusieurs perspectives d'évolution se dégagent de ce travail, tant dans le
-périmètre initial que dans des directions plus larges.
+Le système répond, dans son périmètre actuel, aux objectifs fixés, mais son
+architecture n'exclut pas des évolutions ultérieures. Plusieurs perspectives
+d'évolution se dégagent de ce travail, tant dans le périmètre initial que dans
+des directions plus larges.
 
 Concernant l'usage primaire du système, centré sur les conteneurs, trois
 fonctionnalités apparaissent prioritaires: l'ajout d'une couche d'observabilité,
@@ -210,8 +211,12 @@ réalisable.
 Ces perspectives illustrent qu'un nombre restreint de modifications
 conceptuelles est peut transformer fondamentalement la portée du projet,
 l'implémentation sous-jacente de ces modifications restant néanmoins nettement
-plus complexe que leur description conceptuelle. Le système ne prend pas en
-charge le clustering, mais l'ajout d'un contrôleur dédié à Kubernetes, inspiré
-du modèle retenu par Talos Linux, constitue aussi une extension envisageable.
-Enfin, une meilleure personnalisation de l'image de base du système est
-souhaitable; l'usage de Nix rend cette personnalisation aisément réalisable.
+plus complexe que leur description conceptuelle.
+
+/*
+Le système ne prend pas en charge le clustering, mais l'ajout d'un contrôleur
+dédié à Kubernetes, inspiré du modèle retenu par Talos Linux, constitue aussi
+une extension envisageable. Enfin, une meilleure personnalisation de l'image de
+base du système est souhaitable; l'usage de Nix rend cette personnalisation
+aisément réalisable.
+*/
