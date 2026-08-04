@@ -8,6 +8,11 @@
     [\<TODO> #body \</TODO>],
 ))
 
+#let todo-ref() = highlight(fill: rgb("#fff091"), text(
+    fill: red,
+    [RÉFÉRENCER],
+))
+
 #let todo-chapter = highlight(fill: rgb("#fff091"), text(
     fill: red,
     [\[RÉF. CHAPITRE\]],

@@ -20,6 +20,8 @@ languageSettings:
       - requêter
       - replanifiée
       - replanifier
+      - replanifie
+      - redéclencher
   - languageId: typst
     ignoreRegExpList:
       - string
@@ -53,6 +55,9 @@ languageSettings:
       - hline
       - networkd
       - clippy
+      - Serde
+      - rootfs
+      - Tmpfs
 overrides:
   - filename: "docs/**/*.typ"
     languageId: typst

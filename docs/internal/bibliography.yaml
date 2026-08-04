@@ -1612,3 +1612,94 @@ bib-linux-operstate:
     title: The Linux Kernel Documentation
     editor:
       - The kernel development community
+
+bib-linux-fhs:
+  type: web
+  title: Filesystem Hierarchy Standard
+  author: The Linux Foundation
+  url:
+    value: https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
+    date: 2026-08-02
+
+bib-grpc:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-tonic:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-tokio:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-serde:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-grpc-proto3-optional:
+  type: web
+  title: Why were `required` and `optional` removed in Protocol Buffers 3?
+  author: Yongjiang Zhang
+  url:
+    value: https://stackoverflow.com/questions/31801257/why-were-required-and-optional-removed-in-protocol-buffers-3
+    date: 2026-08-02
+  parent:
+    type: web
+    title: StackOverflow
+
+bib-linux-open-tmpfile:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-linux-openat2:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-linux-rtnetlink:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-smoltcp:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-bollard:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02

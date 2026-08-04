@@ -17,57 +17,41 @@
     mark-scale: 60%,
     {
         node(label: <sysinit-init>, (0, 0), title: [
-            Find and mount the root partition
+            Find and mount the real root fs (SquashFS, Tmpfs, OverlayFS)
         ])
+
         edge(<sysinit-init>, <sysinit-env>, "-|>")
         node(label: <sysinit-env>, (0, 1), title: [
             Create base environment (/dev, /proc, local network interface, ...)
         ])
         edge(<sysinit-env>, <sysinit-early>, "-|>")
         node(label: <sysinit-early>, (0, 2), title: [
-            Find and mount the early config
+            Find and mount additional volumes (`/config`, `/var`, ...)
         ])
         edge(<sysinit-early>, <sysinit-cfg>, "-|>")
         node(label: <sysinit-cfg>, (0, 3), title: [
             Find, decrypt and mount full config and state
         ])
-        edge(<sysinit-cfg>, <sysinit-net>, "-|>")
-        node(label: <sysinit-net>, (0, 4), title: [
-            Start network controller
+        edge(<sysinit-cfg>, <sysinit-con>, "-|>")
+        node(label: <sysinit-con>, (0, 4), title: [
+            Start the controllers
         ])
-        edge(<sysinit-net>, <sysinit-api>, "-|>")
-        node(label: <sysinit-api>, (0, 5), title: [
-            Start API
+        edge(<sysinit-con>, <sysinit-orch>, "--|>", title: [
+            Wait for all controller to be ready
         ])
-        edge(<sysinit-api>, <sysinit-procs>, "-|>")
-        node(label: <sysinit-procs>, (0, 6), title: [
-            Start other controllers
-        ])
-        edge(<sysinit-procs>, <sysinit-rec>, "--|>", title: [
-            Wait for all controllers~~to be ready
-        ])
-        node(label: <sysinit-rec>, (0, 7), title: [
-            Start reconciliation
+        node(label: <sysinit-orch>, (0, 5), title: [
+            Start the orchestrator
         ])
 
         node(
             enclose: (
                 <sysinit-env>,
                 <sysinit-early>,
+                <sysinit-cfg>,
+                <sysinit-orch>,
             ),
             inset: 2mm,
             title: place(dx: -2.5cm)[*supervisor*],
-        )
-
-        node(
-            enclose: (
-                <sysinit-cfg>,
-                <sysinit-api>,
-                <sysinit-procs>,
-                <sysinit-rec>,
-            ),
-            inset: 2mm,
-            title: place(dx: -3.5cm)[*core-controller*],
         )
     },
 )
