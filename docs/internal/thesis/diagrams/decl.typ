@@ -33,8 +33,8 @@
             num: [3],
             stroke: none,
             (1, 0),
-            title: [Desired State],
-            subtitle: [specification],
+            title: [Specification],
+            subtitle: [desired state],
         )
         node(
             label: <decl-res>,

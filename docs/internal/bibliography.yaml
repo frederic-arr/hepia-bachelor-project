@@ -1727,3 +1727,11 @@ bib-alpine:
   url:
     value: https://example.com
     date: 2026-08-02
+
+bib-dhcp-rfc:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://datatracker.ietf.org/doc/html/rfc2131
+    date: 2026-08-02

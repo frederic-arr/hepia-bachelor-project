@@ -4,7 +4,7 @@
 
 #refdiagram(
     label: <ctrlloop>,
-    caption: [Orchestraion de la réconciliation dans un modèle centralisé],
+    caption: [Orchestration de la réconciliation dans un modèle centralisé],
     note: [
         Illustre la manière donc la réconciliation individuelle de chaque
         ressource est intégrée vis-à-vis des autres ressources au sein d'un

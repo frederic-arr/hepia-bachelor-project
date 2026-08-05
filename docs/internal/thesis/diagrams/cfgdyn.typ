@@ -15,7 +15,7 @@
     {
         node(label: <cfgdyn-cfg>, num: [1], (1, 0), title: box(width: 6cm)[
             #codly(
-                header: [Original resource],
+                header: [Static resource],
                 highlighted-lines: (
                     (2, aqua.lighten(60%)),
                     (3, yellow.lighten(60%)),
