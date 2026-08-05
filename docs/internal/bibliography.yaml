@@ -1703,3 +1703,11 @@ bib-bollard:
   url:
     value: https://example.com
     date: 2026-08-02
+
+bib-gitops:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://www.redhat.com/fr/topics/devops/what-is-gitops
+    date: 2026-08-02

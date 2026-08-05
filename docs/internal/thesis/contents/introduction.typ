@@ -10,10 +10,14 @@ applications dans les environnements modernes. Les outils qui gravitent autour
 d'elle, tels que Docker~Compose~@bib-docker-compose ou
 Kubernetes~@bib-kubernetes, adoptent un mode d'opération déclaratif dans lequel
 l'utilisateur décrit l'état désiré et le système se charge de le maintenir. Ce
-paradigme a également gagné l'infrastructure cloud avec des outils tels que
-Terraform~@bib-terraform. Il a donné naissance au modèle~GitOps, qui consiste à
-stocker l'ensemble de la configuration dans Git. Ainsi, chaque fois qu'une mise
-à jour est effectuée, elle est appliquée automatiquement, ce qui rend le
+paradigme a également gagné l'infrastructure avec des outils tels que
+Terraform~@bib-terraform, permettant de gérer l'infrastructure sous forme de
+code (IaC)~@bib-ibm-iac plutôt qu'au moyen de procédures manuelles. Le modèle
+GitOps s'appuie sur cette pratique en utilisant un dépôt Git comme unique source
+de vérité de la configuration, déclarée au moyen d'outils tels que ceux
+mentionnés précédemment. Il s'agit d'une partie importante de la mise en œuvre
+des pratiques DevOps et de CI/CD~@bib-gitops. Ainsi, chaque fois qu'une mise à
+jour est effectuée, elle est appliquée automatiquement, ce qui rend le
 déploiement et l'infrastructure entièrement automatisés. Dans ces approches,
 l'interaction directe avec le système d'exploitation devient l'exception plutôt
 que la règle.
@@ -30,13 +34,14 @@ configuration et du maintien en état repose entièrement sur l'administrateur.
 Certaines solutions plus spécialisées existent, alliant déclarativité et support
 natif pour la conteneurisation, mais elles souffrent de lacunes diverses.
 NixOS~@bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
-conteneurs, mais cette déclarativité est ponctuelle: l'état désiré n'est
-appliqué qu'à un moment donné, et aucune boucle de contrôle ne corrige les
-dérives ultérieures. D'autres solutions, telles que Talos~Linux~@bib-talos,
-permettent une administration entièrement déclarative et continue, mais
-s'intègrent étroitement avec Kubernetes, au prix d'une complexité opérationnelle
-et d'une empreinte mémoire disproportionnées pour le simple déploiement de
-quelques conteneurs.
+conteneurs, mais cette déclarativité reste ponctuelle: l'état désiré est
+appliqué une seule fois, à l'exécution d'une commande, sans qu'aucune boucle de
+contrôle ne surveille ensuite le système ni n'en corrige les dérives
+susceptibles de survenir par la suite. D'autres solutions, telles que
+Talos~Linux~@bib-talos, permettent une administration entièrement déclarative et
+continue, mais s'intègrent étroitement avec Kubernetes, au prix d'une complexité
+opérationnelle et d'une empreinte mémoire disproportionnées pour le simple
+déploiement de quelques conteneurs.
 
 Il manque donc un système d'exploitation capable de décrire la configuration de
 l'hôte et des conteneurs dans un modèle déclaratif unique et homogène, et de
@@ -47,7 +52,7 @@ de disposer d'un système déclaratif capable de se maintenir en état de maniè
 autonome.
 
 == Objectifs
-Le projet de semestre effectué préalablement~@bib-semester-projet a permis
+Le projet~de~semestre effectué préalablement~@bib-semester-projet a permis
 d'analyser en profondeur les forces et les faiblesses des différentes solutions
 disponibles. Il a débouché sur la présentation d'une architecture de très haut
 niveau, explorant les concepts fondamentaux et les briques techniques
@@ -60,7 +65,7 @@ configurable selon un modèle déclaratif unique, dans lequel la configuration d
 l'hôte et celle des conteneurs sont intégrées de manière homogène. La
 conteneurisation est traitée comme un élément natif du système: les conteneurs
 sont décrits et gérés au même titre que les autres ressources, sans couche
-externe. En particulier, le système doit maintenir l'état déclaré de manière
+externe. En particulier, le système doit maintenir l'état désiré de manière
 continue et autonome, en s'appuyant sur une boucle de contrôle qui surveille en
 permanence l'état réel, détecte automatiquement les dérives et les corrige sans
 intervention humaine.
@@ -87,13 +92,17 @@ externes #footnote[
 limiter encore la surface d'attaque.
 
 == Cadre du travail et méthodologie
-// TODO: Parler du fait que c'est une idée/problématique personnelle
+== Cadre du travail et méthodologie
 Ce travail s'inscrit dans l'obtention du titre de Bachelor of Science en
 Informatique et systèmes de communication, orientation Informatique logicielle,
 à la Haute école du paysage, d'ingénierie et d'architecture de Genève~(HEPIA).
-Réalisé à plein temps du 11~mai au 19~août~2026, il reflète l'état des
-connaissances et des technologies à cette période. Il a été précédé d'un projet
-de semestre~@bib-semester-projet qui a permis une analyse détaillée de la
+La problématique abordée est issue d'une motivation personnelle, née de
+l'expérience dans l'administration de petites infrastructures, où le maintien
+manuel de systèmes hétérogènes et l'absence de correction automatique des
+dérives de configuration ont motivé la recherche d'une solution plus robuste.
+Réalisé à plein temps du 11 mai au 19 août 2026, il reflète l'état des
+connaissances et des technologies à cette période. Il a été précédé du projet de
+semestre~@bib-semester-projet qui a permis une analyse détaillée de la
 problématique et l'établissement des premiers éléments conceptuels et
 techniques. L'ensemble du code source produit est disponible sur le dépôt Git
 institutionnel à l'adresse suivante:
