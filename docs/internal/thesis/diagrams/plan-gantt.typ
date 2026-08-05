@@ -2,17 +2,33 @@
 #import "../../packages.typ": *
 #import packages.timeliney as timeliney
 
-#let cell(from: (0, 1), to: (1, 1), color: rgb("159fec"), init: none, name) = {
+#let cell(
+    from: (0, 1),
+    to: (1, 1),
+    color: rgb("159fec"),
+    init: none,
+    name,
+    ..more,
+) = {
     let ln = (
         from: (from.at(0) - 1) * 5 + from.at(1) - 1,
         to: (to.at(0) - 1) * 5 + to.at(1),
         style: (stroke: 8pt + color),
     )
 
+    let more = more
+        .pos()
+        .map(x => (
+            from: (x.from.at(0) - 1) * 5 + x.from.at(1) - 1,
+            to: (x.to.at(0) - 1) * 5 + x.to.at(1),
+            style: (stroke: 8pt + color),
+        ))
+
     if init == none {
         timeliney.task(
             align(left, name),
             ln,
+            ..more,
         )
     } else {
         let from = init.from
@@ -25,20 +41,21 @@
                 style: (stroke: 8pt + rgb("159fec")),
             ),
             ln,
+            ..more,
         )
     }
 }
 
-#let in-time(from: (0, 1), to: (1, 1), init: none, name) = {
-    cell(from: from, to: to, color: rgb("34a853"), init: init, name)
+#let in-time(from: (0, 1), to: (1, 1), init: none, name, ..more) = {
+    cell(from: from, to: to, color: rgb("34a853"), init: init, name, ..more)
 }
 
-#let not-done(from: (0, 1), to: (1, 1), init: none, name) = {
-    cell(from: from, to: to, color: rgb("ea4335"), init: init, name)
+#let not-done(from: (0, 1), to: (1, 1), init: none, name, ..more) = {
+    cell(from: from, to: to, color: rgb("ea4335"), init: init, name, ..more)
 }
 
-#let longer(from: (0, 1), to: (1, 1), init: none, name) = {
-    cell(from: from, to: to, color: rgb("fbbc04"), init: init, name)
+#let longer(from: (0, 1), to: (1, 1), init: none, name, ..more) = {
+    cell(from: from, to: to, color: rgb("fbbc04"), init: init, name, ..more)
 }
 
 #figure(
@@ -142,13 +159,17 @@
                     to: (9, 4),
                 )
                 not-done("Logging et monitorinog", from: (9, 5), to: (9, 5))
-                in-time(
+                longer(
                     "Test et validation",
                     from: (10, 4),
                     to: (11, 3),
                     init: (
                         from: (10, 1),
                         to: (10, 3),
+                    ),
+                    (
+                        from: (8, 2),
+                        to: (9, 2),
                     ),
                 )
                 longer(
