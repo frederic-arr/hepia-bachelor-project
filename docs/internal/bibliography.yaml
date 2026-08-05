@@ -1711,3 +1711,19 @@ bib-gitops:
   url:
     value: https://www.redhat.com/fr/topics/devops/what-is-gitops
     date: 2026-08-02
+
+bib-curl:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-alpine:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
