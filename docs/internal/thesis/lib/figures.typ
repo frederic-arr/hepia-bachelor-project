@@ -36,11 +36,6 @@
 
     state("use-short-caption", false).update(_ => true)
     outline(
-        title: [Table des annexes],
-        target: figure.where(kind: raw),
-    )
-
-    outline(
         title: [Table des illustrations],
         target: figure.where(kind: image),
     )

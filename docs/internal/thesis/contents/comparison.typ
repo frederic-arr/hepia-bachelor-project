@@ -59,6 +59,9 @@ disponible sous la licence MIT.
     - Parler du workflow et du fichier de configuration
 ]
 
+// Nixos 200MiB de RAM boot en 13s MAIS c'est des conditions très optimales etc pour le temps de boot
+// Aussi dedans le temps de build n'est pas compris, et il est considérable pour télécharger tous les packets et build l'image NixOS (puisque c'est nous qui devons le faire)
+
 == Talos Linux
 
 Talos Linux @bib-talos a été conçu dès le départ comme un système d'exploitation
@@ -124,10 +127,9 @@ licence MPL-2.0.
       [Licence],                         o[N/A],         o[MIT],        o[MPL-2.0],
       table.hline(stroke: 2pt + black),
       [Automatisation],                  y(),            n(),           y(),
-      [Mémoire requise],                 y[160 MiB],     w[?],          n[1.3 GiB],
-      [Mémoire disponible],              y[211 MiB],     w[?],          n[1.3 GiB],
+      [Mémoire requise],                 y[160 MiB],     w[200MiB],     n[1.3 GiB],
       [Rapidité d'installation],         y[36s],         [4mn],         [98s],
-      [Rapidité de démarrage],           y[5.6s],        [1mn],         [98s],
+      [Rapidité de démarrage],           y[5.6s],        [13s],         [98s],
       [Simplicité],                      y(),            n(),           n(),
     )
   )

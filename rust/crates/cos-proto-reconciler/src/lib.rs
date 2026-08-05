@@ -82,26 +82,26 @@ pub enum StatusError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Resource<T, U, V> {
+pub struct Resource<Spec, DerivedSpec, State> {
     pub id: Identity,
     pub phase: Phase,
     pub status: Status,
-    pub spec: T,
-    pub derived_spec: U,
-    pub state: Option<V>,
+    pub spec: Spec,
+    pub derived_spec: DerivedSpec,
+    pub state: Option<State>,
     pub children: Vec<TerminalResource<Value, Value, Value>>,
     pub dependencies: Vec<TerminalResource<Value, Value, Value>>,
     pub dependents: Vec<TerminalResource<Value, Value, Value>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TerminalResource<T, U, V> {
+pub struct TerminalResource<Spec, DerivedSpec, State> {
     pub id: Identity,
     pub phase: Phase,
     pub status: Status,
-    pub spec: T,
-    pub derived_spec: U,
-    pub state: Option<V>,
+    pub spec: Spec,
+    pub derived_spec: DerivedSpec,
+    pub state: Option<State>,
     pub children: HashSet<Identity>,
     pub dependencies: HashSet<Identity>,
     pub dependents: HashSet<Identity>,

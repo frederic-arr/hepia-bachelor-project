@@ -12,3 +12,4 @@ result
 *.img
 .config/.cspell.json
 *.iso
+*.qcow2

@@ -2,15 +2,31 @@
 
 = Implémentation <ch:implementation>
 
-// TODO: AMORCE UNIQUEMENT UNE FOIS TOUT TOUT RéDIGER, NE PAS FAIRE MAINTENANT
-
-// TODO: A faire plus tard
+// TODO: Amorce
 
 == Composants
 === Choix des logiciels tiers
-// TODO: Limine et Podman
-=== Choix du language
-// TODO
+Limine @bib-limine est retenu comme bootloader et Podman @bib-podman-repo comme
+runtime de conteneurs, ces deux choix ayant été établis lors du travail de
+semestre. Podman est retenu en raison de son bon fonctionnement en mode rootless
+ainsi que de sa légèreté, supérieure à celle des solutions alternatives
+considérées. Limine est de même retenu pour sa légèreté, tout en offrant un
+ensemble de fonctionnalités suffisamment complet pour les besoins du système.
+
+// TODO: Parler de Clevis pour le chiffrement
+
+=== Choix du langage
+Rust est choisi comme langage principal pour l'implémentation du projet. Ce
+choix repose sur la nécessité de disposer d'un langage permettant d'effectuer
+aisément des appels système, contrainte partagée par le C, le C++ et le Go,
+langages également considérés. Le choix final se porte sur Rust en raison de la
+maîtrise préalable de ce langage, acquise avant le début du projet. Le langage
+Go est par ailleurs utilisé pour la partie du projet reposant sur Terraform, cet
+usage étant imposé par une contrainte propre à cet outil plutôt que par un choix
+indépendant. Un rappel sur les concepts essentiels de Rust utilisés dans le
+reste de ce chapitre est présenté dans l'#appendix-num-ref(
+    <appendix:rust-primer>,
+).
 
 === Choix des bibliothèques
 Le nombre de bibliothèques externes est volontairement restreint, dans le but de
@@ -44,7 +60,10 @@ déployé simultanément et implémenté en Rust: le recours systématique à de
 champs optionnels y complexifierait inutilement le code. À la place, chaque
 message ne contient ainsi qu'un unique champ nommé `raw`, correspondant à la
 structure Rust concernée, sérialisée en JSON, plutôt que de reposer sur la
-structure de message générée par gRPC. // TODO: Dire que ça serait mieux de juste pas utilsier gRPC mais ça permet d'avoir quelques features utile comme les retry ou les connexion lazy
+structure de message générée par gRPC.
+
+// TODO?: Dire que ça serait mieux de juste pas utiliser gRPC mais ça permet
+// d'avoir quelques features utile comme les retry ou les connexion lazy?
 
 Deux services sont définis. Le service `StateService` permet à un contrôleur de
 communiquer vers l'orchestrateur, notamment afin de signaler la nécessité d'une
@@ -59,7 +78,13 @@ réconciliation en dehors du cycle normal:
     }
     ```,
 )
-// TODO: Commenter
+
+Ce service n'expose qu'une unique procédure, `ReconcileNow`, dont l'appel
+notifie l'orchestrateur qu'une ressource donnée doit être réconciliée
+immédiatement, sans attendre la prochaine échéance de la ressource. Cette
+procédure est notamment invoquée par un contrôleur lorsqu'un changement d'état
+externe à la spécification, tel qu'un événement survenant sur la ressource qu'il
+gère, rend l'état courant de cette ressource obsolète.
 
 Le service `ReconcilerService`, implémenté cette fois par chaque contrôleur et
 appelé par l'orchestrateur, permet à ce dernier de déclencher la validation ou
@@ -75,16 +100,73 @@ la réconciliation d'une ressource:
     }
     ```,
 )
-// TODO: Commenter
+
+Ce service expose deux procédures distinctes, correspondant aux deux opérations
+décrites dans les #chapters-full-ref(
+    <ch:implementation:reconciliation>,
+    <ch:implementation:validation>,
+). La procédure `Validate` est invoquée par l'orchestrateur préalablement à
+toute création ou mise à jour d'une spécification, afin d'obtenir du contrôleur
+concerné la confirmation de sa validité ainsi que, le cas échéant, sa
+spécification dérivée. La procédure `Reconcile` est quant à elle invoquée afin
+de déclencher la réconciliation de la ressource par le contrôleur qui en a la
+charge.
 
 === Sécurité et isolation
-// TODO: Parler capabilities et namespacing
+Le travail de semestre préconisait l'isolation de chaque composant au sein de
+namespace Linux distincts. Cette approche s'avère toutefois peu praticable dans
+le cadre de l'implémentation retenue: les contrôleurs doivent notamment partager
+un même namespace réseau ainsi qu'un même système de fichiers avec le reste du
+système. En l'absence d'une isolation complète par namespace, la réduction de la
+surface d'attaque de chaque composant repose sur la restriction de ses
+privilèges au moyen des capabilities Linux @bib-man7-capns-caps. L'ensemble des
+capabilities est retiré par défaut de chaque composant; seules celles
+strictement nécessaires à l'exécution d'un contrôleur donné, telles que
+`CAP_NET_ADMIN` pour le contrôleur réseau, lui sont accordées. Ces capabilities
+ne sont en outre activées que durant l'exécution d'une réconciliation, et non de
+manière permanente durant l'ensemble du cycle de vie du composant, ce qui réduit
+la durée durant laquelle ces permissions sont exposées.
 
 == Orchestrateur
+La mise à jour groupée d'un ensemble de ressources, invoquée par l'API lors de
+la réception d'une nouvelle configuration, est prise en charge par la procédure
+`bulk_upsert`. Cette procédure calcule d'abord, par comparaison entre l'ensemble
+des ressources précédemment connues et l'ensemble des ressources nouvellement
+soumises, trois catégories disjointes: les ressources ajoutées, absentes de
+l'état précédent; les ressources supprimées, absentes de la nouvelle
+configuration; et les ressources modifiées, présentes dans les deux ensembles
+mais dont la spécification diffère.
+
+Les ressources ajoutées et modifiées sont ensuite validées, conformément au
+mécanisme de validation décrit dans le #chapter-full-ref(
+    <ch:implementation:validation>,
+), au moyen d'appels concurrents effectués par des tâches asynchrones regroupées
+au sein de deux `JoinSet` distincts, l'un pour les ajouts, l'autre pour les
+modifications. Les ressources de schéma `api` et `install` constituent un cas
+particulier: n'étant pas prises en charge par un contrôleur externe, leur
+validation est court-circuitée et retourne directement une réponse vide, sans
+dépendances ni enfants. L'ensemble de ces validations est attendu conjointement
+au moyen de `tokio::join!`, avant que les ressources supprimées ne soient
+marquées comme en cours de suppression, et que les ressources ajoutées ou
+modifiées ne soient insérées ou mises à jour dans l'état interne du système,
+avec un statut initialement inconnu (`Status::Unknown`).
+
+La procédure `schedule_available` détermine enfin, parmi les ressources ainsi
+ajoutées ou modifiées, celles dont l'ensemble des dépendances est satisfait: une
+dépendance est considérée satisfaite si la ressource correspondante est
+elle-même dans un état `Done` ou `Ready`, ou si cette dépendance désigne une
+ressource partagée (`Identity::Shared`) non encore présente dans l'état du
+système, ce dernier cas correspondant à une dépendance implicitement satisfaite
+par une ressource externe au périmètre géré. Seules les ressources dont
+l'ensemble des dépendances est ainsi satisfait sont effectivement planifiées
+pour réconciliation immédiate au sein de la file d'attente, les autres demeurant
+en attente jusqu'à ce que leurs dépendances respectives atteignent un état
+compatible.
+
 L'orchestrateur, implémenté dans #repo("rust/cmd/state-manager"), assure
-notamment la planification des réconciliations au moyen d'une file d'attente.
-Comme indiqué dans le #full-ref(<ch:system-design:scheduling>), la boucle de
-réconciliation dépend d'une file d'attente /* TODO: Formulation lourde */, représentée ici par la structure
+notamment la planification des réconciliations au moyen d'une structure de file
+d'attente. Comme indiqué dans le #full-ref(<ch:system-design:scheduling>), la
+boucle de réconciliation dépend de cette structure, représentée ici par
 `Queue<K>`. Cette file est implémentée de manière générique: elle permet de
 planifier n'importe quel élément de type `K` à un moment précis. Dans le cadre
 du présent système, `K` représente l'identifiant unique d'une ressource. Son
@@ -102,7 +184,6 @@ illustrée dans le #code-num-ref(<code-queue-inner>):
     }
     ```,
 )
-
 
 Les ressources ainsi planifiées sont stockées dans un dictionnaire basé sur un
 B#{ sym.hyph.nobreak }arbre (`BTreeMap`) @bib-rust-std-btreemap, indexé par
@@ -183,9 +264,9 @@ L'accès à `QueueInner` est protégé par un Mutex @bib-rust-std-mutex, chaque
 opération exposée par `Queue` nécessitant de toute façon un accès exclusif à la
 structure sous-jacente.
 
-// TODO: Plus de détails?
+// TODO?: Plus de détails
 
-== Réconciliation
+=== Réconciliation <ch:implementation:reconciliation>
 La réconciliation est une tâche de fond qui récupère, en boucle, l'ensemble des
 identifiants arrivés à échéance, puis transmet une requête au contrôleur
 responsable afin de réconcilier chaque ressource. Cette requête reprend la
@@ -196,7 +277,7 @@ structure de ressource complète, décrite dans le #code-num-ref(
 #figure(
     label: <code-resource-def>,
     caption: [Structure d'une ressource transmise lors de la réconciliation],
-    source: link("cmd/state-manager/src/..."), // TODO: Verify link
+    source: repo("rust/crates/cos-proto-reconciler/src/lib.rs"),
     ```rust
     pub struct Resource<Spec, DerivedSpec, State> {
         pub id: Identity,
@@ -221,7 +302,7 @@ identifiants, ce qui évite la récursion de la structure, comme illustré dans 
 #figure(
     label: <code-resource-term>,
     caption: [Structure d'une ressource terminale],
-    source: link("cmd/state-manager/src/..."), // TODO: Verify link
+    source: repo("rust/crates/cos-proto-reconciler/src/lib.rs"),
     ```rust
     pub struct TerminalResource<Spec, DerivedSpec, State> {
         pub id: Identity,
@@ -261,7 +342,7 @@ enfants, et l'ensemble des dépendances, dont la structure est décrite dans le
 #figure(
     label: <code-response-def>,
     caption: [Structure de réponse d'une réconciliation],
-    source: link("cmd/state-manager/src/..."), // TODO: Verify link
+    source: repo("rust/crates/cos-proto-reconciler/src/lib.rs"),
     ```rust
     pub struct ResourceResponse<State> {
         pub status: Status,
@@ -272,10 +353,16 @@ enfants, et l'ensemble des dépendances, dont la structure est décrite dans le
     ```,
 )
 
-// TODO: Commenter un peu plus le code?
-
-Seul l'identifiant est transmis pour les dépendances, tandis que l'identifiant
-et la spécification sont transmis pour les enfants.
+Le champ `status` indique le résultat de la réconciliation, tel qu'un succès, un
+échec ou un état intermédiaire nécessitant une nouvelle tentative. Le champ
+`state`, optionnel, correspond au nouvel état de la ressource lorsque la
+réconciliation en produit un; son absence signifie que l'état de la ressource
+reste inchangé. Le champ `children` contient l'ensemble des ressources enfants
+créées ou maintenues par le contrôleur à l'issue de cette réconciliation. Le
+champ `dependencies` contient quant à lui l'ensemble des ressources dont dépend
+la ressource réconciliée. Seul l'identifiant est transmis pour les dépendances,
+tandis que l'identifiant et la spécification sont transmis pour les enfants, ces
+derniers pouvant être nouvellement créés et donc inconnus de l'orchestrateur.
 
 Deux catégories d'erreur sont distinguées lors de la réconciliation: l'erreur de
 protocole et l'erreur de logique. Une erreur de protocole survient lorsque les
@@ -291,7 +378,7 @@ ressource un status d'erreur qualifié de "transport"; dans tous les autres cas,
 le status attribué à la ressource correspond à celui fourni par le contrôleur
 dans sa réponse.
 
-== Validation d'une ressource
+=== Validation d'une ressource <ch:implementation:validation>
 La validation d'une ressource s'effectue à chaque création ou mise à jour d'une
 spécification. Lorsque plusieurs ressources sont ajoutées ou modifiées
 simultanément, l'ensemble de ces ressources est validé en parallèle. Une erreur
@@ -323,19 +410,79 @@ la logique de réconciliation en dispensant celle-ci de toute vérification de
 présence des champs dérivés.
 
 == Contrôleurs
-// TODO: Contrôleur de manière générale (observe, diff, update)
+Chaque contrôleur implémente le service gRPC `ReconcilerService` décrit
+précédemment, en particulier les procédures `validate` et `reconcile`, selon une
+approche commun. La réception d'une requête entraîne d'abord la désérialisation
+de la ressource générique reçue, puis un branchement est effectué sur le schéma
+de cette ressource, comme illustré dans le #code-num-ref(<code-dispatch>) pour
+la procédure `reconcile` du contrôleur réseau:
+
+#figure(
+    label: <code-dispatch>,
+    caption: [Aiguillage sur le schéma d'une ressource],
+    source: link("rust/cmd/network-controller/src/main.rs"),
+    ```rust
+    async fn reconcile(
+        &self,
+        request: Request<ReconcileRequest>,
+    ) -> Result<Response<ReconcileResponse>, Status> {
+        let req = request.into_inner();
+        let resource: Resource<Value, Value, Value> =
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
+
+        match resource.id.key().schema.as_ref() {
+            "network:link" => {
+                reconcile!(resource, LinkResource, {
+                    let (conn, handle, _) = new_connection()?;
+                    tokio::spawn(conn);
+                    LinkReconciler::new_with(handle)
+                });
+            }
+            // ...
+            _ => return Err(Status::not_found("schema does not exist")),
+        }
+    }
+    ```,
+)
+
+Chaque branche désérialise la ressource générique dans la structure typée
+correspondant au schéma identifié, instancie le sous-contrôleur (`Reconciler`)
+responsable de ce type de ressource avec les paramètres adéquats, puis lui
+délègue le traitement de la requête. La macro `reconcile!` permet de masquer une
+grande partie de la logique liée à la désérialisation de la ressource.
+
+La logique de réconciliation propre à chaque type de ressource suit un
+déroulement identique, structuré en quatre étapes: la spécification de la
+ressource est d'abord validée; l'état physique courant de la ressource est
+ensuite récupéré (`refresh`); un plan d'action est calculé par comparaison entre
+cet état et la spécification (`plan`); ce plan est enfin exécuté (`apply`),
+avant qu'un second `refresh` ne détermine l'état résultant réel de la ressource.
+Chacune de ces étapes est susceptible d'échouer indépendamment des autres; un
+échec à n'importe quelle étape interrompt immédiatement la réconciliation et
+retourne une réponse dont le champ `status` est positionné à `Error`, tout en
+conservant, autant que possible, le dernier état connu de la ressource.
+
+Le statut final d'une réconciliation ayant abouti dépend du plan calculé lors de
+la seconde évaluation et de la phase courante de la ressource: l'absence de
+toute action à entreprendre (`NoOp`) alors que la ressource est en cours de
+suppression aboutit au statut `Deleted`; en dehors de tout contexte de
+suppression, l'absence d'action correspond au statut `Ready`. À l'inverse, la
+persistance d'un plan non vide à l'issue de son exécution, indique que malgrès
+les actions corrective entreprise, l'état réel de la ressource ne correspond
+toujours pas à la spécification attendue et abouti à un status `NotReady`.
 
 === Contrôleur système
 Le contrôleur système, implémenté dans #repo("rust/cmd/system-controller"),
 prend actuellement en charge la seule gestion du contenu du répertoire `/etc/`
-#footnote[Par exemple les certificats des autorités de certification racine tel
-    que Cloudflare, SwissSign, etc.], à travers la ressource
-`system:etc`#footnote[
+#footnote[
+    Par exemple les certificats des autorités de certification racine tel que
+    Cloudflare, SwissSign, etc.
+], à travers la ressource `system:etc` #footnote[
     Implémentée dans #repo(
         "rust/cmd/system-controller/src/resources/etc-file.rs",
     ).
 ].
-
 
 L'écriture d'un fichier au sein de `/etc/` est effectuée de manière atomique.
 Lorsque la spécification de la ressource change, un nouveau fichier temporaire
@@ -379,26 +526,88 @@ La ressource `link` #footnote[
 @bib-linux-rtnetlink, via la bibliothèque Rust rtnetlink @bib-rtnetlink. L'API
 exposée par cette bibliothèque ne retourne pas directement une structure
 représentant un lien réseau, mais un message contenant une liste d'attributs
-hétérogènes. Un pattern "builder" est employé pour convertir cette liste en une
-structure exploitable par le reste du contrôleur: chaque attribut reconnu est
-utilisé pour renseigner un champ correspondant du constructeur, avant que
-celui-ci ne produise la structure finale, comme illustré dans le #code-num-ref(
-    <code-link-builder>,
-):
+hétérogènes, dont le sous-ensemble effectivement présent varie selon le lien
+concerné, comme illustré dans le #code-num-ref(<code-link-attr>):
 
-// TODO: C'est carrément pas clair pourquoi on fait ça: le truc c'est qu'en Rust on doti forcément instantier toute la struct. Si on veut pas tout isntantier, alors il faut rendre certains champ optionel. C'est pas ce qu'on veut non plus. Du coup le pattern builder crée une copie de la struct avec tous les champ en optionel, puis permet a la fin de convertir dans al struct final. C'est facilité par une macro.
+#figure(
+    label: <code-link-attr>,
+    caption: [Extrait d'une liste d'attributs retournée pour un lien réseau],
+    source: link("rust/cmd/network-controller/src/resources/link.rs"),
+    ```rust
+    vec![
+        LinkAttribute::Name(/* ... */),
+        LinkAttribute::OperState(/* ... */),
+        LinkAttribute::Index(/* ... */),
+        // many more...
+    ]
+    ```,
+)
+
+Or, en Rust, l'instanciation d'une structure requiert de fournir une valeur pour
+chacun de ses champs, ce qui empêche de construire directement la structure
+finale, illustrée dans le #code-num-ref(<code-link-base-strict>), à partir d'une
+liste d'attributs incomplète:
+
+#figure(
+    label: <code-link-base-strict>,
+    caption: [Structure finale représentant l'état d'un lien réseau],
+    source: link("rust/cmd/network-controller/src/resources/link.rs"),
+    ```rust
+    #[derive(Builder /*, ... */)]
+    #[builder(pattern = "mutable", vis = "pub(crate)")]
+    pub struct LinkState {
+        pub index: u32,
+        pub running: bool,
+        pub admin_up: bool,
+        pub oper_state: LinkOperState,
+        // ...
+    }
+    ```,
+)
+
+Rendre l'ensemble des champs de cette structure optionnels ne constitue pas une
+solution satisfaisante, la plupart de ces champs étant en réalité obligatoires
+dans l'état final d'un lien réseau. Un pattern "builder" est employé pour
+résoudre cette contradiction: la macro `Builder`, appliquée à `LinkState`,
+génère automatiquement une structure intermédiaire, `LinkStateBuilder`,
+illustrée dans le #code-num-ref(<code-link-builder-strict>), dans laquelle
+chaque champ est rendu optionnel:
+
+#figure(
+    label: <code-link-builder-strict>,
+    caption: [Structure intermédiaire générée par la macro `Builder`],
+    source: link("rust/cmd/network-controller/src/resources/link.rs"),
+    ```rust
+    pub struct LinkStateBuilder {
+        pub index: Option<u32>,
+        pub running: Option<bool>,
+        pub admin_up: Option<bool>,
+        pub oper_state: Option<LinkOperState>,
+        // ...
+    }
+    ```,
+)
+
+Cette structure intermédiaire évite au contrôleur de devoir gérer manuellement,
+au moyen d'une boucle et de variables intermédiaires dédiées, l'accumulation
+progressive des attributs reçus avant de pouvoir construire la structure finale.
+Chaque attribut reconnu dans le message netlink renseigne directement le champ
+correspondant de cette structure intermédiaire, comme illustré dans le
+#code-num-ref(<code-link-builder>):
+
 #figure(
     label: <code-link-builder>,
     caption: [Extrait du constructeur de la ressource `link`],
     source: link("rust/cmd/network-controller/src/resources/link.rs"),
     ```rust
-    fn try_add_from_attributes(
-        &mut self,
-        attributes: &[packet_route::link::LinkAttribute],
+    fn build_from_attrs(
+        &mut self, // self: LinkStateBuilder
+        attrs: &[LinkAttribute]
     ) -> Result<()> {
         // ...
 
-        for attr in attributes {
+
+        for attr in attrs {
             match attr {
                 LinkAttribute::Mtu(mtu) => { self.mtu(*mtu); }
                 LinkAttribute::OperState(s) => { self.oper_state((*s).into()); }
@@ -407,14 +616,18 @@ celui-ci ne produise la structure finale, comme illustré dans le #code-num-ref(
             }
         }
 
+
         // ...
     }
     ```,
 )
-// TODO: Meilleur exemple
-// TODO: Commenter
 
-La ressource `network:route` présente une particularité: avec la libraire
+Une fois l'ensemble des attributs du message traités, la structure intermédiaire
+`LinkStateBuilder` est convertie vers la structure finale `LinkState`, cette
+conversion échouant si l'un des champs obligatoires de `LinkState` demeure
+`None` à l'issue du traitement.
+
+La ressource `network:route` présente une particularité: avec la librairie
 rtnetlink, la récupération d'une route unique par son identifiant ne retourne
 pas l'entrée correspondante, mais tente de résoudre la route associée à cet
 identifiant, ce qui ne correspond pas au comportement recherché. Le contrôleur
@@ -428,8 +641,7 @@ par des échéances propres au serveur DHCP plutôt que par le cycle de
 réconciliation du contrôleur, la première réconciliation de cette ressource se
 limite à démarrer une tâche d'arrière-plan chargée de piloter le client DHCP.
 Lorsque cette tâche reçoit une nouvelle configuration du serveur, elle
-l'enregistre puis notifie l'orchestrateur, conformément au mécanisme de réaction
-aux événements externes décrit #todo-ref. L'orchestrateur replanifie alors la
+l'enregistre puis notifie l'orchestrateur. L'orchestrateur replanifie alors la
 réconciliation de la ressource, à l'occasion de laquelle le contrôleur récupère
 la configuration ainsi obtenue et crée les sous-ressources `network:address` et
 `network:route` correspondantes.
@@ -442,12 +654,28 @@ Bollard @bib-bollard pour communiquer avec celui-ci. Lors de la création d'un
 runtime, un port lui est attribué de manière arbitraire, sur lequel Podman
 expose son API, utilisée ensuite par le contrôleur pour l'ensemble des
 opérations relatives aux ressources du domaine de la conteneurisation.
-// TODO: Plus de détails?
+// TODO?: Plus de détails
 
 == API et clients d'administration
-// TODO: Parler de l'API
-// TODO: Parler de la CLI
-// TODO: Parler de Terraform
+L'API constitue l'unique surface d'administration du système. Chaque procédure
+exposée par le service `ApiService` est précédée d'une vérification
+d'authentification (`auth_or_fail`), qui interrompt la requête avant tout
+traitement en cas d'échec.
+
+La procédure `push_config` constitue le point d'entrée principal de l'API: elle
+reçoit l'ensemble des ressources composant la configuration déclarative du
+système tel que présenté dans le #chapter-full-ref(<ch:functional-overview>).
+Cette procédure identifie, parmi ces ressources, celle de schéma `api`, dont la
+présence est obligatoire, ainsi qu'une éventuelle ressource de schéma `install`.
+La configuration de l'API elle-même est mise à jour, puis l'ensemble des
+ressources soumises remplace, par une opération de mise à jour groupée
+(`bulk_upsert`), les ressources précédemment connues du système; les ressources
+absentes de la nouvelle configuration sont ainsi implicitement supprimées.
+Lorsque le système se trouve en mode maintenance et qu'une ressource `install`
+est présente, cette procédure déclenche en outre, une fois la mise à jour des
+ressources effectuée, l'installation du système sur le disque, suivie d'un
+redémarrage automatique après un court délai, processus décrit plus en détail
+dan le #chapter-full-ref(<ch:implementation:install>).
 
 == Système de fichier racine <ch:implementation:rootfs>
 Le système repose sur un fonctionnement presque entièrement immuable. Le système
@@ -490,54 +718,66 @@ main au superviseur, implémenté dans #repo("rust/cmd/supervisor"), responsable
 de monter le reste du système de fichiers. Cette répartition des rôles entre
 `/init` et le superviseur s'explique par le fait que l'initrd, contenant
 l'`/init`, est chargé en mémoire et doit à ce titre demeurer aussi léger que
-possible. Le superviseur construit l'arborescence de fichiers standard de Linux
-telle que spécifiée par le Filesystem Hierarchy Standard @bib-linux-fhs, puis
-monte les différents volumes additionnels spécifiés dans les paramètres de
-démarrage, tels que `/config/` via `cos.configdisk` ou `/var/` via
-`cos.datadisk`. Il met ensuite en place le réseau local de l'hôte, l'interface
-`localhost` n'étant pas activée par défaut sous Linux; cette interface est
-essentielle au fonctionnement du système, les différents contrôleurs
-communiquant entre eux via une adresse locale. Le superviseur démarre alors ces
-contrôleurs et attend qu'ils soient prêts avant de démarrer l'orchestrateur. À
-partir de ce point, le superviseur n'a plus d'autre rôle que d'attendre
-l'extinction du système.
+possible. Le superviseur suit ensuite les étapes illustrée dans la
+#figure-num-ref(<sysinit>):
+
+#include "../diagrams/sysinit.typ"
+
+Le superviseur construit l'arborescence de fichiers standard de Linux telle que
+spécifiée par le Filesystem Hierarchy Standard @bib-linux-fhs, puis monte les
+différents volumes additionnels spécifiés dans les paramètres de démarrage, tels
+que `/config/` via `cos.configdisk` ou `/var/` via `cos.datadisk`. Il met
+ensuite en place le réseau local de l'hôte, l'interface `localhost` n'étant pas
+activée par défaut sous Linux; cette interface est essentielle au fonctionnement
+du système, les différents contrôleurs communiquant entre eux via une adresse
+locale. Le superviseur démarre alors ces contrôleurs et attend qu'ils soient
+prêts avant de démarrer l'orchestrateur. À partir de ce point, le superviseur
+n'a plus d'autre rôle que d'attendre l'extinction du système.
 
 Si l'une de ces étapes échoue, pour quelque raison que ce soit, le programme
 s'interrompt et déclenche un "kernel panic". À ce stade du cycle de vie du
 système, les programmes permettant une gestion déclarative ne sont pas encore
 chargé et il n'y a donc aucune autre possibilité pour joindre le système.
 
-// TODO: introduire
+Le #figure-num-ref(<img:kernel-panic>) illustre un tel comportement, provoqué
+par l'indisponibilité du disque de configuration attendu par le système:
+
 #figure(
     label: <img:kernel-panic>,
     caption: [Panique du noyau lorsqu'un disque n'est pas disponible],
     note: [Le noyau tente de monter le disque de configuration mais celui-ci
-        n'est pas disponible alors qu'il devrait l'être. Le programme décide de
-        s'interrompre afin d'éviter tout problème.],
+        n'est pas disponible alors qu'il devrait l'être.],
     source: made-by-self,
     image("../../lib/assets/kernel-panic.png"),
 )
-// TODO: Commenter
 
-// TODO: introduire
-#include "../diagrams/sysinit.typ"
-// TODO: Commenter
+En l'absence du disque de configuration, le système ne dispose d'aucune
+spécification à réconcilier et son exécution ne présenterait aucune utilité,
+tout en risquant d'exposer le système à des risques inutiles.
 
-// TODO: introduire
+La #figure-num-ref(<procstart>) complète illustre l'arbre des processus
+effectivement démarrés par le système, ainsi que les relations de filiation
+entre ceux-ci:
+
 #include "../diagrams/procstart.typ"
-// TODO: Commenter
 
-== Installation et chiffrement
+Le processus `/init` démarre le superviseur, responsable de lancer les autre
+processus, en commençant par les contrôleur puis l'orchestrateur. Les différents
+contrôleurs peuvent, à leur tour, démarrer divers processus tel qu'un runtime de
+conteneur ou un client DHCP.
+
+== Installation et chiffrement <ch:implementation:install>
 // TODO: Parler schéma disque installation
 // TODO: Parler chiffrement
 
 == Système de build
-// TODO: Annexe explication de Nix
 L'environnement de build repose sur l'outil Nix. Une distinction est requise
 entre trois usages du terme "Nix": Nix en tant que système de build
 @bib-nix-build, Nix en tant que gestionnaire de paquets @bib-nixpkgs, et Nix en
 tant que distribution Linux (NixOS) @bib-nixos. Seul le premier usage, complété
-partiellement par le second, est utilisé dans le cadre de ce projet.
+partiellement par le second, est utilisé dans le cadre de ce projet. Les
+concepts essentiels de Nix nécessaires à la compréhension de cette section sont
+présentés à l'#appendix-num-ref(<appendix:nix-primer>).
 
 Le recours à Nix vise à fournir un environnement stable entre la machine de
 développement locale et l'environnement d'intégration continue. Nix permet non
@@ -585,17 +825,13 @@ références distinctes. La différence par rapport au `defconfig` est exposée 
 `config.merged`, la différence par rapport à la configuration personnalisée sous
 `config.diff`, et la configuration complète sous `config.full`.
 
-// TODO: Illustration du menuconfig
-
 == Génération de l'image du système <ch:implementation:system-image>
 L'image finale du système, qu'il s'agisse d'une image ISO ou d'une image disque
 brute, est assemblée entièrement au moyen de Nix. Chaque crate Rust du projet
-correspond à un output Nix; l'ensemble de ces outputs est regroupé dans un
+correspond à un output Nix; l'ensemble de ces outputs est regroupé dans un autre
 output nommé `rootfsEnv`, lequel intègre également des binaires additionnels,
 tel que Podman. Cet output génère un dossier regroupant l'ensemble de ces
-éléments au sein du `/nix/store`, ce dernier constituant le mécanisme par lequel
-Nix stocke tout résultat de build, indépendamment de sa nature, sous un chemin
-adressé par le contenu de ce résultat. // TODO: Formulation
+éléments au sein du `/nix/store`.
 
 Un output `rootfs` reprend cet environnement et y ajoute les liens symboliques
 nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc. contiennent des
@@ -709,14 +945,7 @@ pipeline. Une exception générale est toutefois appliquée au code de test, pou
 lequel le recours à `unwrap` est autorisé, cette approche constituant la méthode
 recommandée pour exprimer une assertion dans ce contexte.
 
-L'exécution répétée de commandes au sein de l'environnement Nix s'avérant peu
-pratique lors du développement courant, un outil Justfile @bib-justfile,
-alternative au Makefile @bib-makefile, est mis en place. La distinction
-fondamentale entre développement et intégration continue réside dans le mode
-d'invocation de Nix: le développement s'effectue à l'intérieur d'un
-environnement interactif ouvert via `nix develop`, dans lequel une commande
-telle que `just check` peut être directement invoquée pour exécuter le linting.
-La pipeline d'intégration continue, à l'inverse, n'ouvre pas un tel
-environnement interactif; chaque commande y est invoquée depuis l'extérieur, via
-`nix develop -c "just check"`, ce qui évite la reconstruction de l'environnement
-à chaque étape tout en conservant sa reproductibilité. // TODO: Pas clair
+Afin de simplifier l'invocation des commandes fréquemment utilisées, telles que
+le linting, Just @bib-justfile, alternative au Makefile @bib-makefile, est mis
+en place afin de définir des alias aux commandes fréquemment utilisées, telles
+que le linting ou l'exécution des tests.

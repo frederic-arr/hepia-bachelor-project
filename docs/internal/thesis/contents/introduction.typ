@@ -92,7 +92,6 @@ externes #footnote[
 limiter encore la surface d'attaque.
 
 == Cadre du travail et méthodologie
-== Cadre du travail et méthodologie
 Ce travail s'inscrit dans l'obtention du titre de Bachelor of Science en
 Informatique et systèmes de communication, orientation Informatique logicielle,
 à la Haute école du paysage, d'ingénierie et d'architecture de Genève~(HEPIA).

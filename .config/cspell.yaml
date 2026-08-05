@@ -29,6 +29,7 @@ languageSettings:
       - Limine
       - recalcul
       - typstfmt
+      - désérialisation
   - languageId: typst
     ignoreRegExpList:
       - string
