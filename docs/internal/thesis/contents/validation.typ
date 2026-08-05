@@ -20,7 +20,6 @@ ainsi que son empreinte mémoire. Le chapitre se conclut par une discussion des
 limites du protocole de mesure employé.
 
 == Tests unitaires et tests d'intégration
-
 Les tests unitaires et les tests d'intégration portent principalement sur les
 contrôleurs. La logique de validation des ressources est systématiquement
 couverte par des tests unitaires. Les tests d'intégration couvrent
@@ -38,25 +37,26 @@ important de dépendance qu'il serait fastidieux de lier dans cet environement.
 
 Toutefois, des tests de bout en bout (end-to-end, E2E), implémentés dans #repo(
     "rust/e2e/tests/",
-) viennent completer la couverture. Ces tests reposent fortement sur Nix afin de
-build le système d'exploitation et crée une image ISO. Chaque test est effectué
-dans une machine virtuelle séparée. De manière générale, le test va lancer la
-VM, attendre que l'API soit joignable puis effectuer une suite de commandes.
-Afin de garantir que le système fonctionne correctement, les tests ne reposent
-pas uniquement sur la lecture de l'état courrant de l'API, mais incluent dans la
-configuration un conteneur cURL qui va effectuer une requête HTTP vers l'hôte de
-test, sur un port que le test écoute. Cela permet de valider que, non seulement
-l'API retourne un état cohérent, mais que celui-ci reflète l'état réel.
+) viennent completer la couverture. Ces tests reposent fortement sur Nix afin
+crée les artefacts permettant d'exécuter une machine virtuelle, en particulier
+une image ISO. Chaque test est effectué dans une machine virtuelle séparée. De
+manière générale, le test va lancer la machine virtuelle, attendre que l'API
+soit joignable puis effectuer une suite de commandes. Afin de garantir que le
+système fonctionne correctement, les tests ne reposent pas uniquement sur la
+lecture de l'état courrant de l'API, mais incluent dans la configuration un
+conteneur cURL qui va effectuer une requête HTTP vers l'hôte de test, sur un
+port que le test écoute. La réception effective de cette requête permet ainsi de
+valider que l'état rapporté par l'API ne se contente pas d'être cohérent en
+apparence, mais reflète bien l'état réel du système et démontrant que le
+conteneur fonctionne.
 
 == Validation
-
 Parmi les tests de bout en bout, trois scénarios notables sont définis:
 l'exécution d'un conteneur dans un environnement éphémère, l'installation du
 système suivi de l'exécution d'un conteneur, et le déploiement d'une application
 3 tiers.
 
 === Exécution dans un environnement éphémère
-
 La configuration est appliquée directement sur le système démarré depuis l'image
 ISO, sans écriture sur disque, et définit un unique conteneur exécutant une
 requête HTTP vers un service exposé par l'hôte de test. La validation consiste à
@@ -65,7 +65,6 @@ correspond à l'état attendu (conteneur en cours d'exécution), et que la requ�
 HTTP émise par le conteneur est effectivement reçue par l'hôte de test.
 
 === Installation du système
-
 Le système est installé sur le disque de la machine virtuelle à partir de
 l'image ISO, puis redémarré. La configuration appliquée définit également un
 conteneur, dont l'exécution est vérifiée selon les mêmes critères que ceux du
@@ -88,7 +87,6 @@ machine redémarré puis le résultat revérifié afin de valider que la donnée
 bien été persisté.
 
 == Analyse de performance <ch:validation:bench>
-
 Les scénarios d'exécution en environnement éphémère et d'installation du
 système, décrits à la section précédente, sont repris ici selon le même
 protocole, en y ajoutant une instrumentation permettant de mesurer le temps
@@ -97,25 +95,26 @@ système, le tout sur 100 échantillon.
 
 Les mesures reposent sur la configuration QEMU présentée au~#code-num-ref(
     <code-qemu-bench>,
-), exécutée sur une hôte disposant d'un CPU AMD Ryzen 7 7700X, 64 GiB de RAM, et
-un support de stockage NVMe. L'hôte est une hôte Windows 11, les tests étant
-effectués dans un environement WSL 2.
+), exécutée sur un hôte doté d'un processeur AMD Ryzen 7 7700X, de 64 GiB de
+mémoire vive et d'un support de stockage NVMe. Cet hôte fonctionne sous Windows
+11, les tests étant effectués au sein d'un environnement WSL 2 exécutant Debian.
 
 #figure(
     label: <code-qemu-bench>,
     caption: [Commande QEMU utilisée pour les mesures de performance],
     source: made-by-self,
     ```sh
-    qemu-system-x86_64 -cdrom result -drive file=disk.img,format=raw,if=virtio \
-      -enable-kvm \
-      -cpu host -m 256M \
-      -netdev user,id=net0,hostfwd=tcp::50000-:50000 \
-      -device e1000,netdev=net0 \
-      -nographic
+    qemu-system-x86_64 -cdrom result \
+        -drive file=disk.img,format=raw,if=virtio \
+        -enable-kvm \
+        -cpu host -m 256M \
+        -netdev user,id=net0,hostfwd=tcp::50000-:50000 \
+        -device e1000,netdev=net0 \
+        -nographic
     ```,
 )
 
-La majorité des instants mesurés sont déterminés par horodatage, côté hôte, des
+La majorité des instants mesurés sont déterminés par horodatage, côté tests, des
 messages émis sur la console serial par les différents composants du système,
 cette dernière étant flushée immédiatement après chaque message afin de garantir
 la fidélité de l'horodatage par rapport à l'instant d'émission. La marge
@@ -127,7 +126,6 @@ serveur à l'écoute sur l'hôte, d'une requête HTTP émise par le conteneur
 concerné.
 
 === Rapidité <ch:validation:speed>
-
 La #figure-num-ref(<val-boot-time>) présente la chronologie des étapes de
 démarrage jusqu'à l'exécution d'un conteneur, pour deux modes de démarrage: une
 installation préalable sur disque (plan supérieur) et un démarrage éphémère
@@ -140,7 +138,7 @@ l'API devient accessible, le début du téléchargement d'une image de conteneur
 conteneur dont l'image est déjà présente localement ("Time until container
 started (no pull)", en violet~#vl(purple)), et le démarrage d'un conteneur dont
 l'image doit être téléchargée ("Time until container started (pull)", en
-rouge~#vl(red)).
+rouge~#vl(red)):
 
 #include "../diagrams/val-boot-time.typ"
 
@@ -156,19 +154,24 @@ différence s'explique par le fait que, lorsqu'une configuration est initialemen
 poussée sur le système éphémère, aucun runtime de conteneur n'est encore lancé
 et doit donc être démarré, alors que, dans le contexte d'un démarrage sur
 disque, celui-ci est démarré plus tôt, certaines dépendances étant déjà
-présentes.
-
-Une fois le téléchargement commencé, environ 2.1 secondes sont nécessaires pour
-qu'il arrive à son terme. Le conteneur est immédiatement démarré une fois ce
-téléchargement terminé . Lorsque l'image est déjà téléchargée, le téléchargement
-se termine instantanément et le conteneur est aussitôt démarré, ce qui crée une
-superposition des deux événements sur la #figure-num-ref(<val-boot-time>). Le
-cas d'une image déjà téléchargée n'est, par nature, pas possible pour un
-environnement éphémère et n'est donc pas représenté sur le plan inférieur.
+présentes. Le téléchargement de l'image du conteneur, s'il y a lieu, commence
+environ 0.5 secondes après la configuration DHCP. Une fois celui-ci commencé,
+environ 2.1 secondes sont nécessaires pour qu'il arrive à son terme. Le
+conteneur est immédiatement démarré une fois ce téléchargement terminé . Lorsque
+l'image est déjà téléchargée, le téléchargement se termine instantanément et le
+conteneur est aussitôt démarré, ce qui crée une superposition des deux
+événements sur la #figure-num-ref(<val-boot-time>). Le cas d'une image déjà
+téléchargée n'est, par nature, pas possible pour un environnement éphémère et
+n'est donc pas représenté sur le plan inférieur.
 
 Au total, entre le démarrage de la machine et le démarrage du conteneur, le
 temps médian est de 5.1 secondes dans le cas d'un téléchargement d'image, contre
-environ 2.1 secondes lorsque l'image est déjà présente localement.
+environ 2.1 secondes lorsque l'image est déjà présente localement. En excluant
+les délais qui ne relèvent pas directement du système, à savoir le chargement du
+noyau, l'obtention d'une configuration réseau via DHCP et le téléchargement de
+l'image, le temps propre au démarrage du conteneur est inférieur à 500
+millisecondes. Il n'y a par ailleur pas différence notable entre un démarrage
+sur disque et un démarrage depuis l'image ISO.
 
 La #figure-num-ref(<val-install-time>) présente la durée du processus
 d'installation ("Time to install", en bleu~#vl(blue)), ainsi que la durée totale
@@ -190,7 +193,6 @@ machine virtuelle (par exemple le chargement du BIOS) et le délais de sélectio
 du bootloader (environ 5 secondes).
 
 === Légèreté
-
 Une machine virtuelle disposant de 256~MiB de RAM est utilisée pour ce test. Une
 configuration minimale est appliquée en mode éphémère, définissant un conteneur
 nommé chargé d'exécuter en boucle la séquence suivante: allocation d'un vecteur,
@@ -203,22 +205,22 @@ système démarré.
 
 La #figure-num-ref(<val-memory>) présente la distribution de l'allocation
 mémoire maximale atteinte par le conteneur "membench" sur cent exécutions, une
-fois le système démarré avec une VM disposant de 256~MiB de RAM.
+fois le système démarré avec une machine virtuelle disposant de 256~MiB de RAM.
 
 #include "../diagrams/val-memory.typ"
 
 La médiane de l'allocation atteinte se situe à environ 208~MiB, l'intervalle
 interquartile s'étendant de 205~à~209~MiB. Les valeurs extrêmes observées se
-situent entre 193~et~213 MiB. La mémoire disponible est donc autour des 80% de
-la mémoire allouée à la VM. Par extension, le système d'exploitation complet,
-noyau et runtime de conteneur inclus, ne consomme donc qu'environ 40~MiB.
-Toutefois, il n'est pas pour autant possible de démarrer une VM avec seulement
-20~MiB de mémoire. En effet, durant le démarrage, un minimum de 80~MiB sont
-requis afin que le système démarre, et dans l'optique de télécharger une image
-et exécuter un conteneur au minimum 160~MiB sont requis.
+situent entre 193~et~213 MiB. La mémoire disponible est donc autour des~80%~de
+la mémoire allouée à la machine virtuelle. Par extension, le système
+d'exploitation complet, noyau et runtime de conteneur inclus, ne consomme donc
+qu'environ 40~MiB. Toutefois, il n'est pas pour autant possible de démarrer une
+machine virtuelle avec seulement 20~MiB de mémoire. En effet, durant le
+démarrage, un minimum de 80~MiB sont requis afin que le système démarre, et dans
+l'optique de télécharger une image et exécuter un conteneur au minimum 160~MiB
+sont requis.
 
 == Limitations
-
 Le protocole de mesure employé pour les benchmarks de rapidité et de légèreté ne
 reflète pas nécessairement l'ensemble des conditions rencontrées en usage réel.
 Les mesures présentées correspondent à un scénario favorable, dans lequel le
@@ -226,8 +228,4 @@ délai d'obtention d'une adresse via DHCP, la charge du processeur hôte et la
 latence réseau ne sont pas artificiellement dégradés. Une charge processeur ou
 un délai réseau plus élevés que ceux observés durant les mesures conduiraient à
 une augmentation des temps rapportés, notamment pour les étapes dépendant du
-réseau, telles que la réconciliation DHCP et le téléchargement d'image. En
-outre, le test de légèreté détermine l'allocation mémoire maximale atteignable
-par un unique conteneur exécuté seul sur le système. Ce protocole ne rend pas
-compte du comportement du système en présence de plusieurs conteneurs
-concurrents.
+réseau, telles que la réconciliation DHCP et le téléchargement d'image.
