@@ -1,6 +1,6 @@
 #import "../lib.typ": *
 
-= Résultats et Discussion
+= Résultats et Discussion <ch:results>
 Ce chapitre dresse le bilan du travail réalisé. Les résultats obtenus sont
 d'abord présentés, tant sur le plan fonctionnel qu'au regard des objectifs
 académiques fixés en introduction, avant qu'un retour rétrospectif ne soit porté
