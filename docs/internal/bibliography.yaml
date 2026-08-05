@@ -1735,3 +1735,163 @@ bib-dhcp-rfc:
   url:
     value: https://datatracker.ietf.org/doc/html/rfc2131
     date: 2026-08-02
+
+bib-squashfs:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-overlayfs:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-toctou:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-rtnetlink:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-gitlab-ci:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://docs.gitlab.com/ci/
+    date: 2026-08-02
+
+bib-man2-fork:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-man-ns:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-nextest:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-exit:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-typstfmt:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-buf:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-cargo-fmt:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-cargo-clippy:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-justfile:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-makefile:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-qemu:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-rust-unstable:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://rust-for-linux.com/unstable-features
+    date: 2026-08-02
+
+bib-nixos:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-nix-build:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-nixpkgs:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02

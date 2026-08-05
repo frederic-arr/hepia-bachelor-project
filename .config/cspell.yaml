@@ -23,7 +23,12 @@ languageSettings:
       - replanifie
       - redéclencher
       - Ryzen
+      - TOCTOU
       - flushée
+      - rtnetlink
+      - Limine
+      - recalcul
+      - typstfmt
   - languageId: typst
     ignoreRegExpList:
       - string

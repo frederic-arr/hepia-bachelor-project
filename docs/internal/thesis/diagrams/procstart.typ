@@ -64,32 +64,27 @@
         )
         node(
             label: <procstart-core>,
-            (0, 2),
-            title: [core-controller],
+            (-1, 1),
+            title: [state-manager],
         )
         node(
             label: <procstart-con>,
-            (-1, 3),
+            (-1, 2),
             title: [container-controller],
         )
         node(
             label: <procstart-net>,
-            (0, 3),
+            (0, 2),
             title: [network-controller],
         )
         node(
             label: <procstart-other>,
-            (1, 3),
-            title: [_...-controller_],
-        )
-        node(
-            label: <procstart-api>,
-            (-1, 2),
-            title: [API],
+            (1, 2),
+            title: [system-controller],
         )
         node(
             label: <procstart-rt>,
-            (-1, 4),
+            (-1, 3),
             title: [container-runtime],
             subtitle: [Podman, Docker, ...],
             stroke: (dash: "dashed"),
@@ -97,26 +92,17 @@
 
         node(
             label: <procstart-dhcp>,
-            (-0.3, 4),
+            (0, 3),
             title: [dhcp-client],
-            stroke: (dash: "dashed"),
-        )
-
-        node(
-            label: <procstart-ntp>,
-            (0.3, 4),
-            title: [ntp-client],
             stroke: (dash: "dashed"),
         )
 
         edge(<procstart-init>, <procstart-supervisor>, "-|>")
         edge(<procstart-supervisor>, <procstart-core>, "-|>")
-        edge(<procstart-core>, <procstart-api>, "-|>")
-        edge(<procstart-core>, <procstart-con>, "-|>")
-        edge(<procstart-core>, <procstart-net>, "-|>")
-        edge(<procstart-core>, <procstart-other>, "-|>")
+        edge(<procstart-supervisor>, <procstart-con>, "-|>")
+        edge(<procstart-supervisor>, <procstart-net>, "-|>")
+        edge(<procstart-supervisor>, <procstart-other>, "-|>")
         edge(<procstart-con>, <procstart-rt>, "-|>")
         edge(<procstart-net>, <procstart-dhcp>, "-|>")
-        edge(<procstart-net>, <procstart-ntp>, "-|>")
     },
 )

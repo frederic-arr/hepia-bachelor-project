@@ -167,6 +167,12 @@ travers diverses commandes décrites dans le #table-num-ref(<tab-cli-commands>):
         ..([*Commande*], [*Description*]),
         ..(
             [
+                ```sh config validate <PATH>```
+            ],
+            [Valide la configuration auprès du serveur sans l'appliquer],
+        ),
+        ..(
+            [
                 ```sh config push <PATH>```
             ],
             [Transmet le fichier de configuration au serveur],
@@ -222,8 +228,8 @@ d'installation étant relativement courte, et le serveur ne possédant pas encor
 de données sensible, il est considéré que laisser un tel accès ouvert durant
 quelques secondes (entre le démarrage de l'API et la transmission d'une
 configuration initiale) est convenable#footnote[
-    C'est aussi le parti pris d'autre solutions de références tel que
-    Talos~Linux.
+    C'est aussi le parti pris d'autre solutions de références tel que Talos
+    Linux.
 ].
 
 Lorsque la configuration est mise à jour, celle-ci n'est pas immédiatement
@@ -351,13 +357,13 @@ décrits dans le #code-num-ref(<code-config-container>):
 )
 
 Le #code-num-ref(<code-config-container>) crée une instance de conteneur nommé
-"demo" et ayant pour image la dernière version de cURL~@bib-curl sur
-Alpine~Linux~@bib-alpine. Cette instance va être démarrée, elle va requêter une
-URL, et si cela réussit, alors le conteneur s'arrête. Il est aussi possible de
-supporter des cas plus complexe grâce aux réseaux de conteneurs et à la
-publication de ports sur l'hôte via une syntaxe similaire à Docker Compose. La
-création de réseau de conteneurs se fait via une ressource dédiée, illustrée
-dans le #code-num-ref(
+"demo" et ayant pour image la dernière version de cURL @bib-curl sur Alpine
+Linux @bib-alpine. Cette instance va être démarrée, elle va requêter une URL, et
+si cela réussit, alors le conteneur s'arrête. Il est aussi possible de supporter
+des cas plus complexe grâce aux réseaux de conteneurs et à la publication de
+ports sur l'hôte via une syntaxe similaire à Docker Compose. La création de
+réseau de conteneurs se fait via une ressource dédiée, illustrée dans le
+#code-num-ref(
     <code-config-container-network>,
 ):
 

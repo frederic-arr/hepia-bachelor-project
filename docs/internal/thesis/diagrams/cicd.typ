@@ -8,8 +8,7 @@
     note: [
         En bleu la pipeline pour la documentation (thèse, slides, etc.). En
         rouge la pipeline pour le code Rust. Les deux pipeline s'exécute de
-        manière indépendante. Au sein d'un groupe, chaque élément est exécuté en
-        parallèle.
+        manière indépendante.
     ],
     source: made-by-self,
 
