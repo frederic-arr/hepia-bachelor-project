@@ -95,7 +95,7 @@ Les ressources statiques sont les seules ressources que l'administrateur peut
 modifier. En effet, le lien de possession n'étant pas transitif, lorsque
 l'administrateur crée une ressource $A$ qui crée à son tour une ressource $B$,
 le seul moyen pour l'administrateur d'agir sur la ressource $B$ est de passer
-par $A$. Si l'utilisateur souhaite pouvoir interagir directement avec $B$, il
+par~$A$. Si l'utilisateur souhaite pouvoir interagir directement avec $B$, il
 doit alors faire en sorte que celle-ci ne soit plus gérée par $A$, et ensuite de
 la déclarer lui-même dans la configuration, ce qui rendrait cette ressource
 statique. Cette distinction entre statique et dynamique permet de restreindre

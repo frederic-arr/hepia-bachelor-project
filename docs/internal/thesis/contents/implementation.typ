@@ -63,7 +63,7 @@ définition des procédures exposées par chaque composant; la structure des
 messages échangés n'est pas définie par ce protocole. Depuis sa ProtoBuf 3,
 celui-ci ne permet plus de marquer un champ comme obligatoire, dans le but de
 garantir la rétrocompatibilité entre un client et un serveur dont les versions
-diffèrent @bib-grpc-proto3-optional. Cette contrainte n'est toutefois pas
+diffèrent~@bib-grpc-proto3-optional. Cette contrainte n'est toutefois pas
 pertinente dans le cadre du présent système, l'ensemble des composants étant
 déployé simultanément et implémenté en Rust: le recours systématique à des
 champs optionnels y complexifierait inutilement le code. À la place, chaque
@@ -181,7 +181,7 @@ illustrée dans le #code-num-ref(<code-queue-inner>):
 )
 
 Les ressources ainsi planifiées sont stockées dans un dictionnaire basé sur un
-B#{ sym.hyph.nobreak }arbre (`BTreeMap`) @bib-rust-std-btreemap, indexé par
+B#{ sym.hyph.nobreak }arbre (`BTreeMap`)~@bib-rust-std-btreemap, indexé par
 l'instant auquel leur réconciliation est prévue. Le recours à un B-arbre
 facilite la récupération des ressources dont la planification est arrivée à
 échéance: la date de réconciliation étant une valeur numérique ordonnée, toutes
@@ -490,7 +490,7 @@ observer ou accéder à ce fichier avant que son contenu ne soit intégralement
 écrit. L'ensemble des opérations nécessaires (écriture du contenu, application
 des permissions, etc.) est ensuite effectué sur ce fichier temporaire. Une fois
 ces opérations terminées, le fichier est rendu visible dans l'arborescence au
-moyen de `linkat` @bib-linkat, qui associe l'inode déjà constitué à son chemin
+moyen de `linkat`~@bib-linkat, qui associe l'inode déjà constitué à son chemin
 final; cette opération remplace atomiquement le fichier existant, le cas
 échéant, sans jamais exposer d'état intermédiaire.
 
@@ -904,7 +904,7 @@ test, dépourvu d'interface réseau et disposant d'un système de fichiers racin
 propre; l'ensemble de cet environnement est détruit à l'issue du test. Cette
 isolation complète empêche cependant le test de binaires externes non présents
 dans l'environnement vierge ainsi constitué. Ces tests sont, comme les tests
-unitaires, réalisés via la macro `#[test]`, et localisés à proximité du code
+unitaires, réalisés via la macro~`#[test]`, et localisés à proximité du code
 testé.
 
 Les tests unitaires et les tests d'intégration partagent la propriété de ne pas

@@ -11,7 +11,7 @@ conclue par les perspectives d'évolution envisageables pour le système.
 == Résultats fonctionnels
 Les scénarios de validation présentés au #chapter-full-ref(<ch:validation>)
 démontrent que le système fonctionne bien dans trois configurations
-représentatives, et la comparaison avec NixOS et Talos Linux établit que le
+représentatives, et la comparaison avec NixOS et Talos~Linux établit que le
 système présente une empreinte mémoire et des performances nettement meilleures.
 
 Le système fonctionne également sur un Raspberry Pi 1B, sans qu'aucune
@@ -116,7 +116,7 @@ valeur `"stopped"` pour ce même champ `status`. Ce bug est connu depuis 2023
 @bib-podman-pull, la correction n'étant intégrée à une version officielle
 qu'avec la publication de la version 6.0.0, le 24 juin 2026 @bib-podman-release.
 L'intégration de cette version dans Nix, celle-ci constituant une "breaking
-release", nécessite un délai supplémentaire et demeure bloquée @bib-podman-nix.
+release", nécessite un délai supplémentaire et demeure bloquée~@bib-podman-nix.
 Le paquet Nix officiel est alors repris et adapté directement à partir de son
 code source, l'aspect "breaking" de la version 6.0 de Podman n'ayant pas
 d'impact dans le cadre de ce système.

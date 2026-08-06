@@ -172,6 +172,6 @@ ContainerOS requiert environ deux fois moins de mémoire que NixOS et près de d
 fois moins que Talos Linux, tout en restant dans les deux cas sous la limite
 acceptable de 512 MiB, y compris sur une machine dotée de seulement 256 MiB de
 RAM. Sur le plan de la rapidité, ContainerOS démarre environ cinq fois plus vite
-que NixOS et près de dix fois plus vite que Talos Linux; le temps d'installation
+que NixOS et près de dix fois plus vite que Talos~Linux; le temps d'installation
 est quant à lui inférieur d'un facteur proche de dix par rapport à ces deux
 mêmes solutions.
