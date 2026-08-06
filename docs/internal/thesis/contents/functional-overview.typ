@@ -154,7 +154,7 @@ travers diverses commandes décrites dans le #table-num-ref(<tab-cli-commands>):
 
 #figure(
     label: <tab-cli-commands>,
-    caption: [Liste commandes disponibles],
+    caption: [Liste commandes disponible],
     note: [
         La syntaxe est ```sh subsystem command <MANDATORY> [OPTIONAL]```.
     ],
@@ -226,14 +226,13 @@ d'installation étant relativement courte, et le serveur ne possédant pas encor
 de données sensible, il est considéré que laisser un tel accès ouvert durant
 quelques secondes (entre le démarrage de l'API et la transmission d'une
 configuration initiale) est convenable#footnote[
-    C'est aussi le parti pris d'autre solutions de références tel que Talos
-    Linux.
+    C'est aussi le parti pris d'autres solutions, tel que Talos Linux.
 ].
 
 Lorsque la configuration est mise à jour, celle-ci n'est pas immédiatement
 acceptée: le serveur va d'abord valider que celle-ci soit syntaxiquement
-correcte et, dans la mesure du possible, que les donnée s'y trouvant sont
-valide. En cas d'erreur, même partielle, un message avec les détails sera
+correcte et, dans la mesure du possible, que les données s'y trouvant sont
+valides. En cas d'erreur, même partielle, un message avec les détails sera
 retourné à l'utilisateur. De fait, seule une configuration entièrement correcte
 peut être transmise au serveur.
 
@@ -325,7 +324,7 @@ une telle configuration:
 Le #code-num-ref(<code-config-runtime>) spécifie l'id utilisateur et groupe
 root, mais aussi un ensemble de dépendances à des ressources DNS et réseau. Ces
 dépendances ne sont pas strictement nécessaires, mais permettent d'éviter
-d'instantier le runtime tant que la couche réseau n'est pas disponible, ce qui
+d'instancier le runtime tant que la couche réseau n'est pas disponible, ce qui
 pourrait avoir pour effet d'empêcher le téléchargement d'images de conteneurs,
 et créerait des messages d'erreur temporaire. La nature déclarative du système
 décrite dans le #chapter-full-ref(<ch:functional-overview:declarativity>) rend
@@ -339,7 +338,7 @@ décrits dans le #code-num-ref(<code-config-container>):
     label: <code-config-container>,
     caption: [Configuration d'un conteneur],
     note: [
-        Configuration d'un conteneur qui va requêter une fois un server HTTP
+        Configuration d'un conteneur qui va requêter une fois un serveur HTTP
         puis s'arrêter.
     ],
     source: made-by-self,
@@ -358,7 +357,7 @@ Le #code-num-ref(<code-config-container>) crée une instance de conteneur nommé
 "demo" et ayant pour image la dernière version de cURL @bib-curl sur Alpine
 Linux @bib-alpine. Cette instance va être démarrée, elle va requêter une URL, et
 si cela réussit, alors le conteneur s'arrête. Il est aussi possible de supporter
-des cas plus complexe grâce aux réseaux de conteneurs et à la publication de
+des cas plus complexes grâce aux réseaux de conteneurs et à la publication de
 ports sur l'hôte via une syntaxe similaire à Docker Compose. La création de
 réseau de conteneurs se fait via une ressource dédiée, illustrée dans le
 #code-num-ref(
@@ -369,8 +368,8 @@ réseau de conteneurs se fait via une ressource dédiée, illustrée dans le
     label: <code-config-container-network>,
     caption: [Configuration d'un réseau de conteneurs],
     note: [
-        Configuration d'un réseau de conteneur sur la runtime de conteneur
-        nommée "rootfull".
+        Configuration d'un réseau de conteneur sur le runtime de conteneur nommé
+        "rootfull".
     ],
     source: made-by-self,
     ```yaml
@@ -381,13 +380,13 @@ réseau de conteneurs se fait via une ressource dédiée, illustrée dans le
     ```,
 )
 
-Tout comme pour la création de conteneurs, il est nécessaire de spécifier la
-runtime sur laquelle crée ce réseau, et il est naturellement impossible
-d'adjoindre des conteneurs extérieurs à ce runtime sur le réseau ainsi créé.
+Tout comme pour la création de conteneurs, il est nécessaire de spécifier le
+runtime sur lequel sera créé ce réseau, et il est naturellement impossible d'y
+ajouter des conteneurs extérieurs à ce runtime sur le réseau ainsi créé.
 
 == Prérequis matériels <ch:functional-overview:hardware>
 Le système nécessite très peu de ressources: sur un processeur 64 bits, il est
-possible de démarrer un server web minimale avec seulement 160 MiB de mémoire
+possible de démarrer un serveur web minimal avec seulement 160 MiB de mémoire
 vive. Il est même possible de démarrer le système sur moins de 80 MiB de mémoire
 vive si les aspects liés à la conteneurisation ne sont pas nécessaires, par
 exemple, afin de fournir un routeur rudimentaire. En outre, dans le cadre d'une
@@ -419,7 +418,7 @@ le déploiement du serveur HTTP:
     caption: [Commande d'installation],
     note: [
         La commande est exécutée depuis une machine distincte du serveur cible,
-        disposant d'un accès réseau à celui-ci,
+        disposant d'un accès réseau à celui-ci.
     ],
     source: made-by-self,
     ```sh

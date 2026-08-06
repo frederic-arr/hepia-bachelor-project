@@ -48,18 +48,18 @@ ressource donnée est simplement celui qui crée cette ressource. La dépendance
 permet de consulter la spécification et l'état observé, sans pour autant pouvoir
 modifier la ressource.
 
-Le lien de dépendance à aussi un impact sur la planification: lorsqu'une
+Le lien de dépendance a aussi un impact sur la planification: lorsqu'une
 ressource $A$ dépend d'une ressource $B$, il est raisonnable de ne pas tenter de
 réconcilier $A$ tant que $B$ n'est pas prête. En outre, ces relations ne sont
 jamais transitives: si $A$ possède $B$, et $B$ possède $C$, $A$ ne possède pas
-$C$. Le mécanisme exacte est décrit dans le #chapter-full-ref(
+$C$. Le mécanisme exact est décrit dans le #chapter-full-ref(
     <ch:system-design:scheduling>,
 ).
 
 === Catégories de ressources <ch:system-design:restypes>
 Les ressources sont classées en deux catégories primaires: les ressources qui
-peuvent être détenues, et celles ne pouvant pas l'être. Il s'agist
-respectivement de ressources privées et de ressources mutualisée.
+peuvent être détenues, et celles ne pouvant pas l'être. Il s'agit respectivement
+de ressources privées et de ressources mutualisées.
 
 Une ressource privée dispose d'un détenteur unique, disposant seul des droits de
 modification et de suppression sur celle-ci. Trois sous-catégories de ressources
@@ -113,54 +113,56 @@ adresses associées au sein d'une seule et même configuration. Dans le présent
 système, un configuration de type `network:interface` #bref(<cfgdyn-cfg>)
 abstrait cette complexité en créant et en possédant plusieurs sous-ressources
 dynamiques (`network:link`, `network:address` et `network:route`), chacune
-correspondant à un aspect distinct #bref(<cfgdyn-dyn>). La détenteur gère
+correspondant à un aspect distinct #bref(<cfgdyn-dyn>). Le détenteur gère
 entièrement la spécification de ces enfants: lorsque sa propre spécification est
 mise à jour puis réconciliée, alors celui-ci mettra à jour la spécification de
-ses enfants. L'administrateur du système n'a lui qu'a se préoccuper de la
+ses enfants. L'administrateur du système n'a qu'à se préoccuper de la
 spécification de la ressource parente. D'autre part, cela permet de modéliser
-des aspect dynamique par nature, tel que la configuration du réseau via DHCP,
+des aspects dynamiques par nature, tel que la configuration du réseau via DHCP,
 tel qu'illustré dans la #figure-num-ref(<cfgdhcp>):
 
 #include "../diagrams/cfgdhcp.typ"
 
-Une ressource de type `network:dhcp` est crée par l'utilisateur #bref(
+Une ressource de type `network:dhcp` est créée par l'utilisateur #bref(
     <cfgdhcp-cfg>,
-) et, en arrière plan, un client DHCP va configurer l'addresse et la route
-réseau lorsque celles-ci deviendront disponible a travers le protocole #bref(
+) et, en arrière-plan, un client DHCP va configurer l'adresse et la route réseau
+lorsque celles-ci deviendront disponibles à travers le protocole #bref(
     <cfgdhcp-dyn>,
 ). Dans ce cas, si l'administrateur avait la capacité de modifier ces
 sous-ressources, cela irait à l'encontre du fonctionnement nominal du DHCP.
 
-=== Ressources mutualisée <ch:system-design:shared>
+=== Ressources mutualisées <ch:system-design:shared>
 Le partage d'une ressource est donc naturellement réalisé par un lien de
-dépendance. Toutefois, cela présuppose que la ressource soit crée par une autre
-ressource ou par l'administrateur du système. En raison d'usages et d'habitudes
+dépendance. Toutefois, cela présuppose que la ressource soit créée par une autre
+ressource ou par l'administrateur du système. En raison d'usages et d'habitude
 commune adoptée au sein de certains logiciels, certaines ressources sont
-implicites à un point ou les déclarer manuellement serait contre productif. Mais
-ne pas les déclarer explicitement soulève la problématique d'assigner la
-responsabilité de créer et supprimer celle-ci. C'est notamment le cas des images
-de conteneurs, comme illustré dans la #figure-num-ref(<cfgshared>):
+implicites à un point où les déclarer manuellement serait contre-productif.
+Toutefois, ne pas les déclarer explicitement pose le problème de l'attribution
+de la responsabilité de les concevoir et de les supprimer. C'est notamment le
+cas des images de conteneurs, comme illustré dans la #figure-num-ref(
+    <cfgshared>,
+):
 
 #page(flipped: true)[
     #include "../diagrams/cfgshared.typ"
 
     Par exemple, deux configurations de conteneurs #bref(<cfgshared-cfg>)
-    indépendantes créent deux conteneurs qui semblent eux-aussi indépendants
+    indépendantes créent deux conteneurs qui semblent eux aussi indépendants
     #bref(<cfgshared-real>), mais qui pointent en réalité vers une même
     ressource, en l'espèce l'image #bref(<cfgshared-conflict>). En raison des
     propriétés de la gestion des images dans un runtime de conteneurs, la
-    création ne pose pas de problèmes; l'image sera téléchargée par le runtime
+    création ne pose pas de problèmes; l'image sera téléchargée par le runtime,
     puis utilisée par les conteneurs. En revanche, la suppression pose problème:
-    un runtime ne supprime jamais les images de lui-même, et au fil de
+    un runtime ne supprime jamais les images de lui-même, et, au fil de
     l'utilisation du système, les images prendraient de plus en plus de places
     sans jamais être supprimées.
 ]
 
 Il n'est aussi pas possible de supprimer la ressource dès qu'un seul conteneur
-est supprimée: l'image est toujours requise par l'autre configuration. Selon la
+est supprimé: l'image est toujours requise par l'autre configuration. Selon la
 nature de la ressource sous-jacente, deux comportements seraient alors
 possibles: soit la suppression échoue et la réconciliation reste bloquée, soit
-la ressource est détruite et doit être recréée par l'autre configuration ce qui
+la ressource est détruite et doit être recréé par l'autre configuration, ce qui
 est inefficace. La création d'une sous-ressource image par chaque conteneur est
 également impossible, toute ressource ne pouvant être possédée que par un seul
 parent.
@@ -256,10 +258,10 @@ statut administratif doit être "up" #footnote[
     utiliser le périphérique pour le trafic. L'état opérationnel indique la
     capacité d'une interface à transmettre ces données utilisateur
     @bib-linux-operstate.
-]. L'état physique de l'interface (status administratif, status opérationnel,
+]. L'état physique de l'interface (statut administratif, statut opérationnel,
 adresse MAC, etc.) est d'abord récupéré #bref(<decl-obs>) constituant ainsi
 l'état observé, puis comparé à la spécification #bref(<decl-diff>). Dans le cas
-ou le status administratif serait "down", le système s'en rend compte et sait
+où le statut administratif serait "down", le système s'en rend compte et sait
 qu'il doit exécuter l'équivalent de `ip link set up` afin de mettre en route
 l'interface #bref(<decl-actions>). Ce même mécanisme s'applique à toute
 modification ou suppression de la ressource: une modification de la
@@ -271,23 +273,22 @@ ressource donnée, celle-ci retourne d'une part le nouvel état observé, mais e
 déclarera aussi l'ensemble de ses enfants avec leur spécification. Le ressource
 est libre de déterminer comme elle le souhaite le contenu de la spécification de
 ces enfants spécification, la seule contrainte étant la validité vis-à-vis du
-schéma du type de ressource. De fait, même en l'absence de tout paramètres,
-comme dans une ressource mutualisée, rien m'empêche, lors de la réconciliation,
-de créer des sous-ressources avec une spécification arbitraire. En outre,
-supprimer un enfant de cette décaration reviens à demander la suppression de
-celui-ci.
+schéma du type de ressource. De fait, même en l'absence de tout paramètre, comme
+dans une ressource mutualisée, rien n'empêche, lors de la réconciliation, de
+créer des sous-ressources avec une spécification arbitraire. En outre, supprimer
+un enfant de cette déclaration revient à demander la suppression de celui-ci.
 
 === Orchestration de la réconciliation
 Le système est composé de plusieurs ressources, chacune gérée par une logique de
 réconciliation indépendante. Une réconciliation peut survenir de manière
-périodique ou en réponse à un événement, tant interne, tel qu'une mise à jour de
-la configuration, qu'externe, comme un conteneur qui s'arrête. À ce titre, deux
-modèles d'orchestration sont envisageables: un modèle centralisé, dans lequel
-une boucle unique appelle, à chaque itération, la méthode de réconciliation
-d'une ressource donnée;. et un autre modèle modèle décentralisé, dans lequel
-chaque contrôleur contient sa propre boucle, organisé de la manière qui lui
-convient (une boucle par resource, une boucle par type, etc.). Le modèle
-centralisé est illustré dans la #figure-num-ref(<ctrlloop>):
+périodique ou en réponse à un événement, qu'il soit interne, tel qu'une mise à
+jour de la configuration, ou externe, comme un conteneur qui s'arrête. À ce
+titre, deux modèles d'orchestration sont envisageables: un modèle centralisé,
+dans lequel une boucle unique appelle, à chaque itération, la méthode de
+réconciliation d'une ressource donnée;. et un autre modèle modèle décentralisé,
+dans lequel chaque contrôleur contient sa propre boucle, organisée de la manière
+qui lui convient (une boucle par ressource, une boucle par type, etc.). Le
+modèle centralisé est illustré dans la #figure-num-ref(<ctrlloop>):
 
 #include "../diagrams/ctrlloop.typ"
 
@@ -296,7 +297,7 @@ file d'attente la ressource dont l'échéance de réconciliation est la plus
 proche, délègue sa réconciliation au contrôleur correspondant, traite la réponse
 de celui-ci (nouvel état observé, statut et sous-ressources déclarées), puis
 replanifie la ressource selon le délai retourné. Dans ce modèle, le contrôleur
-n'a pas connaissances des autre ressources, même celle sous son contrôle. La
+n'a pas connaissance des autres ressources, même celle sous son contrôle. La
 réconciliation se repose uniquement sur les informations de la ressource
 courante et d'éventuels détails sur d'autres ressources transmis par
 l'orchestrateur sur la base des liens de possession ou de dépendance.
@@ -325,7 +326,7 @@ réaction aux changements d'état et de spécification des ressources: un élém
 central coordonnant l'ensemble, il devient trivial de propager ces changements
 ou de redéclencher les réconciliations des ressources dépendantes. Un tel
 mécanisme de propagation, dans un modèle décentralisé, nécessiterait un
-mécanisme additionnel. La réaction aux événements externes (par exemple un
+mécanisme additionnel. La réaction aux événements externes (par exemple, un
 conteneur qui s'arrête, ou une interface réseau qui tombe) suit toutefois la
 logique inverse: elle est nativement plus simple à traiter dans le modèle
 décentralisé, tandis que le modèle centralisé nécessiterait l'ajout d'une
@@ -342,14 +343,14 @@ imparti.
 Deux critères supplémentaires ont été écartés de la comparaison. Le premier
 concerne le nombre d'appels API: le modèle centralisé n'en requiert qu'un,
 contre au moins deux pour le modèle décentralisé (l'un pour récupérer la
-ressource, l'autre pour mettre à jour l'état); ce critère n'est pas retenu car
+ressource, l'autre pour mettre à jour l'état); ce critère n'est pas retenu, car
 le nombre de ressources reste faible et les contrôleurs sont tous locaux. Le
 second concerne la robustesse: le modèle décentralisé limite la panne à un
 nombre restreint de ressources, mais ce critère n'est pas non plus retenu, les
 contrôleurs étant de toute façon primordiaux au fonctionnement du système, si
 bien que leur panne le rend inutilisable indépendamment du modèle choisi.
 
-L'ensemble de ces points sont synthétisé dans le #table-num-ref(<scheduling>) :
+L'ensemble de ces points sont synthétisés dans le #table-num-ref(<scheduling>) :
 
 #include "../diagrams/scheduling.typ"
 
@@ -358,11 +359,11 @@ réconciliation d'une ressource repose alors uniquement sur des éléments
 entièrement déterminés par l'orchestrateur, à savoir sa spécification et son
 état, ce qui garantit un comportement reproductible d'un cycle à l'autre. Un
 contrôleur disposant de sa propre boucle pourrait, à l'inverse, introduire un
-état ou une logique de planification propres, non visibles de l'extérieur, ce
-qui nuirait à cette prévisibilité.
+état ou une logique de planification propre, non visible de l'extérieur, ce qui
+nuirait à cette prévisibilité.
 
 Au regard de l'ensemble de ces éléments, le modèle centralisé a été retenu comme
-modèle d'orchestration. Sa propriété la plus important réside dans la pureté de
+modèle d'orchestration. Sa propriété la plus importante réside dans la pureté de
 la réconciliation qu'il permet: celle-ci ne dépend alors que d'éléments
 entièrement déterminés par l'orchestrateur, à savoir la spécification et l'état
 de la ressource. Les avantages en termes de coordination des dépendances, de
@@ -382,7 +383,7 @@ L'orchestrateur maintient une file d'attente de ressources à réconcilier. Lors
 de l'insertion initiale d'une nouvelle ressource ou de la modification d'une
 ressource existante, celle-ci est placée dans la file si ses dépendances sont
 prêtes. Régulièrement, l'orchestrateur va prendre l'ensemble des ressources
-arrivée à échéance et les réconcilier.
+arrivées à échéance et les réconcilier.
 
 La réconciliation demeure purement séquentielle: il n'y a jamais plus d'une
 ressource réconciliée en parallèle, ce qui exclut tout problème de concurrence
@@ -398,16 +399,16 @@ suspendue jusqu'à ce que la réconciliation en cours soit terminée ou interrom
 par expiration de la durée maximale impartie. Cela vaut aussi pour une mise à
 jour de la configuration du système par l'administrateur.
 
-=== Suppression des ressource <ch:system-design:deletion>
+=== Suppression des ressources <ch:system-design:deletion>
 Lorsqu'une ressource est supprimée, l'ensemble des ressources qu'elle possède
 est sont aussi supprimées. Afin de toujours garantir l'intégrité référentielle,
 la suppression part des feuilles. En effet, une ressource ne peut pas être
 complètement retirée du système tant qu'elle possède d'autres ressources ou des
 dépendances entrantes. En outre, comme indiqué dans le #chapter-full-ref(
     <ch:system-design:shared>,
-), les ressources mutualisées sont automatiquement placée en suppression dès
+), les ressources mutualisées sont automatiquement placées en suppression dès
 lors qu'elles n'ont plus aucune dépendance entrante. La suppression de cette
-catégorie de ressource suit les même règles que les autres ressources.
+catégorie de ressource suit les mêmes règles que les autres ressources.
 
 === Réaction aux événements <ch:system-design:events>
 Un événement, interne ou externe, se traduit par la (re)planification d'une

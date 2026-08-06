@@ -1,8 +1,16 @@
 #import "../lib.typ": *
 
 = Implémentation <ch:implementation>
-
-// TODO: Amorce
+Ce chapitre présente les choix techniques retenus pour la réalisation du
+système, ainsi que les éléments d'implémentation significatifs. Les composants
+logiciels et les choix technologiques globaux au projet sont d'abord présentés,
+avant que l'implémentation de l'orchestrateur et des différents contrôleurs ne
+soit détaillée. L'API et ses clients d'administration sont ensuite décrits,
+suivis du système de fichiers racine, du processus de démarrage, ainsi que de
+l'installation et du chiffrement du système. Le chapitre se conclut par la
+description du système de build, de la configuration du noyau, de la génération
+de l'image finale du système, ainsi que de l'environnement de test et de la
+pipeline d'intégration continue mise en place.
 
 == Composants
 === Choix des logiciels tiers
@@ -12,8 +20,6 @@ semestre. Podman est retenu en raison de son bon fonctionnement en mode rootless
 ainsi que de sa légèreté, supérieure à celle des solutions alternatives
 considérées. Limine est de même retenu pour sa légèreté, tout en offrant un
 ensemble de fonctionnalités suffisamment complet pour les besoins du système.
-
-// TODO: Parler de Clevis pour le chiffrement
 
 === Choix du langage
 Rust est choisi comme langage principal pour l'implémentation du projet. Ce
@@ -32,12 +38,12 @@ reste de ce chapitre est présenté dans l'#appendix-num-ref(
 Le nombre de bibliothèques externes est volontairement restreint, dans le but de
 réduire la surface d'attaque du système et de conserver une maîtrise complète
 sur son comportement. Le projet, incluant tous les contrôleurs, ne compte ainsi
-que trente dépendances directes, hors dépendances propres aux tests, ce qui
+que 30 dépendances directes, hors dépendances propres aux tests, ce qui
 représente un total de 174 dépendances transitives#footnote[
     Mesuré au moyen de la commande `cargo tree`.
-]. La majorité de ces dépendances sont par ailleur des dépendances standard dans
-un environement Rust tel que le système de journalisation, la gestion d'erreur,
-l'asynchronicité, ou les interfaces pour les appel système.
+]. La majorité de ces dépendances sont par ailleurs des dépendances standard
+dans un environnement Rust telles que le système de journalisation, la gestion
+d'erreur, l'asynchronicité, ou les interfaces pour les appels système.
 
 La communication entre composants, détaillée dans le #chapter-full-ref(
     <ch:implementation:grpc>,
@@ -65,7 +71,7 @@ message ne contient ainsi qu'un unique champ nommé `raw`, correspondant à la
 structure Rust concernée, sérialisée en JSON, plutôt que de reposer sur la
 structure de message générée par gRPC.
 
-// TODO?: Dire que ça serait mieux de juste pas utiliser gRPC mais ça permet
+// TODO?: Dire que ça serait mieux de juste pas utiliser gRPC, mais ça permet
 // d'avoir quelques features utile comme les retry ou les connexion lazy?
 
 Deux services sont définis. Le service `StateService` permet à un contrôleur de
@@ -118,7 +124,7 @@ réconciliation de la ressource par le contrôleur qui en a la charge.
 
 === Sécurité et isolation
 Le travail de semestre préconisait l'isolation de chaque composant au sein de
-namespace Linux distincts. Cette approche s'avère toutefois peu praticable dans
+namespaces Linux distincts. Cette approche s'avère toutefois peu praticable dans
 le cadre de l'implémentation retenue: les contrôleurs doivent notamment partager
 un même namespace réseau ainsi qu'un même système de fichiers avec le reste du
 système. En l'absence d'une isolation complète par namespace, la réduction de la
@@ -138,7 +144,7 @@ la réception d'une nouvelle configuration, est prise en charge par la procédur
 des ressources précédemment connues et l'ensemble des ressources nouvellement
 soumises, trois catégories: les ressources ajoutées, absentes de l'état
 précédent; les ressources supprimées, absentes de la nouvelle configuration; et
-les ressources modifiées, présentes dans les deux ensembles mais dont la
+les ressources modifiées, présentes dans les deux ensembles, mais dont la
 spécification diffère. Les ressources ajoutées et modifiées sont ensuite
 validées, tel que décrit dans le #chapter-full-ref(
     <ch:implementation:validation>,
@@ -155,7 +161,7 @@ compatible.
 
 === File d'attente
 Comme indiqué dans le #full-ref(<ch:system-design:scheduling>), la boucle de
-réconciliation dépend d'une fille d'attente, structure représentée ici par
+réconciliation dépend d'une file d'attente, structure représentée ici par
 `Queue<K>`. Cette file est implémentée de manière générique: elle permet de
 planifier n'importe quel élément de type `K` à un moment précis. Dans le cadre
 du présent système, `K` représente l'identifiant unique d'une ressource. Son
@@ -201,7 +207,7 @@ passive: la fonction calcule le délai jusqu'à la prochaine échéance connue, 
 se met en pause jusqu'à ce délai. Pour gérer le cas où un élément serait
 planifié pendant cette attente, avec une échéance plus proche que celle déjà
 calculée, ou alors qu'aucune échéance n'existait, un canal de notification est
-utilisé, basé sur la structure `Notify` de la runtime asynchrone Tokio.
+utilisé, basé sur la structure `Notify` du runtime asynchrone Tokio.
 
 Étant donné que plusieurs opérations d'écriture (ajout individuel, ajout en
 masse, replanification) peuvent modifier l'échéance la plus proche et donc
@@ -229,8 +235,8 @@ orientée objet), il compare cette échéance initiale à l'échéance courante 
 déclenche une notification si celle-ci a changé, que ce soit parce qu'une
 échéance plus proche a été introduite, ou parce que la file est passée d'un état
 non vide à vide ou inversement. Cette approche permet de simplifier la gestion
-de l'envoie des notifications. En rendant ce processus entièrement transparent
-du point de vue du code modifiant la file d'attente.
+de l'envoi des notifications. En rendant ce processus entièrement transparent du
+point de vue du code modifiant la file d'attente.
 
 Enfin, la file est encapsulée dans une structure `Queue`, qui fournit un accès
 concurrent aux différentes méthodes, illustré dans le #code-num-ref(
@@ -323,7 +329,7 @@ seconde n'étant transmise qu'après réception de la réponse à la première. 
 échec affectant la réconciliation d'une ressource n'empêche pas la tentative de
 réconciliation de la ressource suivante.
 
-La réponse du contrôleur inclut le nouvel état, le status, l'ensemble des
+La réponse du contrôleur inclut le nouvel état, le statut, l'ensemble des
 enfants, et l'ensemble des dépendances, dont la structure est décrite dans le
 #code-num-ref(<code-response-def>):
 
@@ -357,11 +363,11 @@ protocole et l'erreur de logique. Une erreur de protocole survient lorsque les
 données échangées via gRPC sont invalides ou non interprétables, ou lorsqu'une
 erreur imprévue se produit au niveau du transport. Une erreur de logique, en
 revanche, correspond à un échec géré par le contrôleur dans le cadre normal de
-la réconciliation, et se traduit par un status d'erreur dans le champ `status`
+la réconciliation, et se traduit par un statut d'erreur dans le champ `status`
 de la réponse. Dans ce dernier cas, la réconciliation est considérée comme
-réussie du point de vue du protocole gRPC, indépendamment du contenu du status.
+réussie du point de vue du protocole gRPC, indépendamment du contenu du statut.
 En cas d'erreur de protocole, l'orchestrateur attribue lui-même à la ressource
-un status d'erreur qualifié de "transport"; dans tous les autres cas, le status
+un statut d'erreur qualifié de "transport"; dans tous les autres cas, le statut
 attribué à la ressource correspond à celui fourni par le contrôleur dans sa
 réponse.
 
@@ -375,12 +381,12 @@ la totalité des ressources concernées.
 La validation d'une ressource s'effectue à travers la procédure `validate()`. La
 requête contient d'abord la nouvelle spécification de la ressource, et si cette
 ressource existe déjà, la spécification courante de celle-ci ainsi que son état.
-La ressource actuelle est transmise car certaines ressources, telle que la
+La ressource actuelle est transmise, car certaines ressources, telles que la
 ressource permettant d'installer le système sur le disque, sont totalement ou
 partiellement immuables; leur modification doit alors passer par la recréation
 d'une nouvelle ressource.
 
-La ressource préexistante est optionnel dans la requête de validation, son
+La ressource préexistante est optionnelle dans la requête de validation, son
 absence correspondant au cas d'une première réconciliation, pour laquelle aucun
 état antérieur n'existe encore. Par ailleurs, certains champs de la
 spécification peuvent être dérivés intégralement à partir de la spécification
@@ -467,7 +473,7 @@ redémarrage est "never".
 Le contrôleur système, implémenté dans #repo("rust/cmd/system-controller"),
 prend actuellement en charge la seule gestion du contenu du répertoire `/etc/`
 #footnote[
-    Par exemple les certificats des autorités de certification racine tel que
+    Par exemple, les certificats des autorités de certification racine, tels que
     Cloudflare, SwissSign, etc.
 ], à travers la ressource `system:etc` #footnote[
     Implémentée dans #repo(
@@ -616,7 +622,7 @@ correspondant de cette structure intermédiaire, comme illustré dans le
 )
 
 Une fois l'ensemble des attributs du message traités, la structure intermédiaire
-`LinkStateBuilder` est convertie vers la structure finale `LinkState`, cette
+`LinkStateBuilder` est converti vers la structure finale `LinkState`, cette
 conversion échouant si l'un des champs obligatoires de `LinkState` demeure non
 spécifié à l'issue du traitement.
 
@@ -634,7 +640,7 @@ par des échéances propres au serveur DHCP plutôt que par le cycle de
 réconciliation du contrôleur, la première réconciliation de cette ressource se
 limite à démarrer une tâche d'arrière-plan chargée de piloter le client DHCP.
 Lorsque cette tâche reçoit une nouvelle configuration du serveur, elle
-l'enregistre puis notifie l'orchestrateur. L'orchestrateur replanifie alors la
+l'enregistre, puis notifie l'orchestrateur. L'orchestrateur replanifie alors la
 réconciliation de la ressource, à l'occasion de laquelle le contrôleur récupère
 la configuration ainsi obtenue et crée les sous-ressources `network:address` et
 `network:route` correspondantes.
@@ -649,9 +655,9 @@ expose son API, utilisée ensuite par le contrôleur pour l'ensemble des
 opérations relatives aux ressources du domaine de la conteneurisation.
 // TODO?: Plus de détails
 
-== API et clients d'administration
+== API et clients d'administration <ch:implementation:api>
 L'API constitue l'unique surface d'administration du système et se repose aussi
-sur gRPC. Les procédures disponible correspondent à celles présentées dans le
+sur gRPC. Les procédures disponibles correspondent à celles présentées dans le
 #table-full-ref(<tab-cli-commands>) présenté dans le #chapter-num-ref(
     <ch:functional-overview>,
 ). Chaque procédure exposée par le service `ApiService` est précédée d'une
@@ -671,7 +677,7 @@ Lorsque le système se trouve en mode maintenance et qu'une ressource `install`
 est présente, cette procédure déclenche en outre, une fois la mise à jour des
 ressources effectuée, l'installation du système sur le disque, suivie d'un
 redémarrage automatique après un court délai, processus décrit plus en détail
-dan le #chapter-full-ref(<ch:implementation:install>).
+dans le #chapter-full-ref(<ch:implementation:install>).
 
 == Système de fichier racine <ch:implementation:rootfs>
 Le système repose sur un fonctionnement presque entièrement immuable. Le système
@@ -732,8 +738,8 @@ superviseur n'a plus d'autre rôle que d'attendre l'extinction du système.
 
 Si l'une de ces étapes échoue, pour quelque raison que ce soit, le programme
 s'interrompt et déclenche un "kernel panic". À ce stade du cycle de vie du
-système, les programmes permettant une gestion déclarative ne sont pas encore
-chargé et il n'y a donc aucune autre possibilité pour joindre le système.
+système, les composants permettant une gestion déclarative ne sont pas encore
+chargés et il n'y a donc aucune autre possibilité pour joindre le système.
 
 Le #figure-num-ref(<img:kernel-panic>) illustre un tel comportement, provoqué
 par l'indisponibilité du disque de configuration attendu par le système:
@@ -741,7 +747,7 @@ par l'indisponibilité du disque de configuration attendu par le système:
 #figure(
     label: <img:kernel-panic>,
     caption: [Panique du noyau lorsqu'un disque n'est pas disponible],
-    note: [Le noyau tente de monter le disque de configuration mais celui-ci
+    note: [Le noyau tente de monter le disque de configuration, mais celui-ci
         n'est pas disponible alors qu'il devrait l'être.],
     source: made-by-self,
     image("../../lib/assets/kernel-panic.png"),
@@ -755,14 +761,43 @@ système, ainsi que les relations de filiation entre ceux-ci:
 
 #include "../diagrams/procstart.typ"
 
-Le processus `/init` démarre le superviseur, responsable de lancer les autre
-processus, en commençant par les contrôleur puis l'orchestrateur. Les différents
-contrôleurs peuvent, à leur tour, démarrer divers processus tel qu'un runtime de
-conteneur ou un client DHCP.
+Le processus `/init` démarre le superviseur, responsable de lancer les autres
+processus, en commençant par les contrôleurs puis l'orchestrateur. Les
+différents contrôleurs peuvent, à leur tour, démarrer divers processus, tels
+qu'un runtime de conteneur ou un client DHCP.
 
 == Installation et chiffrement <ch:implementation:install>
-// TODO: Parler schéma disque installation
-// TODO: Parler chiffrement
+L'installation du système sur disque est déclenchée par l'API, via la ressource
+`install` décrite au chapitre #chapter-full-ref(<ch:implementation:install>), et
+prise en charge par une procédure d'installation qui ne s'exécute que si le
+système est démarré en mode maintenance.
+
+Lorsqu'une configuration comportant une ressource `install` est soumise à l'API,
+l'ensemble des ressources qu'elle contient est d'abord validé, puis enregistré
+dans l'état interne du système, conformément au mécanisme décrit au chapitre
+#chapter-full-ref(<ch:implementation:api>). La file d'attente de réconciliations
+est toutefois suspendue avant que cette installation ne soit commencée, ce qui
+empêche toute réconciliation d'une ressource et garantit que l'installation
+s'exécute sur un état stable.
+
+Le disque système est partitionné selon un schéma composé de quatre partitions:
+une partition de boot de 1 MiB, une partition contenant les fichiers de Limine
+ainsi que l'archive SquashFS du système, le noyau et l'initrd (`limine`, 512
+MiB), une partition optionnelle destinée au disque de configuration (`config`,
+10 MiB), et une partition optionnelle de données occupant l'espace restant
+(`data`). Limine est ensuite installé sur le disque, les partitions requises
+sont formatées et montées, avant que les fichiers de démarrage extraits de
+l'image ISO ne soient copiés vers la partition `limine`. Une configuration de
+démarrage est enfin générée, définissant deux entrées: l'une destinée à
+l'exécution normale du système, référençant les disques présents par leur chemin
+respectif au moyen de paramètres de démarrage dédiés, l'autre destinée au mode
+maintenance.
+
+Le chiffrement des disques repose sur LUKS, combiné à Clevis pour
+l'automatisation du déchiffrement. Le mode de chiffrement appliqué à chaque
+disque est spécifié indépendamment, via un paramètre de démarrage dédié de la
+forme `cos.<disktype>.encryption`, où `<disktype>` désigne l'un des disques
+gérés par le système, tel que `configdisk` ou `datadisk`.
 
 == Système de build
 L'environnement de build repose sur l'outil Nix. Une distinction est requise
@@ -776,11 +811,12 @@ présentés à l'#appendix-num-ref(<appendix:nix-primer>).
 Le recours à Nix vise à fournir un environnement stable entre la machine de
 développement locale et l'environnement d'intégration continue. Nix permet non
 seulement la construction des artefacts, mais aussi la mise en place d'un
-environment de développement ou l'exécution de commandes au sein d'un
+environnement de développement ou l'exécution de commandes au sein d'un
 environnement isolé. La reproductibilité bit à bit des builds, permise par Nix,
 constitue une propriété désirée pour le projet. Nix facilite en outre la mise en
 œuvre de la cross-compilation, soit la compilation depuis une architecture CPU
-particulière vers une architecture différente, par exemple de x86_64 vers ARM64.
+particulière vers une architecture différente, par exemple, de x86_64 vers
+ARM64.
 
 L'ensemble de la chaîne de build du système est pris en charge par Nix: le
 noyau, les différentes crates composant le projet, ainsi que les artefacts
@@ -824,11 +860,11 @@ L'image finale du système, qu'il s'agisse d'une image ISO ou d'une image disque
 brute, est assemblée entièrement au moyen de Nix. Chaque crate Rust du projet
 correspond à un output Nix; l'ensemble de ces outputs est regroupé dans un autre
 output nommé `rootfsEnv`, lequel intègre également des binaires additionnels,
-tel que Podman. Cet output génère un dossier regroupant l'ensemble de ces
+tels que Podman. Cet output génère un dossier regroupant l'ensemble de ces
 éléments au sein du `/nix/store`.
 
 Un output `rootfs` reprend cet environnement et y ajoute les liens symboliques
-nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc. contiennent des
+nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc., contiennent des
 liens symboliques pointant vers le `/nix/store`. Cet output produit, en sortie,
 une archive au format SquashFS. Deux outputs additionnels complètent cet
 assemblage: `kernel`, qui construit l'image du noyau selon les options de
@@ -840,15 +876,15 @@ système physique. L'arbre de build est illustré dans la #figure-num-ref(<img>)
 
 #include "../diagrams/img.typ"
 
-L'assemblage destiné à d'autres architectures suit une démarche similaire.Une
+L'assemblage destiné à d'autres architectures suit une démarche similaire. Une
 image disque brute est par ailleurs requise pour les systèmes ne pouvant
-démarrer depuis une image ISO et nécessitant d'être flashés, tel que le
+démarrer depuis une image ISO et nécessitant d'être flashés, tels que le
 Raspberry Pi. Un output spécifique est créé pour chaque système visé par ce mode
 de déploiement. Dans le cas du Raspberry Pi, l'output `rpi-sd-image` regroupe
 les éléments propres à cette plateforme et produit une image directement
 destinée au flashage sur une carte SD.
 
-== Environement de test <ch:implementation:tests>
+== Environnement de test <ch:implementation:tests>
 Trois catégories de tests sont mises en œuvre: les tests unitaires, les tests
 d'intégration, et les tests de bout en bout (end-to-end). Les tests unitaires
 sont dépourvus de complexité particulière, n'interagissant pas ou peu avec

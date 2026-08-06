@@ -53,5 +53,5 @@ qu'il s'agisse de l'observabilité, du stockage ou d'une intégration plus pouss
 avec la conteneurisation, pourront être construites sans remettre en cause les
 choix architecturaux fondamentaux faits dans ce travail. S'agissant d'un projet
 avant tout personnel, le développement du système est appelé à se poursuivre
-au-delà du cadre de ce travail de diplôme, avec pour objectifs immédiat
-d'implémenter les fonctionnalités relative à l'observabilité et au stockage.
+au-delà du cadre de ce travail de diplôme, avec pour objectifs immédiats
+d'implémenter les fonctionnalités relatives à l'observabilité et au stockage.

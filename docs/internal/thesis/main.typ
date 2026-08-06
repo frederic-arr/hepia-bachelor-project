@@ -96,13 +96,8 @@
 
 #todo[
     - Acronyms list
-    - Table of appendices
     - Glossaire
 ]
-
-// = Utilisation de l'intelligence artificielle
-// = Abréviations, termes et définitions
-// = Conventions utilisées dans le document
 
 #set page(
     footer: context [

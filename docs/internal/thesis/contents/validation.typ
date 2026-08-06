@@ -27,28 +27,29 @@ systématiquement les cas suivants: la création d'une nouvelle ressource, la mi
 à jour d'une ressource existante, la tentative de gestion d'une ressource
 inexistante (par exemple une interface réseau absente), la tentative de gestion
 d'une ressource déjà gérée par un autre composant, ainsi que la suppression
-d'une ressource. Seul une partie des contrôleurs sont testés via des tests
-d'intégration. En effet, l'environement dans lequel les tests sont isolé ne
-dispose pas de tous les éléments nécessaires pour mener a bien le test de
+d'une ressource. Seule une partie des contrôleurs sont testés via des tests
+d'intégration. En effet, l'environnement dans lequel les tests sont isolés ne
+dispose pas de tous les éléments nécessaires pour mener à bien le test de
 certains composants. C'est notamment le cas du contrôleur de conteneurs:
-l'environement de test disposant d'une système de fichier racine vide, le
+l'environnement de test disposant d'un système de fichier racine vide, le
 runtime de conteneur n'est pas présent et celui-ci nécessite un nombre important
-de dépendance qu'il serait fastidieux de lier dans cet environement.
+de dépendances qu'il serait fastidieux de lier dans cet environnement.
 
 Toutefois, des tests de bout en bout (end-to-end, E2E), implémentés dans #repo(
     "rust/e2e/tests/",
-) viennent completer la couverture. Ces tests reposent fortement sur Nix afin
+) viennent compléter la couverture. Ces tests reposent fortement sur Nix afin
 crée les artefacts permettant d'exécuter une machine virtuelle, en particulier
 une image ISO. Chaque test est effectué dans une machine virtuelle séparée, tel
 que présenté dans le #chapter-full-ref(<ch:implementation:tests>). De manière
 générale, le test va lancer la machine virtuelle, attendre que l'API soit
-joignable puis effectuer une suite de commandes. Afin de garantir que le système
-fonctionne correctement, les tests ne reposent pas uniquement sur la lecture de
-l'état courrant de l'API, mais incluent dans la configuration un conteneur cURL
-qui va effectuer une requête HTTP vers l'hôte de test, sur un port que le test
-écoute. La réception de cette requête permet ainsi de valider que l'état
-rapporté par l'API ne se contente pas d'être cohérent en apparence, mais reflète
-bien l'état réel du système et démontrant que le conteneur fonctionne.
+joignable, puis effectuer une suite de commandes. Afin de garantir que le
+système fonctionne correctement, les tests ne reposent pas uniquement sur la
+lecture de l'état courant de l'API, mais incluent dans la configuration un
+conteneur cURL qui va effectuer une requête HTTP vers l'hôte de test, sur un
+port que le test écoute. La réception de cette requête permet ainsi de valider
+que l'état rapporté par l'API ne se contente pas d'être cohérent en apparence,
+mais reflète bien l'état réel du système et démontre que le conteneur
+fonctionne.
 
 == Validation
 Parmi les tests de bout en bout, trois scénarios notables sont définis:
@@ -74,7 +75,6 @@ rapporté par l'API après redémarrage, doit correspondre à l'état appliqué 
 redémarrage.
 
 === Application 3 tiers
-// TODO: Nextcloud
 Ce scénario met en œuvre une configuration composée de quatre conteneurs: une
 base de données, un service backend dépendant de la base de données, un service
 web dépendant du backend, et un conteneur de "probe" dépendant du service web,
@@ -83,15 +83,15 @@ chargé d'émettre une requête HTTP l'hôte.
 Lorsque l'hôte reçoit la requête HTTP, le test va alors initier une requête sur
 le conteneur "web" qui va transmettre celle-ci au conteneur "backend", puis la
 persister sur la base de données. Le résultat est ensuite vérifié, puis la
-machine redémarré puis le résultat revérifié afin de valider que la données a
-bien été persisté.
+machine redémarrée, puis le résultat revérifié afin de valider que la donnée a
+bien été persister.
 
 == Analyse de performance <ch:validation:bench>
 Les scénarios d'exécution en environnement éphémère et d'installation du
 système, décrits à la section précédente, sont repris ici selon le même
 protocole, en y ajoutant une instrumentation permettant de mesurer le temps
 écoulé entre chaque étape du cycle de vie, ainsi que la mémoire consommée par le
-système, le tout sur 100 échantillon.
+système, le tout sur 100 échantillons.
 
 Les mesures reposent sur la configuration QEMU présentée au #code-num-ref(
     <code-qemu-bench>,
@@ -119,7 +119,7 @@ messages émis sur la console par les différents composants du système, cette
 dernière étant flushée immédiatement après chaque message afin de garantir la
 fidélité de l'horodatage par rapport à l'instant d'émission. La marge d'erreur
 associée à ce mécanisme est jugée négligeable au regard de l'échelle de temps
-mesurées. Le démarrage d'un conteneur constitue une exception à ce mécanisme:
+mesurée. Le démarrage d'un conteneur constitue une exception à ce mécanisme:
 cette mesure repose sur le même protocole que les tests de bout en bout décrits
 précédemment, à savoir la réception, par un serveur à l'écoute sur l'hôte, d'une
 requête HTTP émise par le conteneur concerné.
@@ -142,12 +142,12 @@ l'image doit être téléchargée ("Time until container started (pull)", en rou
 #include "../diagrams/val-boot-time.typ"
 
 Dans les deux modes de démarrage, un peu moins d'une seconde s'écoule entre le
-démarrage du noyau et le passage à `/init`, puis environ 0.6 secondes
+démarrage du noyau et le passage à `/init`, puis environ 0.6 seconde
 supplémentaire est nécessaire à la réconciliation et au protocole DHCP, portant
-à environ 1.5 secondes le délai avant que l'API ne devienne joignable.
+à environ 1.5 seconde le délai avant que l'API ne devienne joignable.
 
 Le téléchargement de l'image du conteneur, s'il y a lieu, commence environ 0.5
-secondes après la configuration DHCP. Une fois celui-ci commencé, environ 2.1
+seconde après la configuration DHCP. Une fois celui-ci commencé, environ 2.1
 secondes sont nécessaires pour qu'il arrive à son terme. Le conteneur est
 immédiatement démarré une fois ce téléchargement terminé . Lorsque l'image est
 déjà téléchargée, le téléchargement se termine instantanément et le conteneur
@@ -162,7 +162,7 @@ environ 2.1 secondes lorsque l'image est déjà présente localement. En excluan
 les délais qui ne relèvent pas directement du système, à savoir le chargement du
 noyau, l'obtention d'une configuration réseau via DHCP et le téléchargement de
 l'image, le temps propre au démarrage du conteneur est inférieur à 500
-millisecondes. Il n'y a par ailleur pas différence notable entre un démarrage
+millisecondes. Il n'y a par ailleurs pas différence notable entre un démarrage
 sur disque et un démarrage depuis l'image ISO.
 
 La #figure-num-ref(<val-install-time>) présente la durée du processus
@@ -179,8 +179,8 @@ système, la réconciliation réseau et le téléchargement de l'image.
 L'installation proprement dite se conclut en environ 6.3 secondes. Le démarrage
 complet du conteneur, incluant le redémarrage du système et le cycle décrit à la
 #figure-num-ref(<val-boot-time>), se conclut quant à lui en environ 19.3
-secondes. Ce total inclus le temps nécessaire à l'hyperviseur pour redémarrer la
-machine virtuelle (par exemple le chargement du BIOS) et le délais de sélection
+secondes. Ce total inclut le temps nécessaire à l'hyperviseur pour redémarrer la
+machine virtuelle (par exemple le chargement du BIOS) et le délai de sélection
 du bootloader (environ 5 secondes).
 
 === Légèreté
@@ -207,7 +207,7 @@ le système d'exploitation complet, noyau et runtime de conteneur inclus, ne
 consomme donc qu'environ 40 MiB. Toutefois, il n'est pas pour autant possible de
 démarrer une machine virtuelle avec seulement 20 MiB de mémoire. En effet,
 durant le démarrage, un minimum de 80 MiB sont requis afin que le système
-démarre, et dans l'optique de télécharger une image et exécuter un conteneur au
+démarre, et dans l'optique de télécharger une image et exécuter un conteneur, au
 minimum 160 MiB sont requis.
 
 == Limitations
@@ -216,6 +216,6 @@ reflète pas nécessairement l'ensemble des conditions rencontrées en usage ré
 Les mesures présentées correspondent à un scénario favorable, dans lequel le
 délai d'obtention d'une adresse via DHCP, la charge du processeur hôte et la
 latence réseau ne sont pas artificiellement dégradés. Une charge processeur ou
-un délai réseau plus élevés que ceux observés durant les mesures conduiraient à
+un délai réseau plus élevé que ceux observés durant les mesures conduiraient à
 une augmentation des temps rapportés, notamment pour les étapes dépendant du
 réseau, telles que la réconciliation DHCP et le téléchargement d'image.

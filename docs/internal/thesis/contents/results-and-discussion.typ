@@ -12,7 +12,7 @@ conclue par les perspectives d'évolution envisageables pour le système.
 Les scénarios de validation présentés au chapitre précédent démontrent que le
 système fonctionne bien dans trois configurations représentatives, et la
 comparaison avec NixOS et Talos Linux établit que le système présente une
-empreinte mémoire et des performance nettement meilleures.
+empreinte mémoire et des performances nettement meilleures.
 
 Le système fonctionne également sur un Raspberry Pi 1B, sans qu'aucune
 adaptation notable n'ait été nécessaire pour ce matériel. Bien que le projet
@@ -194,7 +194,7 @@ tout en étant une partie intégrale du système.
 Le système peut aussi être étendu pour supporter la virtualisation via libvirt,
 l'orchestrateur ne percevant, dans tous les cas, qu'une ressource à réconcilier,
 le comportement spécifique restant délégué au contrôleur correspondant. Cela
-nécessiterai toutefois d'implémenter divers aspect supplémentaires pour
+nécessiterait toutefois d'implémenter divers aspects supplémentaires pour
 permettre de déléguer un disque ou une carte graphique à une machine
 virtuelle.Un autre axe d'amélioration consisterait à renforcer la légèreté du
 système, en se basant sur une configuration du noyau minimale, dans laquelle

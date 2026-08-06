@@ -31,6 +31,8 @@ languageSettings:
       - typstfmt
       - désérialisation
       - Sidero
+      - LUKS
+      - asynchronicité
   - languageId: typst
     ignoreRegExpList:
       - string
