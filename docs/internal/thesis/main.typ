@@ -94,10 +94,7 @@
     include "/abstract/main.typ"
 }
 
-#todo[
-    - Acronyms list
-    - Glossaire
-]
+#include "glossary.typ"
 
 #set page(
     footer: context [

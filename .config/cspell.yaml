@@ -35,6 +35,7 @@ languageSettings:
       - asynchronicité
       - nixpkgs
       - netavark
+      - glspl
   - languageId: typst
     ignoreRegExpList:
       - string
