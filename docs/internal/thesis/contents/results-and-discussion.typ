@@ -9,10 +9,10 @@ cours du développement sont ensuite détaillées, avant que le chapitre ne se
 conclue par les perspectives d'évolution envisageables pour le système.
 
 == Résultats fonctionnels
-Les scénarios de validation présentés au chapitre précédent démontrent que le
-système fonctionne bien dans trois configurations représentatives, et la
-comparaison avec NixOS et Talos Linux établit que le système présente une
-empreinte mémoire et des performances nettement meilleures.
+Les scénarios de validation présentés au #chapter-full-ref(<ch:validation>)
+démontrent que le système fonctionne bien dans trois configurations
+représentatives, et la comparaison avec NixOS et Talos Linux établit que le
+système présente une empreinte mémoire et des performances nettement meilleures.
 
 Le système fonctionne également sur un Raspberry Pi 1B, sans qu'aucune
 adaptation notable n'ait été nécessaire pour ce matériel. Bien que le projet
@@ -23,11 +23,11 @@ inférieures à celles des modèles visés initialement.
 
 D'un point de vue fonctionnel, la valeur ajoutée du système réside dans sa
 rapidité de démarrage et dans sa faible empreinte mémoire, deux propriétés
-mesurées au chapitre précédent et confirmées par la comparaison avec les
-solutions existantes: le système démarre un conteneur en quelques secondes et
-fonctionne avec une empreinte mémoire de 160 MiB, ce qui permet un déploiement
-quasi immédiat, aussi bien depuis une image ISO que depuis une installation sur
-disque.
+mesurées au #chapter-full-ref(<ch:validation:bench>) et confirmées par la
+comparaison avec les solutions existantes: le système démarre un conteneur en
+quelques secondes et fonctionne avec une empreinte mémoire de 160 MiB, ce qui
+permet un déploiement quasi immédiat, aussi bien depuis une image ISO que depuis
+une installation sur disque.
 
 Le système présente toutefois des limites fonctionnelles. Deux fonctionnalités
 identifiées lors de la planification ne sont pas implémentées: la gestion de
@@ -67,10 +67,10 @@ l'avancement réel devient plus approximative. La tâche "Test et validation"
 figurant sur le diagramme ne recouvre pas l'ensemble des activités de test
 menées durant le projet, le système faisant l'objet de tests continus dès les
 premières étapes de son développement, notamment au moyen des tests unitaires et
-d'intégration décrits au chapitre précédent. Cette tâche est avancée et
-prolongée au-delà de la durée prévue, recouvrant une partie de la période
-initialement réservée à l'amélioration du code, cette dernière tâche ayant
-elle-même été anticipée. Ce chevauchement s'explique par la nécessité de
+d'intégration décrits au #chapter-full-ref(<ch:validation>). Cette tâche est
+avancée et prolongée au-delà de la durée prévue, recouvrant une partie de la
+période initialement réservée à l'amélioration du code, cette dernière tâche
+ayant elle-même été anticipée. Ce chevauchement s'explique par la nécessité de
 consolider certains composants avant que les tests de bout en bout ne puissent
 être exécutés de manière fiable.
 

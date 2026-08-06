@@ -21,10 +21,9 @@ dont la réconciliation est prise en charge par un orchestrateur centralisé, ce
 choix architectural privilégiant la coordination des dépendances entre
 ressources, au détriment d'une flexibilité de planification jugée secondaire au
 regard du périmètre du système. L'implémentation de cette architecture,
-détaillée au chapitre #chapter-full-ref(
-    <ch:implementation>,
-), repose sur Rust pour l'ensemble des composants et sur Nix pour la chaîne de
-build, ce dernier choix garantissant la reproductibilité des artefacts produits.
+détaillée au #chapter-full-ref(<ch:implementation>), repose sur Rust pour
+l'ensemble des composants et sur Nix pour la chaîne de build, ce dernier choix
+garantissant la reproductibilité des artefacts produits.
 
 Les résultats présentés au #chapter-full-ref(<ch:results>) établissent que le
 système dépasse le stade d'une simple preuve de concept. Le déploiement d'une

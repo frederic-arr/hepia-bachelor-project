@@ -773,11 +773,11 @@ que si le système est démarré en mode maintenance.
 
 Lorsqu'une configuration comportant une ressource `install` est soumise à l'API,
 l'ensemble des ressources qu'elle contient est d'abord validé, puis enregistré
-dans l'état interne du système, conformément au mécanisme décrit au chapitre
-#chapter-full-ref(<ch:implementation:api>). La file d'attente de réconciliations
-est toutefois suspendue avant que cette installation ne soit commencée, ce qui
-empêche toute réconciliation d'une ressource et garantit que l'installation
-s'exécute sur un état stable.
+dans l'état interne du système, tel que décrit au #chapter-full-ref(
+    <ch:implementation:api>,
+). La file d'attente de réconciliations est toutefois suspendue avant que cette
+installation ne soit commencée, ce qui empêche toute réconciliation d'une
+ressource et garantit que l'installation s'exécute sur un état stable.
 
 Le disque système est partitionné selon un schéma composé de quatre partitions:
 une partition de boot de 1 MiB, une partition contenant les fichiers de Limine
@@ -804,7 +804,7 @@ entre trois usages du terme "Nix": Nix en tant que système de build
 @bib-nix-build, Nix en tant que gestionnaire de paquets @bib-nixpkgs, et Nix en
 tant que distribution Linux (NixOS) @bib-nixos. Seul le premier usage, complété
 partiellement par le second, est utilisé dans le cadre de ce projet. Les
-concepts essentiels de Nix nécessaires à la compréhension de cette section sont
+concepts essentiels de Nix nécessaires à la compréhension de ce chapitre sont
 présentés à l'#appendix-num-ref(<appendix:nix-primer>).
 
 Le recours à Nix vise à fournir un environnement stable entre la machine de

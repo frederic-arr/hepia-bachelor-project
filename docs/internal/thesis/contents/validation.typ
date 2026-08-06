@@ -87,11 +87,10 @@ machine redémarrée, puis le résultat revérifié afin de valider que la donn�
 bien été persister.
 
 == Analyse de performance <ch:validation:bench>
-Les scénarios d'exécution en environnement éphémère et d'installation du
-système, décrits à la section précédente, sont repris ici selon le même
-protocole, en y ajoutant une instrumentation permettant de mesurer le temps
-écoulé entre chaque étape du cycle de vie, ainsi que la mémoire consommée par le
-système, le tout sur 100 échantillons.
+Les scénarios d'exécution en environnement éphémère et d'installation du système
+sont repris ici selon le même protocole, en y ajoutant une instrumentation
+permettant de mesurer le temps écoulé entre chaque étape du cycle de vie, ainsi
+que la mémoire consommée par le système, le tout sur 100 échantillons.
 
 Les mesures reposent sur la configuration QEMU présentée au #code-num-ref(
     <code-qemu-bench>,

@@ -402,10 +402,10 @@ utilisée dans cet exemple, combinant l'installation du système sur disque,
 l'accès à l'API, la configuration réseau, ainsi qu'un conteneur exécutant un
 serveur HTTP minimal et accessible depuis l'extérieur.
 
-Une fois la machine virtuelle démarrée depuis l'image ISO, la commande suivante
-permet de transmettre cette configuration au serveur dont l'adresse est désignée
-par `$IP`; elle déclenche à la fois l'installation du système sur le disque et
-le déploiement du serveur HTTP:
+Une fois la machine virtuelle démarrée depuis l'image ISO, la commande présentée
+au #code-num-ref(<cmd-install>) permet de transmettre cette configuration au
+serveur dont l'adresse est désignée par `$IP`; elle déclenche à la fois
+l'installation du système sur le disque et le déploiement du serveur HTTP:
 
 #figure(
     label: <cmd-install>,
