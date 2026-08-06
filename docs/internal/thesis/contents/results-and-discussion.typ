@@ -3,10 +3,10 @@
 = Résultats et Discussion <ch:results>
 Ce chapitre dresse le bilan du travail réalisé. Les résultats obtenus sont
 d'abord présentés, tant sur le plan fonctionnel qu'au regard des objectifs
-académiques fixés en introduction, avant qu'un retour rétrospectif ne soit porté
-sur les principaux choix techniques opérés. Les difficultés rencontrées au cours
-du développement sont ensuite détaillées, avant que le chapitre ne se conclue
-par les perspectives d'évolution envisageables pour le système.
+académiques fixés en introduction, avant qu'un retour rétrospectif ne soit fait
+sur les principaux choix techniques effectués. Les difficultés rencontrées au
+cours du développement sont ensuite détaillées, avant que le chapitre ne se
+conclue par les perspectives d'évolution envisageables pour le système.
 
 == Résultats fonctionnels
 Les scénarios de validation présentés au chapitre précédent démontrent que le
@@ -42,14 +42,14 @@ et des conteneurs a été implémentée, principalement dans un souci de temps.
 
 == Résultats académiques <results-academic>
 L'ensemble des objectifs techniques formulés dans l'énoncé du sujet sont remplis
-par le système développé. Les résultats fonctionnels présentés à la section
-précédente, en particulier la validation des trois scénarios de bout en bout et
-l'atteinte de l'objectif de légèreté par comparaison avec Talos Linux,
-établissent cette conformité. Les deux fonctionnalités non implémentées ne
-figurent pas parmi les objectifs centraux de l'énoncé et sont écartées afin de
-concentrer l'effort sur la robustesse du système, jugée prioritaire. Au regard
-de l'ensemble de ces éléments, les objectifs de l'énoncé du sujet sont
-considérés comme atteints avec grande satisfaction.
+par le système développé. Les résultats fonctionnels présentés à le
+#chapter-full-ref(<ch:validation>), en particulier la validation des trois
+scénarios de bout en bout et les mesures effectuées confirme cela. Les deux
+fonctionnalités non implémentées ne figurent pas parmi les objectifs centraux de
+l'énoncé et sont écartées afin de concentrer l'effort sur la robustesse du
+système, jugée prioritaire. Au regard de l'ensemble de ces éléments, les
+objectifs de l'énoncé du sujet sont considérés comme atteints avec grande
+satisfaction.
 
 La planification initiale du travail de diplôme est établie sous la forme d'un
 diagramme de Gantt, structuré par semaine sur l'ensemble de la durée du projet.
@@ -63,19 +63,16 @@ posteriori par l'avancement effectif de chaque tâche.
 
 La planification reste fidèle à l'avancement effectif jusqu'au début du mois de
 juillet. À partir de cette période, la correspondance entre la planification et
-l'avancement réel devient plus approximative, l'avancement constaté jusqu'alors
-laissant présager une marge suffisante pour respecter les délais fixés; le
-rythme de travail est alors volontairement réduit.
-
-La tâche "Test et validation" figurant sur le diagramme ne recouvre pas
-l'ensemble des activités de test menées durant le projet, le système faisant
-l'objet de tests continus dès les premières étapes de son développement,
-notamment au moyen des tests unitaires et d'intégration décrits au chapitre
-précédent. Cette tâche est avancée et prolongée au-delà de la durée prévue,
-recouvrant une partie de la période initialement réservée à l'amélioration du
-code, cette dernière tâche ayant elle-même été anticipée. Ce chevauchement
-s'explique par la nécessité de consolider certains composants avant que les
-tests de bout en bout ne puissent être exécutés de manière fiable.
+l'avancement réel devient plus approximative. La tâche "Test et validation"
+figurant sur le diagramme ne recouvre pas l'ensemble des activités de test
+menées durant le projet, le système faisant l'objet de tests continus dès les
+premières étapes de son développement, notamment au moyen des tests unitaires et
+d'intégration décrits au chapitre précédent. Cette tâche est avancée et
+prolongée au-delà de la durée prévue, recouvrant une partie de la période
+initialement réservée à l'amélioration du code, cette dernière tâche ayant
+elle-même été anticipée. Ce chevauchement s'explique par la nécessité de
+consolider certains composants avant que les tests de bout en bout ne puissent
+être exécutés de manière fiable.
 
 == Difficultés rencontrées
 Le développement du système, bien qu'ayant abouti à une solution fonctionnelle,
@@ -180,11 +177,11 @@ des directions plus larges.
 
 Concernant l'usage primaire du système, centré sur les conteneurs, trois
 fonctionnalités apparaissent prioritaires: l'ajout d'une couche d'observabilité,
-l'ajout d'un mécanisme d'ordonnancement, et la gestion plus poussée du stockage.
-D'autres extensions sont envisageables dans un second temps, notamment
-l'extension de la gestion du réseau, par exemple pour le support des VPN ou du
-routage plus complexe, ainsi que l'extension de la gestion des conteneurs avec
-un modèle similaire aux "Pods" de Kubernetes ou de Podman.
+l'ajout d'un mécanisme de planification de tâches similaire à CRON, et la
+gestion plus poussée du stockage. D'autres extensions sont envisageables dans un
+second temps, notamment l'extension de la gestion du réseau, par exemple pour le
+support des VPN ou du routage plus complexe, ainsi que l'extension de la gestion
+des conteneurs avec un modèle similaire aux "Pods" de Kubernetes ou de Podman.
 
 Le projet peut également être rendu plus générique. La partie orchestration et
 ordonnancement est conceptuellement découplée des ressources qu'elle gère, ce
@@ -196,10 +193,12 @@ tout en étant une partie intégrale du système.
 
 Le système peut aussi être étendu pour supporter la virtualisation via libvirt,
 l'orchestrateur ne percevant, dans tous les cas, qu'une ressource à réconcilier,
-le comportement spécifique restant délégué au contrôleur correspondant. Un
-support étendu du stockage, incluant des systèmes de fichiers tels que ZFS et
-des tâches planifiées comme dans CRON, permettrait de transformer le système en
-solution de stockage.
+le comportement spécifique restant délégué au contrôleur correspondant. Cela
+nécessiterai toutefois d'implémenter divers aspect supplémentaires pour
+permettre de déléguer un disque ou une carte graphique à une machine
+virtuelle.Un autre axe d'amélioration consisterait à renforcer la légèreté du
+système, en se basant sur une configuration du noyau minimale, dans laquelle
+seuls certains pilotes seraient disponibles.
 
 Ces perspectives illustrent qu'un nombre restreint de modifications
 conceptuelles est peut transformer fondamentalement la portée du projet,

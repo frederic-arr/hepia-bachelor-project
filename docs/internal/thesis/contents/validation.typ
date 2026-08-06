@@ -8,7 +8,7 @@
     stroke: v,
 )
 
-= Tests et validation
+= Tests et validation <ch:validation>
 Ce chapitre présente la démarche de validation adoptée pour vérifier le
 comportement du système implémenté. La couverture assurée par les tests
 unitaires et les tests d'intégration, propres à chaque composant, est d'abord
