@@ -145,10 +145,10 @@ de conteneurs, comme illustré dans la #figure-num-ref(<cfgshared>):
     #include "../diagrams/cfgshared.typ"
 
     Par exemple, deux configurations de conteneurs #bref(<cfgshared-cfg>)
-    indépendantes créent deux conteneurs qui semblent eux-aussi
-    indépendants #bref(<cfgshared-real>), mais qui pointent en réalité vers une
-    même ressource, en l'espèce l'image #bref(<cfgshared-conflict>). En raison
-    des propriétés de la gestion des images dans un runtime de conteneurs, la
+    indépendantes créent deux conteneurs qui semblent eux-aussi indépendants
+    #bref(<cfgshared-real>), mais qui pointent en réalité vers une même
+    ressource, en l'espèce l'image #bref(<cfgshared-conflict>). En raison des
+    propriétés de la gestion des images dans un runtime de conteneurs, la
     création ne pose pas de problèmes; l'image sera téléchargée par le runtime
     puis utilisée par les conteneurs. En revanche, la suppression pose problème:
     un runtime ne supprime jamais les images de lui-même, et au fil de
@@ -254,8 +254,8 @@ statut administratif doit être "up" #footnote[
     Linux fait la distinction entre l'état administratif et l'état opérationnel
     d'une interface. L'état administratif indique si l'administrateur souhaite
     utiliser le périphérique pour le trafic. L'état opérationnel indique la
-    capacité d'une interface à transmettre ces données
-    utilisateur @bib-linux-operstate.
+    capacité d'une interface à transmettre ces données utilisateur
+    @bib-linux-operstate.
 ]. L'état physique de l'interface (status administratif, status opérationnel,
 adresse MAC, etc.) est d'abord récupéré #bref(<decl-obs>) constituant ainsi
 l'état observé, puis comparé à la spécification #bref(<decl-diff>). Dans le cas

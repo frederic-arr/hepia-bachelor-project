@@ -7,16 +7,16 @@
 == Contexte et problématique
 La conteneurisation s'est imposée comme le mode standard de déploiement des
 applications dans les environnements modernes. Les outils qui gravitent autour
-d'elle, tels que Docker Compose @bib-docker-compose ou
-Kubernetes @bib-kubernetes, adoptent un mode d'opération déclaratif dans lequel
+d'elle, tels que Docker Compose @bib-docker-compose ou Kubernetes
+@bib-kubernetes, adoptent un mode d'opération déclaratif dans lequel
 l'utilisateur décrit l'état désiré et le système se charge de le maintenir. Ce
-paradigme a également gagné l'infrastructure avec des outils tels que
-Terraform @bib-terraform, permettant de gérer l'infrastructure sous forme de
-code (IaC) @bib-ibm-iac plutôt qu'au moyen de procédures manuelles. Le modèle
-GitOps s'appuie sur cette pratique en utilisant un dépôt Git comme unique source
-de vérité de la configuration, déclarée au moyen d'outils tels que ceux
-mentionnés précédemment. Il s'agit d'une partie importante de la mise en œuvre
-des pratiques DevOps et de CI/CD @bib-gitops. Dans ces approches, l'interaction
+paradigme a également gagné l'infrastructure avec des outils tels que Terraform
+@bib-terraform, permettant de gérer l'infrastructure sous forme de code (IaC)
+@bib-ibm-iac plutôt qu'au moyen de procédures manuelles. Le modèle GitOps
+s'appuie sur cette pratique en utilisant un dépôt Git comme unique source de
+vérité de la configuration, déclarée au moyen d'outils tels que ceux mentionnés
+précédemment. Il s'agit d'une partie importante de la mise en œuvre des
+pratiques DevOps et de CI/CD @bib-gitops. Dans ces approches, l'interaction
 directe avec le système d'exploitation devient l'exception plutôt que la règle.
 
 Toutefois, les systèmes d'exploitation sous-jacents reposent encore
@@ -29,13 +29,13 @@ de manière distincte du système d'exploitation. De ce fait, la complexité de 
 configuration et du maintien en état repose entièrement sur l'administrateur.
 
 Certaines solutions plus spécialisées existent, alliant déclarativité et support
-natif pour la conteneurisation, mais elles souffrent de lacunes diverses.
-NixOS @bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
+natif pour la conteneurisation, mais elles souffrent de lacunes diverses. NixOS
+@bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
 conteneurs, mais cette déclarativité reste ponctuelle: l'état désiré est
 appliqué une seule fois, à l'exécution d'une commande, sans qu'aucune boucle de
 contrôle ne surveille ensuite le système ni n'en corrige les dérives
-susceptibles de survenir par la suite. D'autres solutions, telles que
-Talos Linux @bib-talos, permettent une administration entièrement déclarative et
+susceptibles de survenir par la suite. D'autres solutions, telles que Talos
+Linux @bib-talos, permettent une administration entièrement déclarative et
 continue, mais s'intègrent étroitement avec Kubernetes, au prix d'une complexité
 opérationnelle et d'une empreinte mémoire disproportionnées pour le simple
 déploiement de quelques conteneurs.

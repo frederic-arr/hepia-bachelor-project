@@ -136,8 +136,8 @@ l'API devient accessible, le début du téléchargement d'une image de conteneur
 ("Time until image downloading", en turquoise #vl(teal)), le démarrage d'un
 conteneur dont l'image est déjà présente localement ("Time until container
 started (no pull)", en violet #vl(purple)), et le démarrage d'un conteneur dont
-l'image doit être téléchargée ("Time until container started (pull)", en
-rouge #vl(red)):
+l'image doit être téléchargée ("Time until container started (pull)", en rouge
+#vl(red)):
 
 #include "../diagrams/val-boot-time.typ"
 
