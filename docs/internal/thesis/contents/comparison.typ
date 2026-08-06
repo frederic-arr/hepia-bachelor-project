@@ -9,7 +9,7 @@ et évaluée individuellement selon ces critères; une synthèse comparative con
 ce chapitre.
 
 == Critères
-Les critères utilisés sont repris du projet de semestre~@bib-semester-projet.
+Les critères utilisés sont repris du projet de semestre @bib-semester-projet.
 
 === Automatisation
 Le cycle de vie de la solution doit être entièrement automatisable, dès la phase

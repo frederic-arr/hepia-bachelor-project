@@ -7,16 +7,16 @@
 == Contexte et problématique
 La conteneurisation s'est imposée comme le mode standard de déploiement des
 applications dans les environnements modernes. Les outils qui gravitent autour
-d'elle, tels que Docker~Compose~@bib-docker-compose ou
-Kubernetes~@bib-kubernetes, adoptent un mode d'opération déclaratif dans lequel
+d'elle, tels que Docker Compose @bib-docker-compose ou
+Kubernetes @bib-kubernetes, adoptent un mode d'opération déclaratif dans lequel
 l'utilisateur décrit l'état désiré et le système se charge de le maintenir. Ce
 paradigme a également gagné l'infrastructure avec des outils tels que
-Terraform~@bib-terraform, permettant de gérer l'infrastructure sous forme de
-code (IaC)~@bib-ibm-iac plutôt qu'au moyen de procédures manuelles. Le modèle
+Terraform @bib-terraform, permettant de gérer l'infrastructure sous forme de
+code (IaC) @bib-ibm-iac plutôt qu'au moyen de procédures manuelles. Le modèle
 GitOps s'appuie sur cette pratique en utilisant un dépôt Git comme unique source
 de vérité de la configuration, déclarée au moyen d'outils tels que ceux
 mentionnés précédemment. Il s'agit d'une partie importante de la mise en œuvre
-des pratiques DevOps et de CI/CD~@bib-gitops. Dans ces approches, l'interaction
+des pratiques DevOps et de CI/CD @bib-gitops. Dans ces approches, l'interaction
 directe avec le système d'exploitation devient l'exception plutôt que la règle.
 
 Toutefois, les systèmes d'exploitation sous-jacents reposent encore
@@ -30,12 +30,12 @@ configuration et du maintien en état repose entièrement sur l'administrateur.
 
 Certaines solutions plus spécialisées existent, alliant déclarativité et support
 natif pour la conteneurisation, mais elles souffrent de lacunes diverses.
-NixOS~@bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
+NixOS @bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
 conteneurs, mais cette déclarativité reste ponctuelle: l'état désiré est
 appliqué une seule fois, à l'exécution d'une commande, sans qu'aucune boucle de
 contrôle ne surveille ensuite le système ni n'en corrige les dérives
 susceptibles de survenir par la suite. D'autres solutions, telles que
-Talos~Linux~@bib-talos, permettent une administration entièrement déclarative et
+Talos Linux @bib-talos, permettent une administration entièrement déclarative et
 continue, mais s'intègrent étroitement avec Kubernetes, au prix d'une complexité
 opérationnelle et d'une empreinte mémoire disproportionnées pour le simple
 déploiement de quelques conteneurs.
@@ -68,8 +68,8 @@ direct viable.
 
 Pour garantir une empreinte mémoire minimale et une maîtrise complète sur le
 fonctionnement du système, la solution est construite directement au-dessus du
-noyau~Linux~@bib-linux-kernel, sans recourir à une distribution préexistante.
-Elle comprend un processus d'initialisation~(PID~1), un environnement
+noyau Linux @bib-linux-kernel, sans recourir à une distribution préexistante.
+Elle comprend un processus d'initialisation (PID 1), un environnement
 utilisateur (user-space) restreint (sans shell ou systemd) qui gère le système,
 et intègre uniquement le runtime de conteneurs et un bootloader comme composants
 externes #footnote[
@@ -82,7 +82,7 @@ limiter encore la surface d'attaque.
 == Cadre du travail et méthodologie
 Ce travail s'inscrit dans l'obtention du titre de Bachelor of Science en
 Informatique et systèmes de communication, orientation Informatique logicielle,
-à la Haute école du paysage, d'ingénierie et d'architecture de Genève~(HEPIA).
+à la Haute école du paysage, d'ingénierie et d'architecture de Genève (HEPIA).
 La problématique abordée est issue d'une motivation personnelle, née de
 l'expérience dans l'administration de petites infrastructures, où le maintien
 manuel de systèmes hétérogènes et l'absence de correction automatique des
@@ -97,10 +97,10 @@ L'ensemble du code source produit est disponible sur le dépôt Git institutionn
 à l'adresse suivante:
 https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os.
 L'état du dépôt au moment de la publication du présent document est disponible
-sur le tag~#repo("", [`v0.0.0-dev.3.thesis`]) tandis que le dernier code testé
+sur le tag #repo("", [`v0.0.0-dev.3.thesis`]) tandis que le dernier code testé
 est disponible sur la branche `main`.
 
-Des intelligences artificielles~(IA) génératives ont été utilisées de manière
+Des intelligences artificielles (IA) génératives ont été utilisées de manière
 ponctuelle pour améliorer la qualité rédactionnelle; un texte de base contenant
 l'intégralité du fond et de l'organisation a toujours été fourni en amont. Pour
 le code, elles ont principalement servi d'outil d'analyse, en complément des
@@ -125,7 +125,7 @@ fonctionnalités strictement nécessaires à l'obtention d'une solution testable
 comparable répondant aux objectifs techniques de l'énoncé. Enfin,
 l'implémentation de fonctionnalités supplémentaires et l'amélioration continue
 de la solution ont occupé la période allant jusqu'à fin juillet. Le déroulé
-exact des différentes étapes est disponible dans le~#chapter-full-ref(
+exact des différentes étapes est disponible dans le #chapter-full-ref(
     <results-academic>,
 ).
 
@@ -155,7 +155,7 @@ employée pour tester le système (tests unitaires, tests d'intégration, tests 
 bouts en bouts), les scénarios de validation principaux, et les mesures
 effectuées notamment en matière de rapidité et d'empreinte mémoire.
 
-Le cinquième chapitre compare la solution à Talos~Linux et NixOS. La
+Le cinquième chapitre compare la solution à Talos Linux et NixOS. La
 méthodologie est d'abord décrite, puis les deux solutions sont présentées et
 évaluées. Enfin elles sont comparés au système développé.
 

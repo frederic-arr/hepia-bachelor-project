@@ -74,7 +74,7 @@ travers un redémarrage du système, indépendamment de la persistance de la
 configuration elle-même; cette dernière catégorie est notamment utilisée pour
 les ressources d'adresse ou de route obtenues dynamiquement par DHCP et qui,
 selon la spécification du protocole, ne devraient pas persister entre deux
-redémarrages~@bib-dhcp-rfc.
+redémarrages @bib-dhcp-rfc.
 
 Une ressource partagée, à l'inverse, ne dispose d'aucun détenteur propre: elle
 est détenue par l'orchestrateur, identifiée uniquement par son type et son nom.
@@ -110,10 +110,10 @@ ressource simple, tel qu'illustré dans la #figure-num-ref(<cfgdyn>):
 Il est ainsi commun dans les systèmes existants (netplan, systemd-networkd,
 notamment) de configurer conjointement le lien réseau, les routes et les
 adresses associées au sein d'une seule et même configuration. Dans le présent
-système, un configuration de type `network:interface`~#bref(<cfgdyn-cfg>)
+système, un configuration de type `network:interface` #bref(<cfgdyn-cfg>)
 abstrait cette complexité en créant et en possédant plusieurs sous-ressources
 dynamiques (`network:link`, `network:address` et `network:route`), chacune
-correspondant à un aspect distinct~#bref(<cfgdyn-dyn>). La détenteur gère
+correspondant à un aspect distinct #bref(<cfgdyn-dyn>). La détenteur gère
 entièrement la spécification de ces enfants: lorsque sa propre spécification est
 mise à jour puis réconciliée, alors celui-ci mettra à jour la spécification de
 ses enfants. L'administrateur du système n'a lui qu'a se préoccuper de la
@@ -123,7 +123,7 @@ tel qu'illustré dans la #figure-num-ref(<cfgdhcp>):
 
 #include "../diagrams/cfgdhcp.typ"
 
-Une ressource de type `network:dhcp` est crée par l'utilisateur~#bref(
+Une ressource de type `network:dhcp` est crée par l'utilisateur #bref(
     <cfgdhcp-cfg>,
 ) et, en arrière plan, un client DHCP va configurer l'addresse et la route
 réseau lorsque celles-ci deviendront disponible a travers le protocole #bref(
@@ -144,10 +144,10 @@ de conteneurs, comme illustré dans la #figure-num-ref(<cfgshared>):
 #page(flipped: true)[
     #include "../diagrams/cfgshared.typ"
 
-    Par exemple, deux configurations de conteneurs~#bref(<cfgshared-cfg>)
+    Par exemple, deux configurations de conteneurs #bref(<cfgshared-cfg>)
     indépendantes créent deux conteneurs qui semblent eux-aussi
-    indépendants~#bref(<cfgshared-real>), mais qui pointent en réalité vers une
-    même ressource, en l'espèce l'image~#bref(<cfgshared-conflict>). En raison
+    indépendants #bref(<cfgshared-real>), mais qui pointent en réalité vers une
+    même ressource, en l'espèce l'image #bref(<cfgshared-conflict>). En raison
     des propriétés de la gestion des images dans un runtime de conteneurs, la
     création ne pose pas de problèmes; l'image sera téléchargée par le runtime
     puis utilisée par les conteneurs. En revanche, la suppression pose problème:
@@ -193,11 +193,11 @@ La #figure-num-ref(<cfgjoint>) illustre la résolution du conflit précédent gr
     #include "../diagrams/cfgjoint.typ"
 
     Dans la #figure-num-ref(<cfgjoint>), les deux conteneurs déclarent chacun
-    une dépendance envers la même ressource mutualisée d'image~#bref(
+    une dépendance envers la même ressource mutualisée d'image #bref(
         <cfgjoint-imgref>,
     ), plutôt que de créer chacun leur propre ressource. Cette ressource
-    mutualisée unique~#bref(<cfgjoint-joint>) est ainsi seule responsable de la
-    ressource physique correspondante~#bref(<cfgjoint-noconflict>). Il n'existe
+    mutualisée unique #bref(<cfgjoint-joint>) est ainsi seule responsable de la
+    ressource physique correspondante #bref(<cfgjoint-noconflict>). Il n'existe
     donc plus de conflit: si l'une des deux configurations change le nom de
     l'image référencée, cela crée simplement une nouvelle ressource mutualisée
     distincte, plutôt qu'un conflit sur l'ancienne.
@@ -249,19 +249,19 @@ correctives nécessaires. La #figure-num-ref(<decl>) illustre cette boucle:
 Dans le cas de la configuration d'un lien réseau #footnote[
     Un lien réseau correspond à ce qui est communément appelé une interface
     réseau.
-], par exemple, la spécification~#bref(<decl-cfg>) pourrait indiquer que le
+], par exemple, la spécification #bref(<decl-cfg>) pourrait indiquer que le
 statut administratif doit être "up" #footnote[
     Linux fait la distinction entre l'état administratif et l'état opérationnel
     d'une interface. L'état administratif indique si l'administrateur souhaite
     utiliser le périphérique pour le trafic. L'état opérationnel indique la
     capacité d'une interface à transmettre ces données
-    utilisateur~@bib-linux-operstate.
+    utilisateur @bib-linux-operstate.
 ]. L'état physique de l'interface (status administratif, status opérationnel,
-adresse MAC, etc.) est d'abord récupéré~#bref(<decl-obs>) constituant ainsi
-l'état observé, puis comparé à la spécification~#bref(<decl-diff>). Dans le cas
+adresse MAC, etc.) est d'abord récupéré #bref(<decl-obs>) constituant ainsi
+l'état observé, puis comparé à la spécification #bref(<decl-diff>). Dans le cas
 ou le status administratif serait "down", le système s'en rend compte et sait
 qu'il doit exécuter l'équivalent de `ip link set up` afin de mettre en route
-l'interface~#bref(<decl-actions>). Ce même mécanisme s'applique à toute
+l'interface #bref(<decl-actions>). Ce même mécanisme s'applique à toute
 modification ou suppression de la ressource: une modification de la
 configuration déclarative se traduit automatiquement par les actions correctives
 adéquates.

@@ -3,9 +3,9 @@
         let el = it.element
 
         if el.func() == heading {
-            return link(el.location(), [#it,~#emph(el.body)])
+            return link(el.location(), [#it, #emph(el.body)])
         } else if el.func() == figure {
-            return link(el.location(), [#it,~#emph(el.caption.body)])
+            return link(el.location(), [#it, #emph(el.caption.body)])
         } else {
             return highlight(fill: red, text(color: black)[*INVALID*])
         }

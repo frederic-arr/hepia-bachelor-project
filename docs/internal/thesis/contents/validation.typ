@@ -93,7 +93,7 @@ protocole, en y ajoutant une instrumentation permettant de mesurer le temps
 écoulé entre chaque étape du cycle de vie, ainsi que la mémoire consommée par le
 système, le tout sur 100 échantillon.
 
-Les mesures reposent sur la configuration QEMU présentée au~#code-num-ref(
+Les mesures reposent sur la configuration QEMU présentée au #code-num-ref(
     <code-qemu-bench>,
 ), exécutée sur un hôte doté d'un processeur AMD Ryzen 7 7700X, de 64 GiB de
 mémoire vive et d'un support de stockage NVMe. Cet hôte fonctionne sous Windows
@@ -130,14 +130,14 @@ démarrage jusqu'à l'exécution d'un conteneur, pour deux modes de démarrage: 
 installation préalable sur disque (plan supérieur) et un démarrage éphémère
 depuis l'image ISO, sans installation (plan inférieur). Cinq instants sont
 mesurés depuis le démarrage du noyau par le bootloader: le passage à `/init`
-("Time until /init", en vert~#vl(green)), la réception d'une route via DHCP
-("Time until DHCP route received", en bleu~#vl(blue)), moment à partir duquel
+("Time until /init", en vert #vl(green)), la réception d'une route via DHCP
+("Time until DHCP route received", en bleu #vl(blue)), moment à partir duquel
 l'API devient accessible, le début du téléchargement d'une image de conteneur
-("Time until image downloading", en turquoise~#vl(teal)), le démarrage d'un
+("Time until image downloading", en turquoise #vl(teal)), le démarrage d'un
 conteneur dont l'image est déjà présente localement ("Time until container
-started (no pull)", en violet~#vl(purple)), et le démarrage d'un conteneur dont
+started (no pull)", en violet #vl(purple)), et le démarrage d'un conteneur dont
 l'image doit être téléchargée ("Time until container started (pull)", en
-rouge~#vl(red)):
+rouge #vl(red)):
 
 #include "../diagrams/val-boot-time.typ"
 
@@ -166,9 +166,9 @@ millisecondes. Il n'y a par ailleur pas différence notable entre un démarrage
 sur disque et un démarrage depuis l'image ISO.
 
 La #figure-num-ref(<val-install-time>) présente la durée du processus
-d'installation ("Time to install", en bleu~#vl(blue)), ainsi que la durée totale
+d'installation ("Time to install", en bleu #vl(blue)), ainsi que la durée totale
 jusqu'au démarrage d'un conteneur après installation ("Time until container
-started", en orange~#vl(orange)). La première mesure l'intervalle entre la
+started", en orange #vl(orange)). La première mesure l'intervalle entre la
 réception de la configuration et la fin de l'écriture des artefacts sur le
 disque cible, avant redémarrage. La seconde mesure l'intervalle entre ce même
 instant de référence et le démarrage du conteneur, incluant le redémarrage du
@@ -184,7 +184,7 @@ machine virtuelle (par exemple le chargement du BIOS) et le délais de sélectio
 du bootloader (environ 5 secondes).
 
 === Légèreté
-Une machine virtuelle disposant de 256~MiB de RAM est utilisée pour ce test. Une
+Une machine virtuelle disposant de 256 MiB de RAM est utilisée pour ce test. Une
 configuration minimale est appliquée en mode éphémère, définissant un conteneur
 nommé chargé d'exécuter en boucle la séquence suivante: allocation d'un vecteur,
 écriture d'une suite de valeurs dans ce vecteur, vérification de la suite, envoi
@@ -200,15 +200,15 @@ système démarré.
 
 #include "../diagrams/val-memory.typ"
 
-La médiane de l'allocation atteinte se situe à environ 208~MiB. Les valeurs
-extrêmes observées se situent entre 193~et~213 MiB. La mémoire disponible est
-donc autour des~80%~de la mémoire allouée à la machine virtuelle. Par extension,
+La médiane de l'allocation atteinte se situe à environ 208 MiB. Les valeurs
+extrêmes observées se situent entre 193 et 213 MiB. La mémoire disponible est
+donc autour des 80% de la mémoire allouée à la machine virtuelle. Par extension,
 le système d'exploitation complet, noyau et runtime de conteneur inclus, ne
-consomme donc qu'environ 40~MiB. Toutefois, il n'est pas pour autant possible de
-démarrer une machine virtuelle avec seulement 20~MiB de mémoire. En effet,
-durant le démarrage, un minimum de 80~MiB sont requis afin que le système
+consomme donc qu'environ 40 MiB. Toutefois, il n'est pas pour autant possible de
+démarrer une machine virtuelle avec seulement 20 MiB de mémoire. En effet,
+durant le démarrage, un minimum de 80 MiB sont requis afin que le système
 démarre, et dans l'optique de télécharger une image et exécuter un conteneur au
-minimum 160~MiB sont requis.
+minimum 160 MiB sont requis.
 
 == Limitations
 Le protocole de mesure employé pour les benchmarks de rapidité et de légèreté ne
