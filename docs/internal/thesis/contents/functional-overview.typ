@@ -72,13 +72,13 @@ nécessite pas de nom, tandis qu'une ressource pouvant être instanciée plusieu
 fois doit être nommée afin de pouvoir la distinguer des autres instances du même
 type. Lorsqu'il est nécessaire de faire référence à une ressource, il est
 possible d'utiliser la syntaxe `<type>/<nom>` ou simplement `<type>` dans le cas
-d'une ressource globale. Outre les éléments permettant d'identifier de manière
-unique une ressource, le document de configuration contient également la
-spécification de la ressource, aussi appelée l'état désiré. Cette spécification
-contient les paramètres propres à l'instance spécifique de la ressource, tels
-que l'image d'un conteneur, l'état d'une interface réseau, ou les paramètres
-d'authentification de l'API. Il existe ainsi douze ressources, brièvement
-décrites dans le #table-num-ref(
+d'une ressource globale. Au sein d'un document, le type est représenté par le
+champ `schema` et, outre les éléments permettant d'identifier de manière unique
+une ressource, le document contient également la spécification de la ressource,
+aussi appelée l'état désiré. Cette spécification contient les paramètres propres
+à l'instance spécifique de la ressource, tels que l'image d'un conteneur, l'état
+d'une interface réseau, ou les paramètres d'authentification de l'API. Il existe
+ainsi douze ressources, brièvement décrites dans le #table-num-ref(
     <tab-resource-types>,
 ):
 
@@ -125,19 +125,17 @@ cycle de vie des conteneurs, tandis que les domaines `api`, `install` et
 
 == Déclarativité et immutabilité <ch:functional-overview:declarativity>
 Le système tentant automatiquement de réconcilier son état avec celui décrit par
-l'utilisateur, il s'agit donc d'un système déclaratif. Outre l'avantage de
-simplifier l'administration au jour le jour, la déclarativité s'intègre
-particulièrement bien dans un contexte GitOps. Le fichier de configuration
-constitue la seule source de vérité du système, toute autre modification étant
-généralement impossible. Le système peut néanmoins être amené à réagir à des
-événements particuliers, tels que la déconnexion d'un câble réseau ou l'arrêt
-inattendu du moteur de conteneurs. Étant donné que le système ne se base, à
-chaque réconciliation, que sur l'état désiré et sur l'état actuellement observé,
-sans tenir compte de la manière dont ce dernier a été atteint, toute divergence
-introduite par un tel événement est traitée comme n'importe quel autre écart à
-corriger, et le système est donc en mesure de gérer automatiquement ce type de
-situation en n'effectuant que le plus petit nombre d'actions nécessaires pour
-réconcilier ces deux états.
+l'utilisateur, il s'agit donc d'un système déclaratif. Le fichier de
+configuration constitue la seule source de vérité du système, toute autre
+modification étant généralement impossible. Le système peut néanmoins être amené
+à réagir à des événements particuliers, tels que la déconnexion d'un câble
+réseau ou l'arrêt inattendu du moteur de conteneurs. Étant donné que le système
+ne se base, à chaque réconciliation, que sur l'état désiré et sur l'état
+actuellement observé, sans tenir compte de la manière dont ce dernier a été
+atteint, toute divergence introduite par un tel événement est traitée comme
+n'importe quel autre écart à corriger, et le système est donc en mesure de gérer
+automatiquement ce type de situation en n'effectuant que le plus petit nombre
+d'actions nécessaires pour réconcilier ces deux états.
 
 Le système reste, dans son fonctionnement normal, entièrement immuable: la
 configuration ne peut être modifiée autrement que par l'API, et les fichiers
@@ -406,15 +404,15 @@ world!".
 L'ensemble des ressources nécessaires à ce scénario est combiné au sein d'un
 unique fichier de configuration, versionnable dans un dépôt Git. Ce fichier doit
 se situer sur la machine depuis laquelle le client `cos-cli` est exécuté.
-L'#appendix-num-ref(<appendix-full-config>) illustre une telle configuration,
-combinant l'installation du système sur disque, l'accès à l'API, la
-configuration réseau, ainsi qu'un conteneur exécutant un serveur HTTP minimal et
-accessible depuis l'extérieur.
+L'#appendix-num-ref(<appendix-full-config>) contient la configuration complète
+utilisée dans cet exemple, combinant l'installation du système sur disque,
+l'accès à l'API, la configuration réseau, ainsi qu'un conteneur exécutant un
+serveur HTTP minimal et accessible depuis l'extérieur.
 
 Une fois la machine virtuelle démarrée depuis l'image ISO, la commande suivante
-permet d'appliquer cette configuration au serveur dont l'adresse est désignée
-par `$IP`; elle déclenche à la fois l'installation du système sur le disque de
-l'instance et le déploiement du serveur HTTP:
+permet de transmettre cette configuration au serveur dont l'adresse est désignée
+par `$IP`; elle déclenche à la fois l'installation du système sur le disque et
+le déploiement du serveur HTTP:
 
 #figure(
     label: <cmd-install>,
@@ -440,10 +438,8 @@ du port correspondant. La même commande est réutilisée pour toute mise à jou
 ultérieure de la configuration, par exemple pour modifier l'image du conteneur
 ou ajouter un second service. Le système se charge de réconcilier
 automatiquement l'état effectif avec la nouvelle configuration transmise, sans
-redémarrage ni interruption des ressources déjà en place, conformément au modèle
-de réconciliation présenté au #chapter-full-ref(
-    <ch:functional-overview:declarativity>,
-).
+redémarrage ni interruption des ressources déjà en place, tel que décrit dans le
+#chapter-full-ref(<ch:functional-overview:declarativity>).
 
 Le même processus est également accessible via Terraform, dans le cas où
 l'instance cloud et le déploiement du système sont administrés au sein d'une
