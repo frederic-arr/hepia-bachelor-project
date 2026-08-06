@@ -16,12 +16,12 @@ système n'expose aucun accès interactif de type SSH ou console d'administratio
 locale; l'API constitue l'unique surface d'administration, tant pour la
 soumission initiale de la configuration que pour toute modification ultérieure,
 ce qui garantit une prise en main simple et une intégration naturelle dans un
-contexte GitOps. Cette déclarativité repose, sur le plan conceptuel, sur un
-modèle de ressource homogène, dont la réconciliation est prise en charge par un
-orchestrateur centralisé, ce choix architectural privilégiant la coordination
-des dépendances entre ressources, au détriment d'une flexibilité de
-planification jugée secondaire au regard du périmètre du système.
-L'implémentation de cette architecture, détaillée au chapitre #chapter-full-ref(
+contexte GitOps. Cette déclarativité repose sur un modèle de ressource homogène,
+dont la réconciliation est prise en charge par un orchestrateur centralisé, ce
+choix architectural privilégiant la coordination des dépendances entre
+ressources, au détriment d'une flexibilité de planification jugée secondaire au
+regard du périmètre du système. L'implémentation de cette architecture,
+détaillée au chapitre #chapter-full-ref(
     <ch:implementation>,
 ), repose sur Rust pour l'ensemble des composants et sur Nix pour la chaîne de
 build, ce dernier choix garantissant la reproductibilité des artefacts produits.
@@ -45,14 +45,13 @@ concret, les notions de conteneurisation abordées durant la formation,
 contribuant à une compréhension plus approfondie de leur fonctionnement interne.
 Il a en outre permis d'approfondir l'usage de Nix comme système de build, dont
 l'apport en matière de reproductibilité s'est révélé concluant, en dépit des
-temps de compilation élevés discutés au chapitre précédent.
+temps de compilation élevés discutés au #chapter-full-ref(<ch:results:limits>).
 
-Les limites identifiées, notamment l'absence d'un mécanisme de journalisation et
-de supervision, ainsi que les perspectives d'évolution détaillées précédemment,
-indiquent que le développement du système est appelé à se poursuivre au-delà du
-cadre de ce travail de diplôme. Le périmètre volontairement restreint retenu
-ici, celui du déploiement modeste et sans clustering, constitue une base sur
-laquelle les extensions envisagées, qu'il s'agisse de l'observabilité, du
-stockage ou d'une intégration plus poussée avec la conteneurisation, pourront
-être construites sans remettre en cause les choix architecturaux fondamentaux
-faits dans ce travail.
+Le périmètre volontairement restreint retenu ici, celui du déploiement modeste
+et sans clustering, constitue une base sur laquelle les extensions envisagées,
+qu'il s'agisse de l'observabilité, du stockage ou d'une intégration plus poussée
+avec la conteneurisation, pourront être construites sans remettre en cause les
+choix architecturaux fondamentaux faits dans ce travail. S'agissant d'un projet
+avant tout personnel, le développement du système est appelé à se poursuivre
+au-delà du cadre de ce travail de diplôme, avec pour objectifs immédiat
+d'implémenter les fonctionnalités relative à l'observabilité et au stockage.

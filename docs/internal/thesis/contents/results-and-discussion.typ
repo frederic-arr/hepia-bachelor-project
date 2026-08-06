@@ -74,7 +74,7 @@ elle-même été anticipée. Ce chevauchement s'explique par la nécessité de
 consolider certains composants avant que les tests de bout en bout ne puissent
 être exécutés de manière fiable.
 
-== Difficultés rencontrées
+== Difficultés rencontrées <ch:results:limits>
 Le développement du système, bien qu'ayant abouti à une solution fonctionnelle,
 conforme aux objectifs fixés, et satisfaisante, ne s'est pas déroulé sans
 obstacle. Plusieurs difficultés techniques sont rencontrées durant le
