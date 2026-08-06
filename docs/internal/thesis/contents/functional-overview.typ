@@ -78,7 +78,7 @@ une ressource, le document contient également la spécification de la ressource
 aussi appelée l'état désiré. Cette spécification contient les paramètres propres
 à l'instance spécifique de la ressource, tels que l'image d'un conteneur, l'état
 d'une interface réseau, ou les paramètres d'authentification de l'API. Il existe
-ainsi douze ressources, brièvement décrites dans le #table-num-ref(
+ainsi treize ressources, brièvement décrites dans le #table-num-ref(
     <tab-resource-types>,
 ):
 
@@ -118,10 +118,10 @@ ainsi douze ressources, brièvement décrites dans le #table-num-ref(
 Ces ressources constituent l'ensemble des aspects configurables du système et
 permettent de disposer d'un hôte de conteneurisation à part entière, sans
 qu'aucun composant ou service supplémentaire ne soit requis en dehors de ceux
-décrits par ces douze types de ressources. Les domaines `network` et `container`
-couvrent respectivement l'ensemble de la configuration réseau et l'ensemble du
-cycle de vie des conteneurs, tandis que les domaines `api`, `install` et
-`system` couvrent l'administration du système lui-même.
+décrits par ces treize types de ressources. Les domaines `network` et
+`container` couvrent respectivement l'ensemble de la configuration réseau et
+l'ensemble du cycle de vie des conteneurs, tandis que les domaines `api`,
+`install` et `system` couvrent l'administration du système lui-même.
 
 == Déclarativité et immutabilité <ch:functional-overview:declarativity>
 Le système tentant automatiquement de réconcilier son état avec celui décrit par
@@ -201,7 +201,6 @@ travers diverses commandes décrites dans le #table-num-ref(<tab-cli-commands>):
             [Consulte l'état d'une ressource],
         ),
         ..([```sh system reboot```], [Redémarre ou éteint le système]),
-        ..([```sh container logs```], [Conslute les logs d'un conteneur]),
     ),
 )
 
@@ -216,15 +215,10 @@ toute autre ressource du système, comme illustré dans le #code-num-ref(
 ). Cette ressource permet de définir le mécanisme d'authentification requis,
 ainsi que l'adresse depuis laquelle l'API est accessible, restreignant ainsi la
 surface d'exposition du système sur le réseau. L'absence d'authentification,
-utilisée dans la configuration par défaut, convient à un usage de test ou
-d'évaluation rapides, mais n'est pas recommandée pour un déploiement exposé à
-Internet; il existe une autre version de l'image ISO démarrant avec une API
-complètement inaccessible et nécessitant de paramétrer un mot de passe
-manuellement avant de rendre celle-ci accessible. Ce mode est toutefois
-contraire aux objectifs et est fourni uniquement à titre d'alternative: la phase
-d'installation étant relativement courte, et le serveur ne possédant pas encore
-de données sensible, il est considéré que laisser un tel accès ouvert durant
-quelques secondes (entre le démarrage de l'API et la transmission d'une
+utilisée dans la configuration par défaut est destiné a un usage temporaire: la
+phase d'installation étant relativement courte, et le serveur ne possédant pas
+encore de données sensible, il est considéré que laisser un tel accès ouvert
+durant quelques secondes (entre le démarrage de l'API et la transmission d'une
 configuration initiale) est convenable#footnote[
     C'est aussi le parti pris d'autres solutions, tel que Talos Linux.
 ].
@@ -305,23 +299,23 @@ une telle configuration:
     caption: [Configuration d'une runtime de conteneur],
     note: [
         Une runtime de conteneur utilisant Podman est configurée en mode
-        "rootfull".
+        "rootless".
     ],
     source: made-by-self,
     ```yaml
     ---
     schema: container:runtime
-    name: rootfull
+    name: rootless
     engine: podman
-    uid: 0
-    gid: 0
+    uid: 1000
+    gid: 1000
     depends_on:
       - network:dns
       - network:route/eth0-dhcp
     ```,
 )
 
-Le #code-num-ref(<code-config-runtime>) spécifie l'id utilisateur et groupe
+Le #code-num-ref(<code-config-runtime>) spécifie l'id utilisateur et groupe non
 root, mais aussi un ensemble de dépendances à des ressources DNS et réseau. Ces
 dépendances ne sont pas strictement nécessaires, mais permettent d'éviter
 d'instancier le runtime tant que la couche réseau n'est pas disponible, ce qui
@@ -348,7 +342,7 @@ décrits dans le #code-num-ref(<code-config-container>):
     name: demo
     image: docker.io/alpine/curl:latest
     restart: never
-    runtime: rootfull
+    runtime: rootless
     cmd: [http://10.0.2.2:1234]
     ```,
 )
@@ -369,14 +363,14 @@ réseau de conteneurs se fait via une ressource dédiée, illustrée dans le
     caption: [Configuration d'un réseau de conteneurs],
     note: [
         Configuration d'un réseau de conteneur sur le runtime de conteneur nommé
-        "rootfull".
+        "rootless".
     ],
     source: made-by-self,
     ```yaml
     ---
     schema: container:network
     name: my-network
-    runtime: rootfull
+    runtime: rootless
     ```,
 )
 

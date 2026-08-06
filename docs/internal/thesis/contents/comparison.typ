@@ -1,6 +1,6 @@
 #import "../lib.typ": *
 
-= Comparaison avec les solutions existantes
+= Comparaison avec les solutions existantes <ch:comparison>
 Ce chapitre compare directement le système implémenté aux deux solutions les
 plus proches identifiées durant le projet de semestre, à savoir NixOS et Talos
 Linux. Les critères d'évaluation retenus sont d'abord définis, avant que la

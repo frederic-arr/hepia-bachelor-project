@@ -1,6 +1,7 @@
 #import "/packages.typ": *
 #import "/lib/templates/cover/lib.typ": *
 #import "lib.typ": *
+#import "/lib/_utils.typ"
 #import packages.codly: *
 #import packages.codly-languages: *
 
@@ -10,7 +11,7 @@
     date: datetime(year: 2026, month: 09, day: 01),
     keywords: ("conteneurs", "système d'exploitation"),
 )
-#set text(font: "Liberation Serif", lang: "fr", hyphenate: false)
+#show: _utils.common-config
 
 #cover(
     title: [OS pour le déploiement de services conteneurisés],
@@ -44,7 +45,6 @@
     client: none,
 )
 
-#set text(size: 12pt)
 #set par(
     justify: true,
     first-line-indent: 1cm,
@@ -103,7 +103,7 @@
     footer: context [
         #set text(size: 10pt)
 
-        Frédéric ARROYO
+        ARROYO Frédéric
         #h(1fr)
         *#counter(page).display("1")*
     ],

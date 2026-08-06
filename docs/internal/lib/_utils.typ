@@ -5,7 +5,7 @@
     show smallcaps: set text(font: "Alegreya Sans SC")
     set par(
         justify: true,
-        first-line-indent: (amount: 2em, all: true),
+        first-line-indent: (amount: 2em, all: false),
         leading: 0.65em,
         spacing: 1.2em,
     )

@@ -13,11 +13,13 @@ l'utilisateur décrit l'état désiré et le système se charge de le maintenir.
 paradigme a également gagné l'infrastructure avec des outils tels que Terraform
 @bib-terraform, permettant de gérer l'infrastructure sous forme de code (IaC)
 @bib-ibm-iac plutôt qu'au moyen de procédures manuelles. Le modèle GitOps
-s'appuie sur cette pratique en utilisant un dépôt Git comme unique source de
-vérité de la configuration, déclarée au moyen d'outils tels que ceux mentionnés
-précédemment. Il s'agit d'une partie importante de la mise en œuvre des
-pratiques DevOps et de CI/CD @bib-gitops. Dans ces approches, l'interaction
-directe avec le système d'exploitation devient l'exception plutôt que la règle.
+@bib-gitops pousse cette logique plus loin, en faisant d'un dépôt Git l'unique
+source de vérité de la configuration ainsi déclarée, toute modification de
+l'infrastructure ou des applications déployées transitant par un commit
+versionné dans ce dépôt plutôt que par une action directe sur le système cible.
+Il s'agit d'une partie importante de la mise en œuvre des pratiques DevOps et de
+CI/CD. Dans ces approches, l'interaction directe avec le système d'exploitation
+devient l'exception plutôt que la règle.
 
 Toutefois, les systèmes d'exploitation sous-jacents reposent encore
 majoritairement sur des distributions génériques, administrées avec des outils
@@ -33,19 +35,19 @@ natif pour la conteneurisation, mais elles souffrent de lacunes diverses. NixOS
 @bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
 conteneurs, mais cette déclarativité reste ponctuelle: l'état désiré est
 appliqué une seule fois, à l'exécution d'une commande, sans qu'aucune boucle de
-contrôle ne surveille ensuite le système ni n'en corrige les dérives
-susceptibles de survenir par la suite. D'autres solutions, telles que Talos
-Linux @bib-talos, permettent une administration entièrement déclarative et
-continue, mais s'intègrent étroitement avec Kubernetes, au prix d'une complexité
-opérationnelle et d'une empreinte mémoire disproportionnées pour le simple
-déploiement de quelques conteneurs.
+contrôle ne surveille le système ni n'en corrige les dérives susceptibles de
+survenir par la suite. D'autres solutions, telles que Talos Linux @bib-talos,
+permettent une administration entièrement déclarative et continue, mais
+s'intègrent étroitement avec Kubernetes, au prix d'une complexité opérationnelle
+et d'une empreinte mémoire disproportionnées pour le simple déploiement de
+quelques conteneurs.
 
-Il manque donc un système d'exploitation capable de décrire la configuration de
-l'hôte et des conteneurs dans un modèle déclaratif unique et homogène, et de
-maintenir cet état de manière continue et autonome. Un tel système serait
-particulièrement pertinent pour les déploiements modestes ou embarqués, où la
-complexité d'un orchestrateur complet n'est pas justifiée, mais où il est
-néanmoins souhaitable de disposer d'un système déclaratif.
+Il manque donc un système d'exploitation dans lequel il est possible de décrire
+la configuration de l'hôte et des conteneurs dans un modèle déclaratif unique et
+homogène, et capable de maintenir cet état de manière continue et autonome. Un
+tel système serait particulièrement pertinent pour les déploiements modestes ou
+embarqués, où la complexité d'un orchestrateur complet n'est pas justifiée, mais
+où il est néanmoins souhaitable de disposer d'un système déclaratif.
 
 == Objectifs
 L'objectif central est de fournir un système d'exploitation entièrement
@@ -130,35 +132,14 @@ exact des différentes étapes est disponible dans le #chapter-full-ref(
 ).
 
 == Structure du document
-#todo-revise[Description structure du document][
-    - Bien mettre les sous-section dans l'ordre
-]
-
-Le reste du document est organisé en six chapitres.
-
-Le premier chapitre présente le système du point de vue de l'utilisateur: il
-décrit ... Les notions nécessaires à la compréhension de la solution y sont
-introduites, sans entrer dans les détails internes.
-
-Le deuxième chapitre expose la conception détaillée: il définit l'architecture
-générale, l'organisation des composants, ainsi que les structures de données
-propres au modèle déclaratif et au mécanisme de réconciliation.
-
-Le troisième chapitre traite de l'implémentation: il détaille les choix
-techniques (langage, bibliothèques, structures de code), les algorithmes
-principaux et la manière dont la boucle de contrôle a été réalisée.
-L'environnement de développement et les outils de test sont également présentés
-dans ce chapitre.
-
-Le quatrième chapitre est consacré à la validation: il aborde la méthodologie
-employée pour tester le système (tests unitaires, tests d'intégration, tests de
-bouts en bouts), les scénarios de validation principaux, et les mesures
-effectuées notamment en matière de rapidité et d'empreinte mémoire.
-
-Le cinquième chapitre compare la solution à Talos Linux et NixOS. La
-méthodologie est d'abord décrite, puis les deux solutions sont présentées et
-évaluées. Enfin elles sont comparés au système développé.
-
-Enfin, le sixième chapitre dresse un bilan global, discute les forces et les
-limites de l'approche, des difficultés recentrées et du bien fondé des choix
-techniques, et esquisse des perspectives d'amélioration et de travaux futurs.
+Le chapitre #chapter-num-ref(<ch:functional-overview>) présente le système du
+point de vue de l'utilisateur, sans détail d'implémentation. Le
+#chapter-num-ref(<ch:system-design>), consacré à la conception du système,
+expose les décisions architecturales conceptuelles majeures. Le chapitre
+#chapter-num-ref(<ch:implementation>) détaille ensuite les choix techniques
+retenus pour la réalisation de cette architecture, ainsi que les détails
+d'implémentation importants. Le chapitre #chapter-num-ref(<ch:validation>)
+présente la démarche de validation adoptée, ainsi que l'analyse de performance,
+dont les résultats sont ensuite comparés au #chapter-num-ref(<ch:comparison>)
+avec NixOS et Talos Linux. Le #chapter-num-ref(<ch:results>) dresse le bilan du
+travail réalisé et en discute les limites et perspectives.

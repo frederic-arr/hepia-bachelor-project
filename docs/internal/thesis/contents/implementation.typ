@@ -768,9 +768,8 @@ qu'un runtime de conteneur ou un client DHCP.
 
 == Installation et chiffrement <ch:implementation:install>
 L'installation du système sur disque est déclenchée par l'API, via la ressource
-`install` décrite au chapitre #chapter-full-ref(<ch:implementation:install>), et
-prise en charge par une procédure d'installation qui ne s'exécute que si le
-système est démarré en mode maintenance.
+`install`, et prise en charge par une procédure d'installation qui ne s'exécute
+que si le système est démarré en mode maintenance.
 
 Lorsqu'une configuration comportant une ressource `install` est soumise à l'API,
 l'ensemble des ressources qu'elle contient est d'abord validé, puis enregistré
@@ -793,11 +792,11 @@ l'exécution normale du système, référençant les disques présents par leur 
 respectif au moyen de paramètres de démarrage dédiés, l'autre destinée au mode
 maintenance.
 
-Le chiffrement des disques repose sur LUKS, combiné à Clevis pour
-l'automatisation du déchiffrement. Le mode de chiffrement appliqué à chaque
-disque est spécifié indépendamment, via un paramètre de démarrage dédié de la
-forme `cos.<disktype>.encryption`, où `<disktype>` désigne l'un des disques
-gérés par le système, tel que `configdisk` ou `datadisk`.
+Le chiffrement des disques repose sur LUKS @bib-luks, combiné à Clevis
+@bib-clevis pour l'automatisation du déchiffrement. Le mode de chiffrement
+appliqué à chaque disque est spécifié indépendamment, via un paramètre de
+démarrage dédié de la forme `cos.<disktype>.encryption`, où `<disktype>` désigne
+l'un des disques gérés par le système, tel que `configdisk` ou `datadisk`.
 
 == Système de build
 L'environnement de build repose sur l'outil Nix. Une distinction est requise

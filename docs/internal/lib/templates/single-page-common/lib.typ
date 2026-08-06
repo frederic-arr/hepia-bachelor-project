@@ -37,7 +37,11 @@
 
     show: _utils.common-config
 
-    _utils.logo-header(content-right: strong(header))
+    if header != none {
+        _utils.logo-header(content-right: strong(header))
+    } else {
+        v(51pt, weak: false)
+    }
 
     align(center, {
         place(hide(heading(anchor)))
@@ -47,17 +51,19 @@
 
     body
 
-    v(1fr)
-    {
-        set text(font: fonts.footer)
-        _utils.meta-footer(
-            author: author,
-            field-of-study: field-of-study,
-            supervisors: supervisors,
-            client: client,
-            internship: internship,
-            confidentiality-agreement: confidentiality-agreement,
-        )
+    if author != none {
+        v(1fr)
+        {
+            set text(font: fonts.footer)
+            _utils.meta-footer(
+                author: author,
+                field-of-study: field-of-study,
+                supervisors: supervisors,
+                client: client,
+                internship: internship,
+                confidentiality-agreement: confidentiality-agreement,
+            )
+        }
     }
 
     pagebreak(weak: true)

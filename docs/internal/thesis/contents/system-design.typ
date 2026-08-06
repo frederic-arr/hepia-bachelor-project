@@ -1,6 +1,6 @@
 #import "../lib.typ": *
 
-= Conception du système
+= Conception du système <ch:system-design>
 Ce chapitre présente l'architecture conceptuelle du système, en explicitant les
 décisions architecturales importantes. Les composants fondamentaux du système
 sont d'abord brièvement introduits, avant que le modèle de ressource ne soit

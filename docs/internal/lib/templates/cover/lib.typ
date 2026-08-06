@@ -103,7 +103,7 @@
     }
 
     if illustration != none {
-        v(1fr)
+        v(1fr, weak: false)
         illustration.legend-statement
         linebreak()
         emph(illustration.legend)
