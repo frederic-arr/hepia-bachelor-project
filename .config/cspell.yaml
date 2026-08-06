@@ -30,6 +30,7 @@ languageSettings:
       - recalcul
       - typstfmt
       - désérialisation
+      - Sidero
   - languageId: typst
     ignoreRegExpList:
       - string
