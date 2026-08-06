@@ -8,8 +8,6 @@
         Illustre comment, en ajoutant une abstraction, la problématique de deux
         ressources concrètes indépendante, interagissant avec une troisième
         ressource concrète peut être résolue.
-
-        Note: la configuration est abrégée a des fins d'illustration
     ],
     source: made-by-self,
 

@@ -19,10 +19,6 @@
     label: <scheduling>,
     caption: [Comparaison des modèles d'orchestration centralisés et
         décentralisés],
-    note: [
-        Compare et synthétise les avantages et inconvénients de chaque modèle
-        d'orchestration.
-    ],
     source: made-by-self,
     {
         show table.cell.where(x: 0).or(table.cell.where(y: 0)): set text(

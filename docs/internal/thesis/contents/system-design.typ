@@ -73,7 +73,7 @@ ressource au même titre qu'une ressource dynamique, mais ne persiste jamais à
 travers un redémarrage du système, indépendamment de la persistance de la
 configuration elle-même; cette dernière catégorie est notamment utilisée pour
 les ressources d'adresse ou de route obtenues dynamiquement par DHCP et qui,
-selon la spécification du protocole, ne doivent pas persister entre deux
+selon la spécification du protocole, ne devraient pas persister entre deux
 redémarrages~@bib-dhcp-rfc.
 
 Une ressource partagée, à l'inverse, ne dispose d'aucun détenteur propre: elle
@@ -219,7 +219,7 @@ Dans l'exemple des conteneurs, la réconciliation se déroule ainsi:
     action;
 + une fois l'image téléchargée, la ressource `container:image` passe au statut
     "terminé";
-+ la ressource `container:instance` crée alors effectivement le conteneur;
++ la ressource `container:instance` crée alors le conteneur;
 + le cycle de vie normal de la ressource se poursuit ensuite;
 + lorsqu'un conteneur dépendant de cette image est supprimé, le lien de
     dépendance correspondant est rompu;
@@ -378,20 +378,11 @@ comme secondaires dans un contexte où les contrôleurs sont locaux et en nombre
 limité.
 
 === Boucle de réconciliation <ch:system-design:scheduling>
-#todo-revise[Boucle de réconciliation]
-
 L'orchestrateur maintient une file d'attente de ressources à réconcilier. Lors
-de l'insertion initiale d'une nouvelle ressource (= statut inconnu), ses
-dépendances sont parcourues en largeur (BFS) afin de garantir que les racines de
-l'arbre de dépendances soient réconciliées avant leurs feuilles. À chaque
-réconciliation, le contrôleur retourne une durée minimale à attendre avant la
-prochaine réconciliation de cette ressource, en l'absence d'événement.
-L'orchestrateur impose en outre un délai minimal global entre deux
-réconciliations pour éviter toute surcharge. Lorsque plusieurs ressources sont
-éligibles à la réconciliation (leur délai d'attente est écoulé), la ressource la
-plus en retard est traitée en premier. Une ressource peut également être
-réveillée prématurément par un événement interne (mise à jour d'une dépendance)
-ou externe (notification d'un contrôleur).
+de l'insertion initiale d'une nouvelle ressource ou de la modification d'une
+ressource existante, celle-ci est placée dans la file si ses dépendances sont
+prêtes. Régulièrement, l'orchestrateur va prendre l'ensemble des ressources
+arrivée à échéance et les réconcilier.
 
 La réconciliation demeure purement séquentielle: il n'y a jamais plus d'une
 ressource réconciliée en parallèle, ce qui exclut tout problème de concurrence
@@ -422,7 +413,7 @@ catégorie de ressource suit les même règles que les autres ressources.
 Un événement, interne ou externe, se traduit par la (re)planification d'une
 ressource au sein de la file d'attente décrite dans le #chapter-full-ref(
     <ch:system-design:scheduling>,
-). Un événement interne survient lorsque l'administrateur téléverse une nouvelle
+). Un événement interne survient lorsque l'administrateur transmet une nouvelle
 configuration: la ressource cible, une fois sa nouvelle spécification validée,
 est immédiatement replanifiée. Un événement interne peut aussi survenir lorsque
 le statut d'une ressource change après une réconciliation: les ressources qui en
