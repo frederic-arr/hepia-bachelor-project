@@ -1903,3 +1903,11 @@ bib-limine:
   url:
     value: https://example.com
     date: 2026-08-02
+
+bib-linkat:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02

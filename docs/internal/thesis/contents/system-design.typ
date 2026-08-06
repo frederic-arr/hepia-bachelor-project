@@ -247,8 +247,8 @@ correctives nécessaires. La #figure-num-ref(<decl>) illustre cette boucle:
 #include "../diagrams/decl.typ"
 
 Dans le cas de la configuration d'un lien réseau #footnote[
-    Un lien réseau correspond généralement à un port physique sur la machine.
-    Linux traite aussi les VPN comme des liens.
+    Un lien réseau correspond à ce qui est communément appelé une interface
+    réseau.
 ], par exemple, la spécification~#bref(<decl-cfg>) pourrait indiquer que le
 statut administratif doit être "up" #footnote[
     Linux fait la distinction entre l'état administratif et l'état opérationnel

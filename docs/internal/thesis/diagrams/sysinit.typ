@@ -28,11 +28,7 @@
         node(label: <sysinit-early>, (0, 2), title: [
             Find and mount additional volumes (`/config`, `/var`, ...)
         ])
-        edge(<sysinit-early>, <sysinit-cfg>, "-|>")
-        node(label: <sysinit-cfg>, (0, 3), title: [
-            Find, decrypt and mount full config and state
-        ])
-        edge(<sysinit-cfg>, <sysinit-con>, "-|>")
+        edge(<sysinit-early>, <sysinit-con>, "-|>")
         node(label: <sysinit-con>, (0, 4), title: [
             Start the controllers
         ])
@@ -47,7 +43,6 @@
             enclose: (
                 <sysinit-env>,
                 <sysinit-early>,
-                <sysinit-cfg>,
                 <sysinit-orch>,
             ),
             inset: 2mm,

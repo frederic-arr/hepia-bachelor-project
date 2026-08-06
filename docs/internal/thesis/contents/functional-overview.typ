@@ -146,7 +146,7 @@ fichiers de démarrage et de la configuration, garantissant un état initial
 déterministe. Ces contraintes garantissent que l'état du système reste en
 permanence traçable et reproductible à partir du seul fichier de configuration.
 
-== Administration du système et API
+== Administration du système et API <ch:functional-overview:api>
 Le système étant entièrement administré au travers de l'API, il est nécessaire
 de fournir un client permettant d'interagir avec celle-ci. Ce client s'appelle
 `cos-cli` et permet d'effectuer les actions essentielles sur le système à
@@ -154,7 +154,7 @@ travers diverses commandes décrites dans le #table-num-ref(<tab-cli-commands>):
 
 #figure(
     label: <tab-cli-commands>,
-    caption: [Commandes disponibles],
+    caption: [Liste commandes disponibles],
     note: [
         La syntaxe est ```sh subsystem command <MANDATORY> [OPTIONAL]```.
     ],

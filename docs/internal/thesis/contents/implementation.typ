@@ -31,24 +31,27 @@ reste de ce chapitre est présenté dans l'#appendix-num-ref(
 === Choix des bibliothèques
 Le nombre de bibliothèques externes est volontairement restreint, dans le but de
 réduire la surface d'attaque du système et de conserver une maîtrise complète
-sur son comportement. Le projet ne compte ainsi que trente dépendances directes,
-hors dépendances propres aux tests, ce qui représente un total de 174
-dépendances transitives#footnote[
+sur son comportement. Le projet, incluant tous les contrôleurs, ne compte ainsi
+que trente dépendances directes, hors dépendances propres aux tests, ce qui
+représente un total de 174 dépendances transitives#footnote[
     Mesuré au moyen de la commande `cargo tree`.
-].
+]. La majorité de ces dépendances sont par ailleur des dépendances standard dans
+un environement Rust tel que le système de journalisation, la gestion d'erreur,
+l'asynchronicité, ou les interfaces pour les appel système.
 
-La communication entre composants, détaillée à la section suivante, repose sur
-gRPC @bib-grpc. Tonic @bib-tonic constitue, à ce jour, la seule implémentation
-gRPC pour Rust suffisamment mature et maintenue pour cet usage; son adoption
-impose en retour le recours à Tokio @bib-tokio comme runtime asynchrone, ce
-dernier étant par ailleurs la bibliothèque d'exécution asynchrone la plus
-largement adoptée au sein de l'écosystème Rust, ce qui limite le risque lié à
-cette dépendance imposée. La sérialisation des messages échangés repose sur
-Serde @bib-serde, bibliothèque de facto standard au sein de l'écosystème Rust
-pour cet usage. Les bibliothèques restantes sont, pour leur part, propres à un
-contrôleur particulier et sont présentées avec celui-ci.
+La communication entre composants, détaillée dans le #chapter-full-ref(
+    <ch:implementation:grpc>,
+), repose sur gRPC @bib-grpc. Tonic @bib-tonic constitue, à ce jour, la seule
+implémentation gRPC pour Rust suffisamment mature et maintenue pour cet usage;
+son adoption impose en retour le recours à Tokio @bib-tokio comme runtime
+asynchrone, ce dernier étant par ailleurs la bibliothèque d'exécution asynchrone
+la plus largement adoptée au sein de l'écosystème Rust, ce qui limite le risque
+lié à cette dépendance imposée. La sérialisation des messages échangés repose
+sur Serde @bib-serde, bibliothèque de facto standard au sein de l'écosystème
+Rust pour cet usage. Les bibliothèques restantes sont, pour leur part, propres à
+un contrôleur particulier et sont présentées avec celui-ci.
 
-=== Communication entre les composants
+=== Communication entre les composants <ch:implementation:grpc>
 Le protocole gRPC est utilisé uniquement comme mécanisme de transport et de
 définition des procédures exposées par chaque composant; la structure des
 messages échangés n'est pas définie par ce protocole. Depuis sa ProtoBuf 3,
@@ -84,7 +87,7 @@ notifie l'orchestrateur qu'une ressource donnée doit être réconciliée
 immédiatement, sans attendre la prochaine échéance de la ressource. Cette
 procédure est notamment invoquée par un contrôleur lorsqu'un changement d'état
 externe à la spécification, tel qu'un événement survenant sur la ressource qu'il
-gère, rend l'état courant de cette ressource obsolète.
+gère, rend le dernier état observé de cette ressource obsolète.
 
 Le service `ReconcilerService`, implémenté cette fois par chaque contrôleur et
 appelé par l'orchestrateur, permet à ce dernier de déclencher la validation ou
@@ -108,9 +111,10 @@ décrites dans les #chapters-full-ref(
 ). La procédure `Validate` est invoquée par l'orchestrateur préalablement à
 toute création ou mise à jour d'une spécification, afin d'obtenir du contrôleur
 concerné la confirmation de sa validité ainsi que, le cas échéant, sa
-spécification dérivée. La procédure `Reconcile` est quant à elle invoquée afin
-de déclencher la réconciliation de la ressource par le contrôleur qui en a la
-charge.
+spécification dérivée, tel qu'abordé dans le #chapter-full-ref(
+    <ch:implementation:validation>,
+). La procédure `Reconcile` est quant à elle invoquée afin de déclencher la
+réconciliation de la ressource par le contrôleur qui en a la charge.
 
 === Sécurité et isolation
 Le travail de semestre préconisait l'isolation de chaque composant au sein de
@@ -127,46 +131,31 @@ ne sont en outre activées que durant l'exécution d'une réconciliation, et non
 manière permanente durant l'ensemble du cycle de vie du composant, ce qui réduit
 la durée durant laquelle ces permissions sont exposées.
 
-== Orchestrateur
+== Orchestrateur <ch:implementation:scheduler>
 La mise à jour groupée d'un ensemble de ressources, invoquée par l'API lors de
 la réception d'une nouvelle configuration, est prise en charge par la procédure
 `bulk_upsert`. Cette procédure calcule d'abord, par comparaison entre l'ensemble
 des ressources précédemment connues et l'ensemble des ressources nouvellement
-soumises, trois catégories disjointes: les ressources ajoutées, absentes de
-l'état précédent; les ressources supprimées, absentes de la nouvelle
-configuration; et les ressources modifiées, présentes dans les deux ensembles
-mais dont la spécification diffère.
-
-Les ressources ajoutées et modifiées sont ensuite validées, conformément au
-mécanisme de validation décrit dans le #chapter-full-ref(
+soumises, trois catégories: les ressources ajoutées, absentes de l'état
+précédent; les ressources supprimées, absentes de la nouvelle configuration; et
+les ressources modifiées, présentes dans les deux ensembles mais dont la
+spécification diffère. Les ressources ajoutées et modifiées sont ensuite
+validées, tel que décrit dans le #chapter-full-ref(
     <ch:implementation:validation>,
-), au moyen d'appels concurrents effectués par des tâches asynchrones regroupées
-au sein de deux `JoinSet` distincts, l'un pour les ajouts, l'autre pour les
-modifications. Les ressources de schéma `api` et `install` constituent un cas
-particulier: n'étant pas prises en charge par un contrôleur externe, leur
-validation est court-circuitée et retourne directement une réponse vide, sans
-dépendances ni enfants. L'ensemble de ces validations est attendu conjointement
-au moyen de `tokio::join!`, avant que les ressources supprimées ne soient
-marquées comme en cours de suppression, et que les ressources ajoutées ou
-modifiées ne soient insérées ou mises à jour dans l'état interne du système,
-avec un statut initialement inconnu (`Status::Unknown`).
+) puis enregistrées.
 
 La procédure `schedule_available` détermine enfin, parmi les ressources ainsi
 ajoutées ou modifiées, celles dont l'ensemble des dépendances est satisfait: une
 dépendance est considérée satisfaite si la ressource correspondante est
-elle-même dans un état `Done` ou `Ready`, ou si cette dépendance désigne une
-ressource partagée (`Identity::Shared`) non encore présente dans l'état du
-système, ce dernier cas correspondant à une dépendance implicitement satisfaite
-par une ressource externe au périmètre géré. Seules les ressources dont
-l'ensemble des dépendances est ainsi satisfait sont effectivement planifiées
-pour réconciliation immédiate au sein de la file d'attente, les autres demeurant
-en attente jusqu'à ce que leurs dépendances respectives atteignent un état
+elle-même dans un état prêt ou terminé. Seules les ressources dont l'ensemble
+des dépendances est ainsi satisfait sont effectivement planifiées pour
+réconciliation immédiate au sein de la file d'attente, les autres demeurant en
+attente jusqu'à ce que leurs dépendances respectives atteignent un état
 compatible.
 
-L'orchestrateur, implémenté dans #repo("rust/cmd/state-manager"), assure
-notamment la planification des réconciliations au moyen d'une structure de file
-d'attente. Comme indiqué dans le #full-ref(<ch:system-design:scheduling>), la
-boucle de réconciliation dépend de cette structure, représentée ici par
+=== File d'attente
+Comme indiqué dans le #full-ref(<ch:system-design:scheduling>), la boucle de
+réconciliation dépend d'une fille d'attente, structure représentée ici par
 `Queue<K>`. Cette file est implémentée de manière générique: elle permet de
 planifier n'importe quel élément de type `K` à un moment précis. Dans le cadre
 du présent système, `K` représente l'identifiant unique d'une ressource. Son
@@ -268,11 +257,10 @@ structure sous-jacente.
 
 === Réconciliation <ch:implementation:reconciliation>
 La réconciliation est une tâche de fond qui récupère, en boucle, l'ensemble des
-identifiants arrivés à échéance, puis transmet une requête au contrôleur
-responsable afin de réconcilier chaque ressource. Cette requête reprend la
-structure de ressource complète, décrite dans le #code-num-ref(
-    <code-resource-def>,
-):
+identifiants arrivés à échéance via `Queue::drain_expired`, puis transmet une
+requête au contrôleur responsable afin de réconcilier chaque ressource. Cette
+requête reprend la structure de ressource complète, décrite dans le
+#code-num-ref(<code-resource-def>):
 
 #figure(
     label: <code-resource-def>,
@@ -329,11 +317,11 @@ tôt si le contrôleur notifie l'orchestrateur d'une nécessité de réconciliat
 anticipée.
 
 Les ressources arrivées à échéance sont réconciliées séquentiellement, dans
-l'ordre de leur ancienneté, sans regroupement en lots. Deux ressources
-consécutives destinées au même contrôleur font ainsi l'objet de deux requêtes
-distinctes, la seconde n'étant transmise qu'après réception de la réponse à la
-première. Un échec affectant la réconciliation d'une ressource n'empêche pas la
-tentative de réconciliation de la ressource suivante.
+l'ordre de leur ancienneté, sans regroupement. Deux ressources consécutives
+destinées au même contrôleur font ainsi l'objet de deux requêtes distinctes, la
+seconde n'étant transmise qu'après réception de la réponse à la première. Un
+échec affectant la réconciliation d'une ressource n'empêche pas la tentative de
+réconciliation de la ressource suivante.
 
 La réponse du contrôleur inclut le nouvel état, le status, l'ensemble des
 enfants, et l'ensemble des dépendances, dont la structure est décrite dans le
@@ -353,30 +341,29 @@ enfants, et l'ensemble des dépendances, dont la structure est décrite dans le
     ```,
 )
 
-Le champ `status` indique le résultat de la réconciliation, tel qu'un succès, un
-échec ou un état intermédiaire nécessitant une nouvelle tentative. Le champ
-`state`, optionnel, correspond au nouvel état de la ressource lorsque la
-réconciliation en produit un; son absence signifie que l'état de la ressource
-reste inchangé. Le champ `children` contient l'ensemble des ressources enfants
-créées ou maintenues par le contrôleur à l'issue de cette réconciliation. Le
-champ `dependencies` contient quant à lui l'ensemble des ressources dont dépend
-la ressource réconciliée. Seul l'identifiant est transmis pour les dépendances,
-tandis que l'identifiant et la spécification sont transmis pour les enfants, ces
-derniers pouvant être nouvellement créés et donc inconnus de l'orchestrateur.
+Le champ `status` indique le résultat de la réconciliation, tel que prêt, pas
+prêt ou une erreur. Le champ `state`, optionnel, correspond au nouvel état de la
+ressource lorsque la réconciliation en produit un; son absence signifie que
+l'état de la ressource reste inchangé. Le champ `children` contient l'ensemble
+des ressources enfants créées ou maintenues par le contrôleur à l'issue de cette
+réconciliation. Le champ `dependencies` contient quant à lui l'ensemble des
+ressources dont dépend la ressource réconciliée. Seul l'identifiant est transmis
+pour les dépendances, tandis que l'identifiant et la spécification sont transmis
+pour les enfants, ces derniers pouvant être nouvellement créés et donc inconnus
+de l'orchestrateur.
 
 Deux catégories d'erreur sont distinguées lors de la réconciliation: l'erreur de
 protocole et l'erreur de logique. Une erreur de protocole survient lorsque les
 données échangées via gRPC sont invalides ou non interprétables, ou lorsqu'une
 erreur imprévue se produit au niveau du transport. Une erreur de logique, en
 revanche, correspond à un échec géré par le contrôleur dans le cadre normal de
-la réconciliation, et se traduit par un status d'erreur porté dans le champ
-`status` de la réponse. Dans ce dernier cas, la réconciliation est considérée
-comme réussie du point de vue du protocole, la présence d'une réponse
-correctement formée suffisant à cette qualification, indépendamment du contenu
-du status. En cas d'erreur de protocole, l'orchestrateur attribue lui-même à la
-ressource un status d'erreur qualifié de "transport"; dans tous les autres cas,
-le status attribué à la ressource correspond à celui fourni par le contrôleur
-dans sa réponse.
+la réconciliation, et se traduit par un status d'erreur dans le champ `status`
+de la réponse. Dans ce dernier cas, la réconciliation est considérée comme
+réussie du point de vue du protocole gRPC, indépendamment du contenu du status.
+En cas d'erreur de protocole, l'orchestrateur attribue lui-même à la ressource
+un status d'erreur qualifié de "transport"; dans tous les autres cas, le status
+attribué à la ressource correspond à celui fourni par le contrôleur dans sa
+réponse.
 
 === Validation d'une ressource <ch:implementation:validation>
 La validation d'une ressource s'effectue à chaque création ou mise à jour d'une
@@ -460,17 +447,21 @@ cet état et la spécification (`plan`); ce plan est enfin exécuté (`apply`),
 avant qu'un second `refresh` ne détermine l'état résultant réel de la ressource.
 Chacune de ces étapes est susceptible d'échouer indépendamment des autres; un
 échec à n'importe quelle étape interrompt immédiatement la réconciliation et
-retourne une réponse dont le champ `status` est positionné à `Error`, tout en
+retourne une réponse dont le champ `status` est mis à `Error`, tout en
 conservant, autant que possible, le dernier état connu de la ressource.
 
 Le statut final d'une réconciliation ayant abouti dépend du plan calculé lors de
-la seconde évaluation et de la phase courante de la ressource: l'absence de
-toute action à entreprendre (`NoOp`) alors que la ressource est en cours de
-suppression aboutit au statut `Deleted`; en dehors de tout contexte de
-suppression, l'absence d'action correspond au statut `Ready`. À l'inverse, la
-persistance d'un plan non vide à l'issue de son exécution, indique que malgrès
-les actions corrective entreprise, l'état réel de la ressource ne correspond
-toujours pas à la spécification attendue et abouti à un status `NotReady`.
+la seconde évaluation et de l'état courant de la ressource: l'absence de toute
+action à entreprendre (`NoOp`) alors que la ressource est en cours de
+suppression indique qu'elle a été supprimée avec succès ou qu'elle n'a jamais
+existé; en dehors de tout contexte de suppression, l'absence d'action correspond
+au statut prêt. À l'inverse, la persistance d'un plan non vide à l'issue de son
+exécution indique que, malgré les actions correctives entreprises, l'état réel
+de la ressource ne correspond toujours pas à la spécification attendue, et
+aboutit à un statut pas prêt. Certaines ressources peuvent également retourner
+un statut terminé plutôt que prêt, lorsque des réconciliations ultérieures
+n'auraient pas de sens, par exemple un conteneur dont la politique de
+redémarrage est "never".
 
 === Contrôleur système
 Le contrôleur système, implémenté dans #repo("rust/cmd/system-controller"),
@@ -493,9 +484,9 @@ observer ou accéder à ce fichier avant que son contenu ne soit intégralement
 écrit. L'ensemble des opérations nécessaires (écriture du contenu, application
 des permissions, etc.) est ensuite effectué sur ce fichier temporaire. Une fois
 ces opérations terminées, le fichier est rendu visible dans l'arborescence au
-moyen de `linkat`, qui associe l'inode déjà constitué à son chemin final; cette
-opération remplace atomiquement le fichier existant, le cas échéant, sans jamais
-exposer d'état intermédiaire.
+moyen de `linkat` @bib-linkat, qui associe l'inode déjà constitué à son chemin
+final; cette opération remplace atomiquement le fichier existant, le cas
+échéant, sans jamais exposer d'état intermédiaire.
 
 Le chemin spécifié dans la spécification de la ressource doit désigner un
 fichier réel, sans aucun lien symbolique, et ne comporter aucun élément relatif
@@ -505,29 +496,31 @@ l'appel `openat2` @bib-linux-openat2, combiné aux flags de résolution
 traversée de tout lien symbolique rencontré lors de la résolution du chemin, et
 toute sortie du répertoire racine désigné par ce même appel. Cette double
 contrainte prévient toute exploitation, par une spécification malveillante ou
-erronée, d'un lien symbolique ou d'une séquence relative telle que `..` afin
+erronée, d'un lien symbolique ou d'une séquence relative telle que "`..`" afin
 d'accéder à un fichier situé en dehors du répertoire visé. Cet appel retournant
 un descripteur de fichier, celui-ci est ensuite réutilisé pour créer le fichier
-temporaire, ce qui garantit que ce dernier est créé dans le même répertoire que
-celui dont l'appartenance vient d'être validée, sans nouvelle résolution de
-chemin susceptible d'introduire une race condition (TOCTOU) @bib-toctou entre la
-validation et la création.
+temporaire dans ce même répertoire, sans nouvelle résolution de chemin, ce qui
+évite toute race condition entre la validation et la création. Cela permet
+d'appliquer le principe "Time of Check, Time of Use" (TOCTOU) @bib-toctou.
 
 === Contrôleur réseau
 Le contrôleur réseau, implémenté dans #repo("rust/cmd/network-controller"), gère
-l'ensemble des ressources du domaine réseau. Les ressources `network:dns` et
-`network:address` ne présentent pas de particularité notable: l'état physique
+l'ensemble des ressources du domaine réseau. L'ensemble de ces ressources
+communique avec le noyau au moyen du protocole netlink @bib-linux-rtnetlink, via
+la bibliothèque Rust rtnetlink @bib-rtnetlink. Les ressources `network:dns` et
+`network:address` ne présentent aucune particularité notable: l'état physique
 correspondant est d'abord récupéré, puis comparé à la spécification, avant
 d'être créé s'il est absent.
 
 La ressource `link` #footnote[
     Implémentée dans #repo("rust/cmd/network-controller/src/resources/link.rs").
-] communique directement avec le noyau au moyen du protocole netlink
-@bib-linux-rtnetlink, via la bibliothèque Rust rtnetlink @bib-rtnetlink. L'API
-exposée par cette bibliothèque ne retourne pas directement une structure
-représentant un lien réseau, mais un message contenant une liste d'attributs
-hétérogènes, dont le sous-ensemble effectivement présent varie selon le lien
-concerné, comme illustré dans le #code-num-ref(<code-link-attr>):
+] se distingue par le nombre élevé d'attributs qui la composent. De plus, l'API
+exposée par la netlink ne retourne pas directement une structure représentant un
+lien réseau, mais un message contenant une liste d'attributs hétérogènes, dont
+seul un sous-ensemble est pertinent, et dont le sous-ensemble effectivement
+présent varie selon le lien concerné, comme illustré dans le #code-num-ref(
+    <code-link-attr>,
+):
 
 #figure(
     label: <code-link-attr>,
@@ -568,10 +561,10 @@ liste d'attributs incomplète:
 Rendre l'ensemble des champs de cette structure optionnels ne constitue pas une
 solution satisfaisante, la plupart de ces champs étant en réalité obligatoires
 dans l'état final d'un lien réseau. Un pattern "builder" est employé pour
-résoudre cette contradiction: la macro `Builder`, appliquée à `LinkState`,
-génère automatiquement une structure intermédiaire, `LinkStateBuilder`,
-illustrée dans le #code-num-ref(<code-link-builder-strict>), dans laquelle
-chaque champ est rendu optionnel:
+résoudre ce problème: la macro `Builder`, appliquée à `LinkState`, génère
+automatiquement une structure intermédiaire, `LinkStateBuilder`, illustrée dans
+le #code-num-ref(<code-link-builder-strict>), dans laquelle chaque champ est
+rendu optionnel:
 
 #figure(
     label: <code-link-builder-strict>,
@@ -624,8 +617,8 @@ correspondant de cette structure intermédiaire, comme illustré dans le
 
 Une fois l'ensemble des attributs du message traités, la structure intermédiaire
 `LinkStateBuilder` est convertie vers la structure finale `LinkState`, cette
-conversion échouant si l'un des champs obligatoires de `LinkState` demeure
-`None` à l'issue du traitement.
+conversion échouant si l'un des champs obligatoires de `LinkState` demeure non
+spécifié à l'issue du traitement.
 
 La ressource `network:route` présente une particularité: avec la librairie
 rtnetlink, la récupération d'une route unique par son identifiant ne retourne
@@ -657,10 +650,13 @@ opérations relatives aux ressources du domaine de la conteneurisation.
 // TODO?: Plus de détails
 
 == API et clients d'administration
-L'API constitue l'unique surface d'administration du système. Chaque procédure
-exposée par le service `ApiService` est précédée d'une vérification
-d'authentification (`auth_or_fail`), qui interrompt la requête avant tout
-traitement en cas d'échec.
+L'API constitue l'unique surface d'administration du système et se repose aussi
+sur gRPC. Les procédures disponible correspondent à celles présentées dans le
+#table-full-ref(<tab-cli-commands>) présenté dans le #chapter-num-ref(
+    <ch:functional-overview>,
+). Chaque procédure exposée par le service `ApiService` est précédée d'une
+vérification d'authentification (`auth_or_fail`), qui interrompt la requête
+avant tout traitement en cas d'échec.
 
 La procédure `push_config` constitue le point d'entrée principal de l'API: elle
 reçoit l'ensemble des ressources composant la configuration déclarative du
@@ -724,15 +720,15 @@ possible. Le superviseur suit ensuite les étapes illustrée dans la
 #include "../diagrams/sysinit.typ"
 
 Le superviseur construit l'arborescence de fichiers standard de Linux telle que
-spécifiée par le Filesystem Hierarchy Standard @bib-linux-fhs, puis monte les
-différents volumes additionnels spécifiés dans les paramètres de démarrage, tels
-que `/config/` via `cos.configdisk` ou `/var/` via `cos.datadisk`. Il met
-ensuite en place le réseau local de l'hôte, l'interface `localhost` n'étant pas
-activée par défaut sous Linux; cette interface est essentielle au fonctionnement
-du système, les différents contrôleurs communiquant entre eux via une adresse
-locale. Le superviseur démarre alors ces contrôleurs et attend qu'ils soient
-prêts avant de démarrer l'orchestrateur. À partir de ce point, le superviseur
-n'a plus d'autre rôle que d'attendre l'extinction du système.
+spécifiée par le Filesystem Hierarchy Standard @bib-linux-fhs. Il met ensuite en
+place le réseau local de l'hôte, l'interface `localhost` n'étant pas activée par
+défaut sous Linux; cette interface est essentielle au fonctionnement du système,
+les différents contrôleurs communiquant entre eux via une adresse locale. Puis
+monte les différents volumes additionnels spécifiés dans les paramètres de
+démarrage, tels que `/config/` via `cos.configdisk` ou `/var/` via
+`cos.datadisk`. Le superviseur démarre alors ces contrôleurs et attend qu'ils
+soient prêts avant de démarrer l'orchestrateur. À partir de ce point, le
+superviseur n'a plus d'autre rôle que d'attendre l'extinction du système.
 
 Si l'une de ces étapes échoue, pour quelque raison que ce soit, le programme
 s'interrompt et déclenche un "kernel panic". À ce stade du cycle de vie du
@@ -753,11 +749,9 @@ par l'indisponibilité du disque de configuration attendu par le système:
 
 En l'absence du disque de configuration, le système ne dispose d'aucune
 spécification à réconcilier et son exécution ne présenterait aucune utilité,
-tout en risquant d'exposer le système à des risques inutiles.
-
-La #figure-num-ref(<procstart>) complète illustre l'arbre des processus
-effectivement démarrés par le système, ainsi que les relations de filiation
-entre ceux-ci:
+tout en risquant d'exposer le système à des risques inutiles. La
+#figure-num-ref(<procstart>) illustre l'arbre des processus démarrés par le
+système, ainsi que les relations de filiation entre ceux-ci:
 
 #include "../diagrams/procstart.typ"
 
@@ -781,12 +775,12 @@ présentés à l'#appendix-num-ref(<appendix:nix-primer>).
 
 Le recours à Nix vise à fournir un environnement stable entre la machine de
 développement locale et l'environnement d'intégration continue. Nix permet non
-seulement la construction des artefacts, mais aussi l'entrée dans un
-environnement de build ou l'exécution de commandes au sein d'un environnement
-isolé. La reproductibilité bit à bit des builds, permise par Nix, constitue une
-propriété désirée pour le projet. Nix facilite en outre la mise en œuvre de la
-cross-compilation, soit la compilation depuis une architecture CPU particulière
-vers une architecture différente, par exemple de x86 vers ARM64.
+seulement la construction des artefacts, mais aussi la mise en place d'un
+environment de développement ou l'exécution de commandes au sein d'un
+environnement isolé. La reproductibilité bit à bit des builds, permise par Nix,
+constitue une propriété désirée pour le projet. Nix facilite en outre la mise en
+œuvre de la cross-compilation, soit la compilation depuis une architecture CPU
+particulière vers une architecture différente, par exemple de x86_64 vers ARM64.
 
 L'ensemble de la chaîne de build du système est pris en charge par Nix: le
 noyau, les différentes crates composant le projet, ainsi que les artefacts
@@ -842,10 +836,12 @@ configuration retenues, et initrd, qui fournit le système de fichiers initial.
 
 À partir de ces trois outputs, `rootfs`, `initrd` et `kernel`, un output `iso`
 assemble l'ensemble en une image ISO, exécutable via QEMU @bib-qemu ou sur un
-système physique. L'assemblage destiné à d'autres architectures suit une
-démarche similaire.
+système physique. L'arbre de build est illustré dans la #figure-num-ref(<img>):
 
-Une image disque brute est par ailleurs requise pour les systèmes ne pouvant
+#include "../diagrams/img.typ"
+
+L'assemblage destiné à d'autres architectures suit une démarche similaire.Une
+image disque brute est par ailleurs requise pour les systèmes ne pouvant
 démarrer depuis une image ISO et nécessitant d'être flashés, tel que le
 Raspberry Pi. Un output spécifique est créé pour chaque système visé par ce mode
 de déploiement. Dans le cas du Raspberry Pi, l'output `rpi-sd-image` regroupe
@@ -888,12 +884,11 @@ d'actions et de mises à jour de configuration. Ces tests sont regroupés dans u
 crate dédiée, nommée `e2e`#footnote[
     Implémenté dans #repo("rust/e2e")
 ]. Cette catégorie de test vise à reproduire les conditions d'utilisation finale
-du système, ce qui nécessite l'exécution de l'image ISO complète plutôt que du
-seul code applicatif. L'exécution de ces tests repose sur le lancement d'une
-machine virtuelle via QEMU, à partir de cette image ISO. Cette dépendance à
-l'image complète empêche l'exécution directe de ces tests via la commande de
-test standard de Rust; leur exécution passe par le système de build dans son
-intégralité.
+du système, ce qui nécessite l'exécution de l'image ISO complète. L'exécution de
+ces tests repose sur le lancement d'une machine virtuelle via QEMU, à partir de
+cette image ISO. Cette dépendance à l'image complète empêche l'exécution directe
+de ces tests via la commande de test standard de Rust; leur exécution passe par
+le système de build dans son intégralité.
 
 L'ensemble des tests Rust est exécuté via l'outil Nextest @bib-nextest. Ce
 recours n'est pas strictement nécessaire pour les tests unitaires, mais s'avère
@@ -935,8 +930,8 @@ formatage est vérifié via typstfmt @bib-typstfmt pour la documentation, buf
 Rust @bib-cargo-fmt. L'analyse statique repose aussi sur buf pour les
 définitions Protocol Buffers et sur Clippy @bib-cargo-clippy pour le code Rust.
 Les options les plus strictes de Clippy sont activées, interdisant notamment le
-recours à `unwrap` ou à des constructions équivalentes, ainsi que l'utilisation
-de `println`, afin de garantir que toute sortie transite par le système de
+recours à `unwrap` ou à des méthodes équivalentes, ainsi que l'utilisation de
+`println`, afin de garantir que toute sortie passe par le système de
 journalisation. Diverses règles additionnelles sont par ailleurs activées afin
 d'assurer l'homogénéité du code. Toute désactivation ponctuelle d'une règle doit
 être accompagnée d'une justification explicite, mécanisme nativement supporté
