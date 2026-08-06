@@ -16,11 +16,8 @@ code (IaC)~@bib-ibm-iac plutôt qu'au moyen de procédures manuelles. Le modèle
 GitOps s'appuie sur cette pratique en utilisant un dépôt Git comme unique source
 de vérité de la configuration, déclarée au moyen d'outils tels que ceux
 mentionnés précédemment. Il s'agit d'une partie importante de la mise en œuvre
-des pratiques DevOps et de CI/CD~@bib-gitops. Ainsi, chaque fois qu'une mise à
-jour est effectuée, elle est appliquée automatiquement, ce qui rend le
-déploiement et l'infrastructure entièrement automatisés. Dans ces approches,
-l'interaction directe avec le système d'exploitation devient l'exception plutôt
-que la règle.
+des pratiques DevOps et de CI/CD~@bib-gitops. Dans ces approches, l'interaction
+directe avec le système d'exploitation devient l'exception plutôt que la règle.
 
 Toutefois, les systèmes d'exploitation sous-jacents reposent encore
 majoritairement sur des distributions génériques, administrées avec des outils
@@ -46,20 +43,11 @@ déploiement de quelques conteneurs.
 Il manque donc un système d'exploitation capable de décrire la configuration de
 l'hôte et des conteneurs dans un modèle déclaratif unique et homogène, et de
 maintenir cet état de manière continue et autonome. Un tel système serait
-particulièrement pertinent pour les déploiements modestes, où la complexité d'un
-orchestrateur complet n'est pas justifiée, mais où il est néanmoins souhaitable
-de disposer d'un système déclaratif capable de se maintenir en état de manière
-autonome.
+particulièrement pertinent pour les déploiements modestes ou embarqués, où la
+complexité d'un orchestrateur complet n'est pas justifiée, mais où il est
+néanmoins souhaitable de disposer d'un système déclaratif.
 
 == Objectifs
-Le projet~de~semestre effectué préalablement~@bib-semester-projet a permis
-d'analyser en profondeur les forces et les faiblesses des différentes solutions
-disponibles. Il a débouché sur la présentation d'une architecture de très haut
-niveau, explorant les concepts fondamentaux et les briques techniques
-nécessaires à l'implémentation d'une solution adaptée. Le présent travail
-reprend ces conclusions afin de concevoir une architecture détaillée, puis de
-l'implémenter, de la valider et de la comparer à Talos~Linux et NixOS.
-
 L'objectif central est de fournir un système d'exploitation entièrement
 configurable selon un modèle déclaratif unique, dans lequel la configuration de
 l'hôte et celle des conteneurs sont intégrées de manière homogène. La
@@ -101,10 +89,12 @@ manuel de systèmes hétérogènes et l'absence de correction automatique des
 dérives de configuration ont motivé la recherche d'une solution plus robuste.
 Réalisé à plein temps du 11 mai au 19 août 2026, il reflète l'état des
 connaissances et des technologies à cette période. Il a été précédé du projet de
-semestre~@bib-semester-projet qui a permis une analyse détaillée de la
-problématique et l'établissement des premiers éléments conceptuels et
-techniques. L'ensemble du code source produit est disponible sur le dépôt Git
-institutionnel à l'adresse suivante:
+semestre, disponible sur
+https://gitedu.hesge.ch/flg_bachelors/ps/2025/container_os, qui a permis une
+analyse détaillée de la problématique, l'identification des briques techniques
+nécessaire et l'établissement des premiers éléments conceptuels et techniques.
+L'ensemble du code source produit est disponible sur le dépôt Git institutionnel
+à l'adresse suivante:
 https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os.
 L'état du dépôt au moment de la publication du présent document est disponible
 sur le tag~#repo("", [`v0.0.0-dev.3.thesis`]) tandis que le dernier code testé
