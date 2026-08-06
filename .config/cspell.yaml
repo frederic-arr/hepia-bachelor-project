@@ -33,6 +33,8 @@ languageSettings:
       - Sidero
       - LUKS
       - asynchronicité
+      - nixpkgs
+      - netavark
   - languageId: typst
     ignoreRegExpList:
       - string

@@ -29,10 +29,10 @@ langages également considérés. Le choix final se porte sur Rust en raison de 
 maîtrise préalable de ce langage, acquise avant le début du projet. Le langage
 Go est par ailleurs utilisé pour la partie du projet reposant sur Terraform, cet
 usage étant imposé par une contrainte propre à cet outil plutôt que par un choix
-indépendant. Un rappel sur les concepts essentiels de Rust utilisés dans le
-reste de ce chapitre est présenté dans l'#appendix-num-ref(
-    <appendix:rust-primer>,
-).
+indépendant. Les concepts fondamentaux de Rust nécessaires à la compréhension du
+reste de ce chapitre sont documentés dans "Rust by Example"
+@bib-rust-by-example, en particulier dans le chapitre consacré aux types
+standards @bib-rust-by-example-stdlib.
 
 === Choix des bibliothèques
 Le nombre de bibliothèques externes est volontairement restreint, dans le but de
@@ -798,7 +798,7 @@ appliqué à chaque disque est spécifié indépendamment, via un paramètre de
 démarrage dédié de la forme `cos.<disktype>.encryption`, où `<disktype>` désigne
 l'un des disques gérés par le système, tel que `configdisk` ou `datadisk`.
 
-== Système de build
+== Système de build <ch:implementation:build>
 L'environnement de build repose sur l'outil Nix. Une distinction est requise
 entre trois usages du terme "Nix": Nix en tant que système de build
 @bib-nix-build, Nix en tant que gestionnaire de paquets @bib-nixpkgs, et Nix en
@@ -857,31 +857,33 @@ références distinctes. La différence par rapport au `defconfig` est exposée 
 == Génération de l'image du système <ch:implementation:system-image>
 L'image finale du système, qu'il s'agisse d'une image ISO ou d'une image disque
 brute, est assemblée entièrement au moyen de Nix. Chaque crate Rust du projet
-correspond à un output Nix; l'ensemble de ces outputs est regroupé dans un autre
-output nommé `rootfsEnv`, lequel intègre également des binaires additionnels,
-tels que Podman. Cet output génère un dossier regroupant l'ensemble de ces
-éléments au sein du `/nix/store`.
+correspond à une dérivation Nix; l'ensemble de ces dérivations est regroupé dans
+uns autre dérivation nommé `rootfsEnv`, lequel intègre également des binaires
+additionnels, tels que Podman. Cette dérivation génère un dossier regroupant
+l'ensemble de ces éléments au sein du `/nix/store`.
 
-Un output `rootfs` reprend cet environnement et y ajoute les liens symboliques
-nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc., contiennent des
-liens symboliques pointant vers le `/nix/store`. Cet output produit, en sortie,
-une archive au format SquashFS. Deux outputs additionnels complètent cet
-assemblage: `kernel`, qui construit l'image du noyau selon les options de
-configuration retenues, et initrd, qui fournit le système de fichiers initial.
+Une dérivation `rootfs` reprend cet environnement et y ajoute les liens
+symboliques nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc.,
+contiennent des liens symboliques pointant vers le `/nix/store`. Cette
+dérivation produit, en sortie, une archive au format SquashFS. Deux dérivations
+additionnels complètent cet assemblage: `kernel`, qui construit l'image du noyau
+selon les options de configuration retenues, et initrd, qui fournit le système
+de fichiers initial.
 
-À partir de ces trois outputs, `rootfs`, `initrd` et `kernel`, un output `iso`
-assemble l'ensemble en une image ISO, exécutable via QEMU @bib-qemu ou sur un
-système physique. L'arbre de build est illustré dans la #figure-num-ref(<img>):
+À partir de ces trois dérivations, `rootfs`, `initrd` et `kernel`, une
+dérivation `iso` assemble l'ensemble en une image ISO, exécutable via QEMU
+@bib-qemu ou sur un système physique. L'arbre de build est illustré dans la
+#figure-num-ref(<img>):
 
 #include "../diagrams/img.typ"
 
 L'assemblage destiné à d'autres architectures suit une démarche similaire. Une
 image disque brute est par ailleurs requise pour les systèmes ne pouvant
 démarrer depuis une image ISO et nécessitant d'être flashés, tels que le
-Raspberry Pi. Un output spécifique est créé pour chaque système visé par ce mode
-de déploiement. Dans le cas du Raspberry Pi, l'output `rpi-sd-image` regroupe
-les éléments propres à cette plateforme et produit une image directement
-destinée au flashage sur une carte SD.
+Raspberry Pi. Une dérivation spécifique est créé pour chaque système visé par ce
+mode de déploiement. Dans le cas du Raspberry Pi, la dérivation `rpi-sd-image`
+regroupe les éléments propres à cette plateforme et produit une image
+directement destinée au flashage sur une carte SD.
 
 == Environnement de test <ch:implementation:tests>
 Trois catégories de tests sont mises en œuvre: les tests unitaires, les tests

@@ -134,7 +134,6 @@
     show heading.where(level: 1): set heading(numbering: "A")
     include "appendices/ai.typ"
     include "appendices/full-config.typ"
-    include "appendices/rust-primer.typ"
     include "appendices/nix-primer.typ"
 }
 

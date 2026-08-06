@@ -1927,3 +1927,27 @@ bib-luks:
   url:
     value: https://example.com
     date: 2026-08-02
+
+bib-netsim:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-rust-by-example:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02
+
+bib-rust-by-example-stdlib:
+  type: web
+  title: TODO
+  author: TODO
+  url:
+    value: https://example.com
+    date: 2026-08-02

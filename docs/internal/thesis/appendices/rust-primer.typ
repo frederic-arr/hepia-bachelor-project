@@ -2,6 +2,7 @@
 
 = Le language Rust <appendix:rust-primer>
 
+== Les crates
 #todo[Rust Primer][
     - Décrire brièvement Rust
     - Parler des macros (y.c. procédurale mais sans rentrer dans les détails)

@@ -1,6 +1,6 @@
 #import "../lib.typ": *
 
-= Exemple de configuration complète <appendix-full-config>
+= Exemple de configuration complète de l'OS <appendix-full-config>
 ```yaml
 ---
 schema: api
@@ -22,10 +22,10 @@ name: eth0
 
 ---
 schema: container:runtime
-name: rootfull
+name: rootless
 engine: podman
-uid: 0
-gid: 0
+uid: 1000
+gid: 1000
 depends_on:
   - network:dns
   - network:route/eth0-dhcp
@@ -34,7 +34,7 @@ depends_on:
 schema: container:instance
 name: http
 image: docker.io/fredericarr/simple-http-server:latest
-runtime: rootfull
+runtime: rootless
 ports:
   - container_port: 80
     host_port: 8080
