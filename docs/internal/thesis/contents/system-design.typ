@@ -32,9 +32,9 @@ $T$, d'un statut et d'une phase. Le type fixe le schéma structurel de la
 spécification et de l'état observé, tandis que le nom identifie de manière
 unique une instance au sein de ce type. La spécification constitue l'état
 désiré, tandis que l'état observé reflète la réalité constatée par le
-contrôleur; l'état observé est réévalué à chaque cycle de réconciliation tel que
-détaillé dans le #chapter-full-ref(<ch:system-design:declarativity>). Entre deux
-réconciliations, l'état observé demeure celui résultant de la dernière
+contrôleur; l'état observé est réévalué à chaque cycle de réconciliation, tel
+que détaillé dans le #chapter-full-ref(<ch:system-design:declarativity>). Entre
+deux réconciliations, l'état observé demeure celui résultant de la dernière
 réconciliation effectuée. Le type et le nom d'une ressource sont immuables:
 modifier l'un ou l'autre de ces champs équivaut à supprimer la ressource
 existante et à en recréer une nouvelle.
@@ -235,8 +235,8 @@ Dans l'exemple des conteneurs, la réconciliation se déroule ainsi:
 
 === Orchestrateur
 L'orchestrateur est simplement le composant responsable de stocker l'ensemble
-des ressources du système, de s'assurer que les réconciliations ont lieux dans
-le bon ordre, et de garantir que le système se comporte correctement.
+des ressources du système, de s'assurer que les réconciliations ont lieu dans le
+bon ordre, et de garantir que le système se comporte correctement.
 
 === Contrôleur et déclarativité <ch:system-design:declarativity>
 La réconciliation est le processus qui assure que l'état observé d'une ressource
@@ -285,10 +285,10 @@ périodique ou en réponse à un événement, qu'il soit interne, tel qu'une mis
 jour de la configuration, ou externe, comme un conteneur qui s'arrête. À ce
 titre, deux modèles d'orchestration sont envisageables: un modèle centralisé,
 dans lequel une boucle unique appelle, à chaque itération, la méthode de
-réconciliation d'une ressource donnée;. et un autre modèle modèle décentralisé,
-dans lequel chaque contrôleur contient sa propre boucle, organisée de la manière
-qui lui convient (une boucle par ressource, une boucle par type, etc.). Le
-modèle centralisé est illustré dans la #figure-num-ref(<ctrlloop>):
+réconciliation d'une ressource donnée; et un autre modèle décentralisé, dans
+lequel chaque contrôleur contient sa propre boucle, organisée de la manière qui
+lui convient (une boucle par ressource, une boucle par type, etc.). Le modèle
+centralisé est illustré dans la #figure-num-ref(<ctrlloop>):
 
 #include "../diagrams/ctrlloop.typ"
 

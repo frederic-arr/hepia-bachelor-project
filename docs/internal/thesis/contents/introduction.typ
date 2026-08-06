@@ -54,8 +54,8 @@ L'objectif central est de fournir un système d'exploitation entièrement
 configurable selon un modèle déclaratif unique, dans lequel la configuration de
 l'hôte et celle des conteneurs sont intégrées de manière homogène. La
 conteneurisation est traitée comme un élément natif du système: les conteneurs
-sont décrits et gérés au même titre que les autres ressources, sans couche
-externe. En particulier, le système doit maintenir l'état désiré de manière
+sont décrits et gérés au même titre que les autres ressources, sans couches
+externes. En particulier, le système doit maintenir l'état désiré de manière
 continue et autonome, en s'appuyant sur une boucle de contrôle qui surveille en
 permanence l'état réel, détecte automatiquement les dérives et les corrige sans
 intervention humaine.
@@ -132,14 +132,16 @@ exact des différentes étapes est disponible dans le #chapter-full-ref(
 ).
 
 == Structure du document
-Le chapitre #chapter-num-ref(<ch:functional-overview>) présente le système du
-point de vue de l'utilisateur, sans détail d'implémentation. Le
-#chapter-num-ref(<ch:system-design>), consacré à la conception du système,
-expose les décisions architecturales conceptuelles majeures. Le chapitre
-#chapter-num-ref(<ch:implementation>) détaille ensuite les choix techniques
-retenus pour la réalisation de cette architecture, ainsi que les détails
-d'implémentation importants. Le chapitre #chapter-num-ref(<ch:validation>)
-présente la démarche de validation adoptée, ainsi que l'analyse de performance,
-dont les résultats sont ensuite comparés au #chapter-num-ref(<ch:comparison>)
-avec NixOS et Talos Linux. Le #chapter-num-ref(<ch:results>) dresse le bilan du
-travail réalisé et en discute les limites et perspectives.
+Le #chapter-num-ref(<ch:functional-overview>) présente le système du point de
+vue de l'utilisateur, sans détail d'implémentation. Le #chapter-num-ref(
+    <ch:system-design>,
+), consacré à la conception du système, expose les décisions architecturales
+conceptuelles majeures. Le #chapter-num-ref(<ch:implementation>) détaille
+ensuite les choix techniques retenus pour la réalisation de cette architecture,
+ainsi que les détails d'implémentation importants. Le #chapter-num-ref(
+    <ch:validation>,
+) présente la démarche de validation adoptée, ainsi que l'analyse de
+performance, dont les résultats sont ensuite comparés au #chapter-num-ref(
+    <ch:comparison>,
+) avec NixOS et Talos Linux. Le #chapter-num-ref(<ch:results>) dresse le bilan
+du travail réalisé et en discute les limites et perspectives.

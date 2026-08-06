@@ -6,7 +6,7 @@
     caption: [Solution au problème du partage de ressources implicite],
     note: [
         Illustre comment, en ajoutant une abstraction, la problématique de deux
-        ressources concrètes indépendante, interagissant avec une troisième
+        ressources concrètes indépendantes interagissant avec une troisième
         ressource concrète peut être résolue.
     ],
     source: made-by-self,

@@ -4,10 +4,10 @@
 
 #refdiagram(
     label: <statustrans>,
-    caption: [Transition entre les différents status d'une ressource],
+    caption: [Transition entre les différents statuts d'une ressource],
     note: [
-        Illustre les divers status qu'une ressource peut avoir et quelles sont
-        les transitions autorisée entre deux initialisation du système.
+        Illustre les divers statuts qu'une ressource peut avoir et quelles sont
+        les transitions autorisée entre deux initialisations du système.
     ],
     source: made-by-self,
 

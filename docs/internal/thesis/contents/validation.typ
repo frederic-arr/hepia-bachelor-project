@@ -172,7 +172,7 @@ started", en orange #vl(orange)). La première mesure l'intervalle entre la
 réception de la configuration et la fin de l'écriture des artefacts sur le
 disque cible, avant redémarrage. La seconde mesure l'intervalle entre ce même
 instant de référence et le démarrage du conteneur, incluant le redémarrage du
-système, la réconciliation réseau et le téléchargement de l'image.
+système, la réconciliation réseau et le téléchargement de l'image:
 
 #include "../diagrams/val-install-time.typ"
 
@@ -196,7 +196,7 @@ système démarré.
 
 La #figure-num-ref(<val-memory>) présente la distribution de l'allocation
 mémoire maximale atteinte par le conteneur sur cent exécutions, une fois le
-système démarré.
+système démarré:
 
 #include "../diagrams/val-memory.typ"
 

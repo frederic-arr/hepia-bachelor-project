@@ -160,9 +160,9 @@ attente jusqu'à ce que leurs dépendances respectives atteignent un état
 compatible.
 
 === File d'attente
-Comme indiqué dans le #full-ref(<ch:system-design:scheduling>), la boucle de
-réconciliation dépend d'une file d'attente, structure représentée ici par
-`Queue<K>`. Cette file est implémentée de manière générique: elle permet de
+Comme indiqué dans le #chapter-full-ref(<ch:system-design:scheduling>), la
+boucle de réconciliation dépend d'une file d'attente, structure représentée ici
+par `Queue<K>`. Cette file est implémentée de manière générique: elle permet de
 planifier n'importe quel élément de type `K` à un moment précis. Dans le cadre
 du présent système, `K` représente l'identifiant unique d'une ressource. Son
 état interne est principalement inclus dans la structure `QueueInner<K>`
@@ -741,7 +741,7 @@ s'interrompt et déclenche un "kernel panic". À ce stade du cycle de vie du
 système, les composants permettant une gestion déclarative ne sont pas encore
 chargés et il n'y a donc aucune autre possibilité pour joindre le système.
 
-Le #figure-num-ref(<img:kernel-panic>) illustre un tel comportement, provoqué
+La #figure-num-ref(<img:kernel-panic>) illustre un tel comportement, provoqué
 par l'indisponibilité du disque de configuration attendu par le système:
 
 #figure(

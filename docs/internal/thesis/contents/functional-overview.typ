@@ -215,11 +215,11 @@ toute autre ressource du système, comme illustré dans le #code-num-ref(
 ). Cette ressource permet de définir le mécanisme d'authentification requis,
 ainsi que l'adresse depuis laquelle l'API est accessible, restreignant ainsi la
 surface d'exposition du système sur le réseau. L'absence d'authentification,
-utilisée dans la configuration par défaut est destiné a un usage temporaire: la
-phase d'installation étant relativement courte, et le serveur ne possédant pas
-encore de données sensible, il est considéré que laisser un tel accès ouvert
-durant quelques secondes (entre le démarrage de l'API et la transmission d'une
-configuration initiale) est convenable#footnote[
+utilisée dans la configuration par défaut, est destinée a un usage temporaire:
+la phase d'installation étant relativement courte, et le serveur ne possédant
+pas encore de données sensibles, il est considéré que laisser un tel accès
+ouvert durant quelques secondes (entre le démarrage de l'API et la transmission
+d'une configuration initiale) est convenable#footnote[
     C'est aussi le parti pris d'autres solutions, tel que Talos Linux.
 ].
 

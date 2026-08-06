@@ -25,7 +25,7 @@
 
         La mesure depuis une installation sur disque sont représentée sur le
         plan supérieur, tandis que les mesures depuis l'image ISO (mode
-        éphémère) sont représentée sur le plan inférieur.
+        éphémère) sont représentées sur le plan inférieur.
     ],
     source: made-by-self,
     lq.diagram(
