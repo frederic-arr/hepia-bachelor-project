@@ -848,7 +848,7 @@ de déploiement. Dans le cas du Raspberry Pi, l'output `rpi-sd-image` regroupe
 les éléments propres à cette plateforme et produit une image directement
 destinée au flashage sur une carte SD.
 
-== Environement de test
+== Environement de test <ch:implementation:tests>
 Trois catégories de tests sont mises en œuvre: les tests unitaires, les tests
 d'intégration, et les tests de bout en bout (end-to-end). Les tests unitaires
 sont dépourvus de complexité particulière, n'interagissant pas ou peu avec

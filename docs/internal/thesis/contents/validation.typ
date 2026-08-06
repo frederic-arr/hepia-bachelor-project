@@ -10,14 +10,14 @@
 
 = Tests et validation
 Ce chapitre présente la démarche de validation adoptée pour vérifier le
-comportement du système implémenté au regard des objectifs énoncés en
-introduction. La couverture assurée par les tests unitaires et les tests
-d'intégration, propres à chaque composant, est d'abord présentée, avant que les
-tests de bout en bout, reproduisant des scénarios d'utilisation complets du
-système, ne soient détaillés. Ces derniers servent également de base à l'analyse
-de performance, qui mesure la rapidité de démarrage et d'installation du système
-ainsi que son empreinte mémoire. Le chapitre se conclut par une discussion des
-limites du protocole de mesure employé.
+comportement du système implémenté. La couverture assurée par les tests
+unitaires et les tests d'intégration, propres à chaque composant, est d'abord
+présentée, avant que les tests de bout en bout, reproduisant des scénarios
+d'utilisation complets du système, ne soient détaillés. Ces derniers servent
+également de base à l'analyse de performance, qui mesure la rapidité de
+démarrage et d'installation du système ainsi que son empreinte mémoire. Le
+chapitre se conclut par une discussion des limites du protocole de mesure
+employé.
 
 == Tests unitaires et tests d'intégration
 Les tests unitaires et les tests d'intégration portent principalement sur les
@@ -31,24 +31,24 @@ d'une ressource. Seul une partie des contrôleurs sont testés via des tests
 d'intégration. En effet, l'environement dans lequel les tests sont isolé ne
 dispose pas de tous les éléments nécessaires pour mener a bien le test de
 certains composants. C'est notamment le cas du contrôleur de conteneurs:
-l'environement de test disposant d'une système de fichier racine vide, la
-runtime de conteneur n'est pas présente et celle-ci nécessite un nombre
-important de dépendance qu'il serait fastidieux de lier dans cet environement.
+l'environement de test disposant d'une système de fichier racine vide, le
+runtime de conteneur n'est pas présent et celui-ci nécessite un nombre important
+de dépendance qu'il serait fastidieux de lier dans cet environement.
 
 Toutefois, des tests de bout en bout (end-to-end, E2E), implémentés dans #repo(
     "rust/e2e/tests/",
 ) viennent completer la couverture. Ces tests reposent fortement sur Nix afin
 crée les artefacts permettant d'exécuter une machine virtuelle, en particulier
-une image ISO. Chaque test est effectué dans une machine virtuelle séparée. De
-manière générale, le test va lancer la machine virtuelle, attendre que l'API
-soit joignable puis effectuer une suite de commandes. Afin de garantir que le
-système fonctionne correctement, les tests ne reposent pas uniquement sur la
-lecture de l'état courrant de l'API, mais incluent dans la configuration un
-conteneur cURL qui va effectuer une requête HTTP vers l'hôte de test, sur un
-port que le test écoute. La réception effective de cette requête permet ainsi de
-valider que l'état rapporté par l'API ne se contente pas d'être cohérent en
-apparence, mais reflète bien l'état réel du système et démontrant que le
-conteneur fonctionne.
+une image ISO. Chaque test est effectué dans une machine virtuelle séparée, tel
+que présenté dans le #chapter-full-ref(<ch:implementation:tests>). De manière
+générale, le test va lancer la machine virtuelle, attendre que l'API soit
+joignable puis effectuer une suite de commandes. Afin de garantir que le système
+fonctionne correctement, les tests ne reposent pas uniquement sur la lecture de
+l'état courrant de l'API, mais incluent dans la configuration un conteneur cURL
+qui va effectuer une requête HTTP vers l'hôte de test, sur un port que le test
+écoute. La réception de cette requête permet ainsi de valider que l'état
+rapporté par l'API ne se contente pas d'être cohérent en apparence, mais reflète
+bien l'état réel du système et démontrant que le conteneur fonctionne.
 
 == Validation
 Parmi les tests de bout en bout, trois scénarios notables sont définis:
@@ -70,12 +70,12 @@ l'image ISO, puis redémarré. La configuration appliquée définit également u
 conteneur, dont l'exécution est vérifiée selon les mêmes critères que ceux du
 scénario précédent. La validation porte en outre sur la persistance de l'état à
 travers le redémarrage: l'état de la configuration et du conteneur, tel que
-rapporté par l'API après réinstallation, doit correspondre à l'état appliqué
-avant redémarrage.
+rapporté par l'API après redémarrage, doit correspondre à l'état appliqué avant
+redémarrage.
 
 === Application 3 tiers
 // TODO: Nextcloud
-Ce scénario met en œuvre une configuration composée de quatre conteneurs:: une
+Ce scénario met en œuvre une configuration composée de quatre conteneurs: une
 base de données, un service backend dépendant de la base de données, un service
 web dépendant du backend, et un conteneur de "probe" dépendant du service web,
 chargé d'émettre une requête HTTP l'hôte.
@@ -115,15 +115,14 @@ mémoire vive et d'un support de stockage NVMe. Cet hôte fonctionne sous Window
 )
 
 La majorité des instants mesurés sont déterminés par horodatage, côté tests, des
-messages émis sur la console serial par les différents composants du système,
-cette dernière étant flushée immédiatement après chaque message afin de garantir
-la fidélité de l'horodatage par rapport à l'instant d'émission. La marge
-d'erreur associée à ce mécanisme est jugée négligeable au regard de l'échelle
-des durées mesurées. Le démarrage effectif d'un conteneur constitue une
-exception à ce mécanisme: cette mesure repose sur le même protocole que les
-tests de bout en bout décrits précédemment, à savoir la réception, par un
-serveur à l'écoute sur l'hôte, d'une requête HTTP émise par le conteneur
-concerné.
+messages émis sur la console par les différents composants du système, cette
+dernière étant flushée immédiatement après chaque message afin de garantir la
+fidélité de l'horodatage par rapport à l'instant d'émission. La marge d'erreur
+associée à ce mécanisme est jugée négligeable au regard de l'échelle de temps
+mesurées. Le démarrage d'un conteneur constitue une exception à ce mécanisme:
+cette mesure repose sur le même protocole que les tests de bout en bout décrits
+précédemment, à savoir la réception, par un serveur à l'écoute sur l'hôte, d'une
+requête HTTP émise par le conteneur concerné.
 
 === Rapidité <ch:validation:speed>
 La #figure-num-ref(<val-boot-time>) présente la chronologie des étapes de
@@ -148,21 +147,14 @@ supplémentaire est nécessaire à la réconciliation et au protocole DHCP, port
 à environ 1.5 secondes le délai avant que l'API ne devienne joignable.
 
 Le téléchargement de l'image du conteneur, s'il y a lieu, commence environ 0.5
-secondes après la configuration DHCP dans le contexte d'un démarrage sur disque,
-contre 1.5 secondes dans le contexte d'un démarrage depuis l'image ISO. Cette
-différence s'explique par le fait que, lorsqu'une configuration est initialement
-poussée sur le système éphémère, aucun runtime de conteneur n'est encore lancé
-et doit donc être démarré, alors que, dans le contexte d'un démarrage sur
-disque, celui-ci est démarré plus tôt, certaines dépendances étant déjà
-présentes. Le téléchargement de l'image du conteneur, s'il y a lieu, commence
-environ 0.5 secondes après la configuration DHCP. Une fois celui-ci commencé,
-environ 2.1 secondes sont nécessaires pour qu'il arrive à son terme. Le
-conteneur est immédiatement démarré une fois ce téléchargement terminé . Lorsque
-l'image est déjà téléchargée, le téléchargement se termine instantanément et le
-conteneur est aussitôt démarré, ce qui crée une superposition des deux
-événements sur la #figure-num-ref(<val-boot-time>). Le cas d'une image déjà
-téléchargée n'est, par nature, pas possible pour un environnement éphémère et
-n'est donc pas représenté sur le plan inférieur.
+secondes après la configuration DHCP. Une fois celui-ci commencé, environ 2.1
+secondes sont nécessaires pour qu'il arrive à son terme. Le conteneur est
+immédiatement démarré une fois ce téléchargement terminé . Lorsque l'image est
+déjà téléchargée, le téléchargement se termine instantanément et le conteneur
+est aussitôt démarré, ce qui crée une superposition des deux événements sur la
+#figure-num-ref(<val-boot-time>). Le cas d'une image déjà téléchargée n'est, par
+nature, pas possible pour un environnement éphémère et n'est donc pas représenté
+sur le plan inférieur.
 
 Au total, entre le démarrage de la machine et le démarrage du conteneur, le
 temps médian est de 5.1 secondes dans le cas d'un téléchargement d'image, contre
@@ -175,13 +167,12 @@ sur disque et un démarrage depuis l'image ISO.
 
 La #figure-num-ref(<val-install-time>) présente la durée du processus
 d'installation ("Time to install", en bleu~#vl(blue)), ainsi que la durée totale
-jusqu'au démarrage effectif d'un conteneur après installation ("Time until
-container started", en orange~#vl(orange)). La première mesure l'intervalle
-entre la réception de la configuration et la fin de l'écriture des artefacts sur
-le disque cible, avant redémarrage. La seconde mesure l'intervalle entre ce même
-instant de référence et le démarrage effectif du conteneur, incluant le
-redémarrage du système, la réconciliation réseau et le téléchargement de
-l'image.
+jusqu'au démarrage d'un conteneur après installation ("Time until container
+started", en orange~#vl(orange)). La première mesure l'intervalle entre la
+réception de la configuration et la fin de l'écriture des artefacts sur le
+disque cible, avant redémarrage. La seconde mesure l'intervalle entre ce même
+instant de référence et le démarrage du conteneur, incluant le redémarrage du
+système, la réconciliation réseau et le téléchargement de l'image.
 
 #include "../diagrams/val-install-time.typ"
 
@@ -204,21 +195,20 @@ quantité de mémoire effectivement disponible pour un conteneur une fois le
 système démarré.
 
 La #figure-num-ref(<val-memory>) présente la distribution de l'allocation
-mémoire maximale atteinte par le conteneur "membench" sur cent exécutions, une
-fois le système démarré avec une machine virtuelle disposant de 256~MiB de RAM.
+mémoire maximale atteinte par le conteneur sur cent exécutions, une fois le
+système démarré.
 
 #include "../diagrams/val-memory.typ"
 
-La médiane de l'allocation atteinte se situe à environ 208~MiB, l'intervalle
-interquartile s'étendant de 205~à~209~MiB. Les valeurs extrêmes observées se
-situent entre 193~et~213 MiB. La mémoire disponible est donc autour des~80%~de
-la mémoire allouée à la machine virtuelle. Par extension, le système
-d'exploitation complet, noyau et runtime de conteneur inclus, ne consomme donc
-qu'environ 40~MiB. Toutefois, il n'est pas pour autant possible de démarrer une
-machine virtuelle avec seulement 20~MiB de mémoire. En effet, durant le
-démarrage, un minimum de 80~MiB sont requis afin que le système démarre, et dans
-l'optique de télécharger une image et exécuter un conteneur au minimum 160~MiB
-sont requis.
+La médiane de l'allocation atteinte se situe à environ 208~MiB. Les valeurs
+extrêmes observées se situent entre 193~et~213 MiB. La mémoire disponible est
+donc autour des~80%~de la mémoire allouée à la machine virtuelle. Par extension,
+le système d'exploitation complet, noyau et runtime de conteneur inclus, ne
+consomme donc qu'environ 40~MiB. Toutefois, il n'est pas pour autant possible de
+démarrer une machine virtuelle avec seulement 20~MiB de mémoire. En effet,
+durant le démarrage, un minimum de 80~MiB sont requis afin que le système
+démarre, et dans l'optique de télécharger une image et exécuter un conteneur au
+minimum 160~MiB sont requis.
 
 == Limitations
 Le protocole de mesure employé pour les benchmarks de rapidité et de légèreté ne
