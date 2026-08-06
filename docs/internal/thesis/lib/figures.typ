@@ -4,7 +4,27 @@
         show outline.entry.where(level: 1): set block(above: 1.2em)
         show outline.entry.where(level: 1): set text(weight: "bold")
         show outline.entry: it => {
-            if it.element.numbering == "A" {
+            if (
+                it.element.numbering == none
+                    and it.element.location().page() <= 10
+            ) {
+                link(
+                    it.element.location(),
+                    block(
+                        inset: (left: 0% + 16.01pt),
+                        [
+                            #h(-16.01pt)
+                            #it.prefix()
+                            #it.body()
+                            #box(width: 1fr, it.fill)
+                            #counter(page).display(
+                                "I",
+                                at: it.element.location(),
+                            )
+                        ],
+                    ),
+                )
+            } else if it.element.numbering == "A" {
                 let b = it.body()
                 link(
                     it.element.location(),
