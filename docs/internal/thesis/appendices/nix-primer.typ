@@ -39,5 +39,5 @@ il permet également de définir des environnements de développement
 reproductibles, activables au moyen de la commande `nix develop`, ainsi que
 d'exécuter une commande arbitraire au sein d'un tel environnement sans l'ouvrir
 de manière interactive, au moyen de `nix develop -c <commande>`. Cette dernière
-capacité permet à un pipeline Ci/CD de bénéficier exactement du même
+capacité permet à un pipeline CI/CD de bénéficier exactement du même
 environnement que celui utilisé en développement local.
