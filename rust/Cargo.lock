@@ -2530,6 +2530,7 @@ dependencies = [
  "cos-proto-reconciler-server",
  "isolation",
  "libc",
+ "rand",
  "rustix",
  "serde",
  "serde_json",
