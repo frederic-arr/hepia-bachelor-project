@@ -208,7 +208,6 @@ mod validation {
     }
 
     #[tokio::test]
-    #[ignore = "TODO"]
     async fn create_delete_container() {
         let port = random_port();
         let data = include_str!("./data/create-delete-container--create.yaml")
@@ -216,14 +215,19 @@ mod validation {
 
         let mut vm = create_vm().await;
         let () = vm.push_str(&data).await.unwrap();
-        vm.set_password(Some("hepia2026demo".to_owned()));
         wait_for_request(port).await.unwrap();
 
         let data = include_str!("./data/create-delete-container--delete.yaml");
         let () = vm.push_str(data).await.unwrap();
 
-        let resources = vm.list().await.unwrap();
-        assert_eq!(resources.len(), 7);
+        tokio::time::sleep(Duration::from_secs(2)).await;
+
+        vm.get_resource(&Key {
+            schema: "container:instance".to_owned(),
+            name: Some("probe".to_owned()),
+        })
+        .await
+        .unwrap_err();
 
         vm.kill().await.unwrap();
     }

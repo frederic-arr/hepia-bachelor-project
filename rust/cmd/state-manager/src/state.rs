@@ -503,12 +503,10 @@ impl StateManager {
         let added = added.into_iter().collect::<Result<Vec<_>, _>>()?;
         let modified = modified.into_iter().collect::<Result<Vec<_>, _>>()?;
 
+        let mut scheduled_removal = vec![];
         for resource in removed {
-            let Some(entry) = self_resources.get_mut(&resource) else {
-                continue;
-            };
-
-            entry.phase = Phase::Deleting;
+            let scheduled = Self::mark_removed(&resource, self_resources);
+            scheduled_removal.extend(scheduled);
         }
 
         for (resource, response) in added.clone() {
@@ -539,6 +537,13 @@ impl StateManager {
             entry.dependencies = response.dependencies;
         }
 
+        queue
+            .schedule_at_bulk(
+                scheduled_removal.into_iter().collect(),
+                Instant::now(),
+            )
+            .await;
+
         Self::schedule_available(
             added.iter().chain(modified.iter()),
             queue,
@@ -546,6 +551,32 @@ impl StateManager {
             do_schedule,
         )
         .await
+    }
+
+    pub fn mark_removed(
+        key: &Key,
+        resources: &mut HashMap<Key, TerminalResource<Value, Value, Value>>,
+    ) -> Vec<Key> {
+        let Some(resource) = resources.get_mut(key) else {
+            return vec![];
+        };
+
+        let no_inbound_deps = resource.dependents.is_empty();
+        let no_children = resource.children.is_empty();
+        let mut queued = vec![];
+        if no_children && no_inbound_deps {
+            resource.phase = Phase::Deleting;
+            queued.push(key.clone());
+        } else {
+            resource.phase = Phase::PendingDeletion;
+        }
+
+        for child in resource.children.clone() {
+            let keys = Self::mark_removed(child.key(), resources);
+            queued.extend(keys);
+        }
+
+        queued
     }
 
     pub async fn schedule_available<'aaa, I>(

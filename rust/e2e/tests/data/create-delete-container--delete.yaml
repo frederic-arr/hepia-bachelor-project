@@ -1,6 +1,6 @@
 ---
 schema: api
-auth: "none"
+auth: none
 
 ---
 schema: network:dns
