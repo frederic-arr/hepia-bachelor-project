@@ -695,18 +695,18 @@ après un court délai, processus décrit plus en détail dans le #chapter-full-
 Le système repose sur un fonctionnement presque entièrement immuable. Le système
 de fichiers racine contient le strict minimum, à savoir les binaires dans
 `/bin/` et quelques fichiers statiques dans `/etc/`. Ces deux répertoires sont
-fournis au système à travers une archive SquashFS @bib-squashfs qui les rend
-totalement immuables. Cette archive représente le système de fichiers racine
-(`/`). Toutefois, certains fichiers doivent pouvoir être écrits dans `/etc/`
-durant le fonctionnement normal du système, par exemple pour configurer la
-résolution DNS ou Podman. Afin de permettre cela, un système de fichiers
-temporaire est superposé à l'archive SquashFS grâce à OverlayFS @bib-overlayfs.
-Ce système de fichiers temporaire est entièrement persisté en
-mémoire#sym.space.narrow; ainsi, lorsque le système d'exploitation redémarre,
-l'ensemble de son contenu est perdu. Ceci ne constitue pas un problème compte
-tenu du modèle déclaratif du système#sym.space.narrow: l'ensemble de ces
-fichiers est en réalité dérivé de la configuration, et recréé identique à chaque
-redémarrage.
+fournis au système à travers une image d'un système de fichiers de type SquashFS
+@bib-squashfs qui les rend totalement immuables. Cette image représente le
+système de fichiers racine (`/`). Toutefois, certains fichiers doivent pouvoir
+être écrits dans `/etc/` durant le fonctionnement normal du système, par exemple
+pour configurer la résolution DNS ou Podman. Afin de permettre cela, un système
+de fichiers temporaire de type Tmpfs @bib-tmpfs est superposé à l'image SquashFS
+au moyen d'OverlayFS @bib-overlayfs. Ce système de fichiers temporaire est
+entièrement persisté en mémoire#sym.space.narrow; ainsi, lorsque le système
+d'exploitation redémarre, l'ensemble de son contenu est perdu. Ceci ne constitue
+pas un problème compte tenu du modèle déclaratif du système#sym.space.narrow:
+l'ensemble de ces fichiers est en réalité dérivé de la configuration, et recréé
+identique à chaque redémarrage.
 
 == Démarrage du système
 Le bootloader, quel qu'il soit, charge le noyau ainsi que l'initrd en mémoire.
@@ -716,18 +716,18 @@ rôle est de charger le système de fichiers racine réel décrit au
 celui-ci exécute le processus `/init` se trouvant sur l'initrd#sym.space.narrow;
 dans le cas du présent système, ce processus est le seul présent sur ce système
 de fichiers. Ce processus, implémenté dans #repo("rust/cmd/init"), a pour but de
-localiser l'archive SquashFS du système de fichiers racine réel, où qu'elle se
+localiser l'image SquashFS du système de fichiers racine réel, où qu'elle se
 trouve, de la préparer, puis d'y apposer la surcouche d'écriture au moyen
 d'OverlayFS.
 
 Pour localiser le système de fichiers racine réel, l'`/init` se base sur le
 paramètre de démarrage `cos.bootdisk`, qui spécifie le disque et le numéro de
 partition sur lesquels se trouvent les artefacts de démarrage. L'`/init` monte
-alors temporairement cette partition afin d'y récupérer l'archive SquashFS. Si
-ce paramètre est absent, l'`/init` considère qu'il est démarré depuis l'image
-ISO, et tente de monter cette dernière afin d'y récupérer l'archive. Dans les
-deux cas, l'archive se nomme `root.squashfs` et se trouve à la racine respective
-de son support.
+alors temporairement cette partition afin d'y récupérer l'image SquashFS. Si ce
+paramètre est absent, l'`/init` considère qu'il est démarré depuis l'image ISO,
+et tente de monter cette dernière afin d'y récupérer l'image. Dans les deux cas,
+l'image se nomme `root.squashfs` et se trouve à la racine respective de son
+support.
 
 Une fois le système de fichiers racine réel mis en place, l'`/init` passe la
 main au superviseur, implémenté dans #repo("rust/cmd/supervisor"), responsable
@@ -797,13 +797,13 @@ ressource et garantit que l'installation s'exécute sur un état stable.
 
 Le disque système est partitionné selon un schéma composé de quatre
 partitions#sym.space.narrow: une partition de boot de 1 MiB, une partition
-contenant les fichiers de Limine ainsi que l'archive SquashFS du système, le
-noyau et l'initrd (`limine`, 512 MiB), une partition optionnelle destinée au
-disque de configuration (`config`, 10 MiB), et une partition optionnelle de
-données occupant l'espace restant (`data`). Limine est ensuite installé sur le
-disque, les partitions requises sont formatées et montées, avant que les
-fichiers de démarrage extraits de l'image ISO ne soient copiés vers la partition
-`limine`. Une configuration de démarrage est enfin générée, définissant deux
+contenant les fichiers de Limine ainsi que l'image SquashFS du système, le noyau
+et l'initrd (`limine`, 512 MiB), une partition optionnelle destinée au disque de
+configuration (`config`, 10 MiB), et une partition optionnelle de données
+occupant l'espace restant (`data`). Limine est ensuite installé sur le disque,
+les partitions requises sont formatées et montées, avant que les fichiers de
+démarrage extraits de l'image ISO ne soient copiés vers la partition `limine`.
+Une configuration de démarrage est enfin générée, définissant deux
 entrées#sym.space.narrow: l'une destinée à l'exécution normale du système,
 référençant les disques présents par leur chemin respectif au moyen de
 paramètres de démarrage dédiés, l'autre destinée au mode maintenance.
@@ -881,10 +881,10 @@ dossier regroupant l'ensemble de ces éléments au sein du `/nix/store`.
 Une dérivation `rootfs` reprend cet environnement et y ajoute les liens
 symboliques nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc.,
 contiennent des liens symboliques pointant vers le `/nix/store`. Cette
-dérivation produit, en sortie, une archive au format SquashFS. Deux dérivations
-additionnels complètent cet assemblage#sym.space.narrow: `kernel`, qui construit
-l'image du noyau selon les options de configuration retenues, et initrd, qui
-fournit le système de fichiers initial.
+dérivation produit, en sortie, une image SquashFS. Deux dérivations additionnels
+complètent cet assemblage#sym.space.narrow: `kernel`, qui construit l'image du
+noyau selon les options de configuration retenues, et initrd, qui fournit le
+système de fichiers initial.
 
 À partir de ces trois dérivations, `rootfs`, `initrd` et `kernel`, une
 dérivation `iso` assemble l'ensemble en une image ISO, exécutable via QEMU
