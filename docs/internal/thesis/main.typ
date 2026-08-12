@@ -108,27 +108,43 @@
 #counter(page).update(1)
 #include "contents/introduction.typ"
 
-#set heading(numbering: "1.")
-#show heading.where(level: 1): it => {
-    pagebreak(weak: true)
-    it
+#{
+    set heading(numbering: "1.")
+    show heading.where(level: 1): it => {
+        pagebreak(weak: true)
+        [Chapitre ]
+        counter(heading).display(at: it.location(), "1: ")
+        it.body
+        linebreak()
+    }
+
+    include "contents/functional-overview.typ"
+    include "contents/system-design.typ"
+    include "contents/implementation.typ"
+    include "contents/validation.typ"
+    include "contents/comparison.typ"
+    include "contents/results-and-discussion.typ"
 }
 
-#include "contents/functional-overview.typ"
-#include "contents/system-design.typ"
-#include "contents/implementation.typ"
-#include "contents/validation.typ"
-#include "contents/comparison.typ"
-#include "contents/results-and-discussion.typ"
-
-#set heading(numbering: none)
-#include "contents/conclusion.typ"
+#{
+    set heading(numbering: none)
+    include "contents/conclusion.typ"
+}
 
 
 #counter(heading).update(0)
 #{
     set heading(numbering: "A.1.", supplement: "Annexe")
     show heading.where(level: 1): set heading(numbering: "A")
+    show heading.where(level: 1): it => {
+        pagebreak(weak: true)
+        block(width: 100%, below: 2em, align(center, {
+            [Annexe ] + counter(heading).display(at: it.location(), "A")
+            linebreak()
+            it.body
+        }))
+    }
+
     include "appendices/ai.typ"
     include "appendices/full-config.typ"
     include "appendices/nix-primer.typ"
