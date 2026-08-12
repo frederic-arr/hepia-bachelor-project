@@ -710,15 +710,17 @@ identique à chaque redémarrage.
 
 == Démarrage du système
 Le bootloader, quel qu'il soit, charge le noyau ainsi que l'initrd en mémoire.
-L'initrd est un système de fichiers racine minimal et temporaire, dont le seul
-rôle est de charger le système de fichiers racine réel décrit au
+L'initrd est un système de fichiers racine, entièrement chargé en mémoire. En
+raison des contraintes mémoires et de la taille du système de fichiers racine
+réel, l'initrd du présent système est un système de fichiers minimal, dont le
+seul rôle est de préparer le système de fichiers racine réel décrit au
 #chapter-full-ref(<ch:implementation:rootfs>). Une fois le noyau démarré,
-celui-ci exécute le processus `/init` se trouvant sur l'initrd#sym.space.narrow;
-dans le cas du présent système, ce processus est le seul présent sur ce système
-de fichiers. Ce processus, implémenté dans #repo("rust/cmd/init"), a pour but de
-localiser l'image SquashFS du système de fichiers racine réel, où qu'elle se
-trouve, de la préparer, puis d'y apposer la surcouche d'écriture au moyen
-d'OverlayFS.
+celui-ci exécute le programme `/init` se trouvant sur l'initrd#sym.space.narrow;
+ce programme devient alors le processus initial (PID 1) du système. Dans le cas
+du présent système, ce programme est le seul présent sur ce système de fichiers.
+Ce programme, implémenté dans #repo("rust/cmd/init"), a pour but de localiser
+l'image SquashFS du système de fichiers racine réel, où qu'elle se trouve, de la
+préparer, puis d'y apposer la surcouche d'écriture au moyen d'OverlayFS.
 
 Pour localiser le système de fichiers racine réel, l'`/init` se base sur le
 paramètre de démarrage `cos.bootdisk`, qui spécifie le disque et le numéro de
@@ -729,13 +731,14 @@ et tente de monter cette dernière afin d'y récupérer l'image. Dans les deux c
 l'image se nomme `root.squashfs` et se trouve à la racine respective de son
 support.
 
-Une fois le système de fichiers racine réel mis en place, l'`/init` passe la
-main au superviseur, implémenté dans #repo("rust/cmd/supervisor"), responsable
-de monter le reste du système de fichiers. Cette répartition des rôles entre
-`/init` et le superviseur s'explique par le fait que l'initrd, contenant
-l'`/init`, est chargé en mémoire et doit à ce titre demeurer aussi léger que
-possible. Le superviseur suit ensuite les étapes illustrée dans la
-#figure-num-ref(<sysinit>)#sym.space.narrow:
+Une fois le système de fichiers racine réel monté, l'`/init` passe la main au
+superviseur, implémenté dans #repo("rust/cmd/supervisor"), responsable de monter
+le reste du système de fichiers. Cette répartition des rôles entre `/init` et le
+superviseur s'explique par le fait que l'initrd, contenant l'`/init`, est chargé
+en mémoire et doit à ce titre demeurer aussi léger que possible. Le superviseur
+suit ensuite les étapes illustrée dans la #figure-num-ref(
+    <sysinit>,
+)#sym.space.narrow:
 
 #include "../diagrams/sysinit.typ"
 
