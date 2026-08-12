@@ -5,8 +5,8 @@ Ce chapitre compare directement le système implémenté aux deux solutions les
 plus proches identifiées durant le projet de semestre, à savoir NixOS et Talos
 Linux. Les critères d'évaluation retenus sont d'abord définis, avant que la
 méthodologie de mesure ne soit précisée et que chaque solution ne soit présentée
-et évaluée individuellement selon ces critères; une synthèse comparative conclut
-ce chapitre.
+et évaluée individuellement selon ces critères#sym.space.narrow; une synthèse
+comparative conclut ce chapitre.
 
 == Critères
 Les critères utilisés sont repris du projet de semestre @bib-semester-projet.
@@ -29,10 +29,10 @@ l'installation et lors de l'exécution.
 === Rapidité
 La solution doit permettre un déploiement rapide, aussi bien lors d'une
 installation initiale que lors d'un démarrage ultérieur du système. Ce critère
-est évalué au moyen de deux mesures: le temps d'installation, mesuré entre
-l'entrée dans l'environnement d'installation et le démarrage du conteneur
-configuré, et le temps de démarrage, mesuré entre le lancement de la machine
-virtuelle et le démarrage de ce même conteneur.
+est évalué au moyen de deux mesures#sym.space.narrow: le temps d'installation,
+mesuré entre l'entrée dans l'environnement d'installation et le démarrage du
+conteneur configuré, et le temps de démarrage, mesuré entre le lancement de la
+machine virtuelle et le démarrage de ce même conteneur.
 
 === Simplicité
 La solution doit être aussi simple que possible à l'utilisation. La
@@ -46,17 +46,17 @@ sans optimisation spécifique.
 
 La rapidité est mesurée au moyen d'un conteneur effectuant une requête HTTP vers
 l'hôte dès son démarrage, selon la même procédure que celle décrite au
-#chapter-full-ref(<ch:validation:bench>): l'instant de réception de cette
-requête par l'hôte marque la fin de la mesure, aussi bien pour le temps
-d'installation que pour le temps de démarrage.
+#chapter-full-ref(<ch:validation:bench>)#sym.space.narrow: l'instant de
+réception de cette requête par l'hôte marque la fin de la mesure, aussi bien
+pour le temps d'installation que pour le temps de démarrage.
 
-La légèreté est évaluée à partir de ce même protocole de mesure de la rapidité:
-une machine virtuelle est démarrée avec une quantité de mémoire vive donnée,
-puis la requête HTTP attendue est surveillée pendant une durée maximale de cinq
-minutes. L'absence de réception de cette requête dans ce délai est interprétée
-comme un échec du démarrage du conteneur pour la quantité de mémoire testée. En
-cas d'échec, une nouvelle tentative sera effectuée avec plus de mémoire vive
-jusqu'à ce que cela fonctionne.
+La légèreté est évaluée à partir de ce même protocole de mesure de la
+rapidité#sym.space.narrow: une machine virtuelle est démarrée avec une quantité
+de mémoire vive donnée, puis la requête HTTP attendue est surveillée pendant une
+durée maximale de cinq minutes. L'absence de réception de cette requête dans ce
+délai est interprétée comme un échec du démarrage du conteneur pour la quantité
+de mémoire testée. En cas d'échec, une nouvelle tentative sera effectuée avec
+plus de mémoire vive jusqu'à ce que cela fonctionne.
 
 == NixOS
 NixOS est une distribution Linux généraliste construite autour du gestionnaire
@@ -76,14 +76,15 @@ est disponible dans #repo("misc/nixos/vm.nix"). La mémoire requise s'élève à
 MiB en exécution et à 762 MiB à l'installation. Le temps d'installation mesuré
 est de 5 minutes, et le temps de démarrage de 31 secondes.
 
-Le critère d'automatisation n'est que partiellement atteint: l'installation de
-NixOS nécessite un installeur interactif ou un mécanisme d'initialisation
-externe (par exemple nixos-anywhere @bib-nixos-anywhere) chargé d'effectuer
-l'installation initiale, cette étape reposant ainsi sur des commandes distinctes
-de celles utilisées pour la configuration déclarative subséquente du système. Le
-critère de légèreté n'est par ailleurs pas atteint, la mémoire requise à
-l'installation (762 MiB) dépassant la limite acceptable de 512 MiB, bien que la
-mémoire requise en exécution seule (276 MiB) reste dans à cette limite.
+Le critère d'automatisation n'est que partiellement atteint#sym.space.narrow:
+l'installation de NixOS nécessite un installeur interactif ou un mécanisme
+d'initialisation externe (par exemple nixos-anywhere @bib-nixos-anywhere) chargé
+d'effectuer l'installation initiale, cette étape reposant ainsi sur des
+commandes distinctes de celles utilisées pour la configuration déclarative
+subséquente du système. Le critère de légèreté n'est par ailleurs pas atteint,
+la mémoire requise à l'installation (762 MiB) dépassant la limite acceptable de
+512 MiB, bien que la mémoire requise en exécution seule (276 MiB) reste dans à
+cette limite.
 
 == Talos Linux
 Talos Linux est une distribution Linux immuable et minimale, développée par
@@ -100,16 +101,18 @@ dans #repo("misc/talos/config.yaml"). La mémoire requise s'élève à 1.4 GiB,
 aussi bien à l'installation qu'en exécution. Le temps d'installation mesuré est
 de 210 secondes, et le temps de démarrage de 65 secondes.
 
-Le critère d'automatisation est atteint: la même configuration déclarative,
-transmise via l'API du système, est utilisée aussi bien pour l'installation
-initiale que pour toute reconfiguration ultérieure, sans qu'aucune commande
-distincte ne soit requise entre ces deux phases. Le critère de légèreté n'est en
-revanche pas atteint, la mémoire requise (1.4 GiB) dépassant très largement la
-limite acceptable de 512 MiB, aussi bien à l'installation qu'en exécution.
+Le critère d'automatisation est atteint#sym.space.narrow: la même configuration
+déclarative, transmise via l'API du système, est utilisée aussi bien pour
+l'installation initiale que pour toute reconfiguration ultérieure, sans
+qu'aucune commande distincte ne soit requise entre ces deux phases. Le critère
+de légèreté n'est en revanche pas atteint, la mémoire requise (1.4 GiB)
+dépassant très largement la limite acceptable de 512 MiB, aussi bien à
+l'installation qu'en exécution.
 
 == Synthèse
 Le #table-num-ref(<fig-sota-comp>) rassemble, pour les trois systèmes évalués,
-les résultats obtenus pour chacun des critères définis en début de chapitre:
+les résultats obtenus pour chacun des critères définis en début de
+chapitre#sym.space.narrow:
 
 #{
     set text(size: 10pt)
@@ -172,6 +175,6 @@ ContainerOS requiert environ deux fois moins de mémoire que NixOS et près de d
 fois moins que Talos Linux, tout en restant dans les deux cas sous la limite
 acceptable de 512 MiB, y compris sur une machine dotée de seulement 256 MiB de
 RAM. Sur le plan de la rapidité, ContainerOS démarre environ cinq fois plus vite
-que NixOS et près de dix fois plus vite que Talos~Linux; le temps d'installation
-est quant à lui inférieur d'un facteur proche de dix par rapport à ces deux
-mêmes solutions.
+que NixOS et près de dix fois plus vite que Talos~Linux#sym.space.narrow; le
+temps d'installation est quant à lui inférieur d'un facteur proche de dix par
+rapport à ces deux mêmes solutions.

@@ -33,14 +33,14 @@ configuration et du maintien en état repose entièrement sur l'administrateur.
 Certaines solutions plus spécialisées existent, alliant déclarativité et support
 natif pour la conteneurisation, mais elles souffrent de lacunes diverses. NixOS
 @bib-nix permet une gestion déclarative de l'ensemble du système, hôte et
-conteneurs, mais cette déclarativité reste ponctuelle: l'état désiré est
-appliqué une seule fois, à l'exécution d'une commande, sans qu'aucune boucle de
-contrôle ne surveille le système ni n'en corrige les dérives susceptibles de
-survenir par la suite. D'autres solutions, telles que Talos Linux @bib-talos,
-permettent une administration entièrement déclarative et continue, mais
-s'intègrent étroitement avec Kubernetes, au prix d'une complexité opérationnelle
-et d'une empreinte mémoire disproportionnées pour le simple déploiement de
-quelques conteneurs.
+conteneurs, mais cette déclarativité reste ponctuelle#sym.space.narrow: l'état
+désiré est appliqué une seule fois, à l'exécution d'une commande, sans qu'aucune
+boucle de contrôle ne surveille le système ni n'en corrige les dérives
+susceptibles de survenir par la suite. D'autres solutions, telles que Talos
+Linux @bib-talos, permettent une administration entièrement déclarative et
+continue, mais s'intègrent étroitement avec Kubernetes, au prix d'une complexité
+opérationnelle et d'une empreinte mémoire disproportionnées pour le simple
+déploiement de quelques conteneurs.
 
 Il manque donc un système d'exploitation dans lequel il est possible de décrire
 la configuration de l'hôte et des conteneurs dans un modèle déclaratif unique et
@@ -53,12 +53,12 @@ où il est néanmoins souhaitable de disposer d'un système déclaratif.
 L'objectif central est de fournir un système d'exploitation entièrement
 configurable selon un modèle déclaratif unique, dans lequel la configuration de
 l'hôte et celle des conteneurs sont intégrées de manière homogène. La
-conteneurisation est traitée comme un élément natif du système: les conteneurs
-sont décrits et gérés au même titre que les autres ressources, sans couches
-externes. En particulier, le système doit maintenir l'état désiré de manière
-continue et autonome, en s'appuyant sur une boucle de contrôle qui surveille en
-permanence l'état réel, détecte automatiquement les dérives et les corrige sans
-intervention humaine.
+conteneurisation est traitée comme un élément natif du système#sym.space.narrow:
+les conteneurs sont décrits et gérés au même titre que les autres ressources,
+sans couches externes. En particulier, le système doit maintenir l'état désiré
+de manière continue et autonome, en s'appuyant sur une boucle de contrôle qui
+surveille en permanence l'état réel, détecte automatiquement les dérives et les
+corrige sans intervention humaine.
 
 Parce que le système est destiné à des déploiements exposés à Internet et
 fonctionne sans surveillance constante, la sécurité est une exigence
@@ -96,27 +96,28 @@ https://gitedu.hesge.ch/flg_bachelors/ps/2025/container_os, qui a permis une
 analyse détaillée de la problématique, l'identification des briques techniques
 nécessaire et l'établissement des premiers éléments conceptuels et techniques.
 L'ensemble du code source produit est disponible sur le dépôt Git institutionnel
-à l'adresse suivante:
+à l'adresse suivante#sym.space.narrow:
 https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os.
 L'état du dépôt au moment de la publication du présent document est disponible
 sur le tag #repo("", [`v0.0.0-dev.3.thesis`]) tandis que le dernier code testé
 est disponible sur la branche `main`.
 
 Des intelligences artificielles (IA) génératives ont été utilisées de manière
-ponctuelle pour améliorer la qualité rédactionnelle; un texte de base contenant
-l'intégralité du fond et de l'organisation a toujours été fourni en amont. Pour
-le code, elles ont principalement servi d'outil d'analyse, en complément des
-outils d'analyse de code traditionnels, afin de détecter d'éventuelles failles,
-bogues ou usages contraires aux bonnes pratiques. L'IA a également été employée
-pour conforter l'exhaustivité des recherches documentaires et des efforts de
-débogage: une fois la collecte humaine jugée suffisante ou qu'elle se heurtait à
-une impasse, l'IA a été interrogée pour signaler d'éventuels angles morts, en
-suggérant des mots-clés ou des références complémentaires. Ces suggestions ont
-toujours été vérifiées avant d'être utilisées. L'IA n'a explicitement pas été
-utilisée dans le cadre de la production de code, pour prendre des décisions
-architecturales ou organisationnelles relatives au code, ainsi que pour
-effectuer recherches et débogages initiaux. Un compte rendu détaillé et
-exhaustif de ces usages figure au sein de l'#appendix-full-ref(
+ponctuelle pour améliorer la qualité rédactionnelle#sym.space.narrow; un texte
+de base contenant l'intégralité du fond et de l'organisation a toujours été
+fourni en amont. Pour le code, elles ont principalement servi d'outil d'analyse,
+en complément des outils d'analyse de code traditionnels, afin de détecter
+d'éventuelles failles, bogues ou usages contraires aux bonnes pratiques. L'IA a
+également été employée pour conforter l'exhaustivité des recherches
+documentaires et des efforts de débogage#sym.space.narrow: une fois la collecte
+humaine jugée suffisante ou qu'elle se heurtait à une impasse, l'IA a été
+interrogée pour signaler d'éventuels angles morts, en suggérant des mots-clés ou
+des références complémentaires. Ces suggestions ont toujours été vérifiées avant
+d'être utilisées. L'IA n'a explicitement pas été utilisée dans le cadre de la
+production de code, pour prendre des décisions architecturales ou
+organisationnelles relatives au code, ainsi que pour effectuer recherches et
+débogages initiaux. Un compte rendu détaillé et exhaustif de ces usages figure
+au sein de l'#appendix-full-ref(
     <appendix-ai>,
 ).
 

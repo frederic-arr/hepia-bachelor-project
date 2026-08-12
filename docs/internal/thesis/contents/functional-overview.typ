@@ -24,7 +24,7 @@ structuré sous la forme de plusieurs documents distincts, séparés par `---`.
 
 Une configuration minimale, définissant un accès à l'API sans authentification
 ainsi qu'une interface réseau configurée en DHCP, est présentée dans le
-#code-num-ref(<code-config-default>):
+#code-num-ref(<code-config-default>)#sym.space.narrow:
 
 #figure(
     label: <code-config-default>,
@@ -51,8 +51,8 @@ ainsi qu'une interface réseau configurée en DHCP, est présentée dans le
 
 Cette configuration, qui est la configuration par défaut lors du démarrage du
 système depuis une image ISO, permet de mettre en place le strict minimum pour
-que le système soit accessible: l'interface réseau est activée, une
-configuration réseau est réceptionnée par DHCP, et l'API est accessible sans
+que le système soit accessible#sym.space.narrow: l'interface réseau est activée,
+une configuration réseau est réceptionnée par DHCP, et l'API est accessible sans
 authentification.
 
 Chaque document de ce fichier correspond à la configuration d'une ressource. Au
@@ -67,20 +67,21 @@ Les ressources sont regroupées par domaine fonctionnel, tel que `network`,
 `container` ou `system`, puis par type au sein de ce domaine, par exemple
 `network:link` pour le lien réseau ou `container:instance` pour une instance de
 conteneur. Les ressources peuvent aussi être nommées, cette propriété dépendant
-du type: une ressource unique et globale, telle que la configuration DNS, ne
-nécessite pas de nom, tandis qu'une ressource pouvant être instanciée plusieurs
-fois doit être nommée afin de pouvoir la distinguer des autres instances du même
-type. Lorsqu'il est nécessaire de faire référence à une ressource, il est
-possible d'utiliser la syntaxe `<type>/<nom>` ou simplement `<type>` dans le cas
-d'une ressource globale. Au sein d'un document, le type est représenté par le
-champ `schema` et, outre les éléments permettant d'identifier de manière unique
-une ressource, le document contient également la spécification de la ressource,
-aussi appelée l'état désiré. Cette spécification contient les paramètres propres
-à l'instance spécifique de la ressource, tels que l'image d'un conteneur, l'état
-d'une interface réseau, ou les paramètres d'authentification de l'API. Il existe
-ainsi treize ressources, brièvement décrites dans le #table-num-ref(
+du type#sym.space.narrow: une ressource unique et globale, telle que la
+configuration DNS, ne nécessite pas de nom, tandis qu'une ressource pouvant être
+instanciée plusieurs fois doit être nommée afin de pouvoir la distinguer des
+autres instances du même type. Lorsqu'il est nécessaire de faire référence à une
+ressource, il est possible d'utiliser la syntaxe `<type>/<nom>` ou simplement
+`<type>` dans le cas d'une ressource globale. Au sein d'un document, le type est
+représenté par le champ `schema` et, outre les éléments permettant d'identifier
+de manière unique une ressource, le document contient également la spécification
+de la ressource, aussi appelée l'état désiré. Cette spécification contient les
+paramètres propres à l'instance spécifique de la ressource, tels que l'image
+d'un conteneur, l'état d'une interface réseau, ou les paramètres
+d'authentification de l'API. Il existe ainsi treize ressources, brièvement
+décrites dans le #table-num-ref(
     <tab-resource-types>,
-):
+)#sym.space.narrow:
 
 #figure(
     label: <tab-resource-types>,
@@ -137,20 +138,23 @@ n'importe quel autre écart à corriger, et le système est donc en mesure de g�
 automatiquement ce type de situation en n'effectuant que le plus petit nombre
 d'actions nécessaires pour réconcilier ces deux états.
 
-Le système reste, dans son fonctionnement normal, entièrement immuable: la
-configuration ne peut être modifiée autrement que par l'API, et les fichiers
-nécessaires au démarrage, tels que ceux du répertoire `/bin`, sont stockés et
-exposés de manière immuable lorsque le système est en cours d'exécution. À
-chaque redémarrage, le système se reconstruit entièrement à partir de ces seuls
-fichiers de démarrage et de la configuration, garantissant un état initial
-déterministe. Ces contraintes garantissent que l'état du système reste en
-permanence traçable et reproductible à partir du seul fichier de configuration.
+Le système reste, dans son fonctionnement normal, entièrement
+immuable#sym.space.narrow: la configuration ne peut être modifiée autrement que
+par l'API, et les fichiers nécessaires au démarrage, tels que ceux du répertoire
+`/bin`, sont stockés et exposés de manière immuable lorsque le système est en
+cours d'exécution. À chaque redémarrage, le système se reconstruit entièrement à
+partir de ces seuls fichiers de démarrage et de la configuration, garantissant
+un état initial déterministe. Ces contraintes garantissent que l'état du système
+reste en permanence traçable et reproductible à partir du seul fichier de
+configuration.
 
 == Administration du système et API <ch:functional-overview:api>
 Le système étant entièrement administré au travers de l'API, il est nécessaire
 de fournir un client permettant d'interagir avec celle-ci. Ce client s'appelle
 `cos-cli` et permet d'effectuer les actions essentielles sur le système à
-travers diverses commandes décrites dans le #table-num-ref(<tab-cli-commands>):
+travers diverses commandes décrites dans le #table-num-ref(
+    <tab-cli-commands>,
+)#sym.space.narrow:
 
 #figure(
     label: <tab-cli-commands>,
@@ -215,27 +219,27 @@ toute autre ressource du système, comme illustré dans le #code-num-ref(
 ). Cette ressource permet de définir le mécanisme d'authentification requis,
 ainsi que l'adresse depuis laquelle l'API est accessible, restreignant ainsi la
 surface d'exposition du système sur le réseau. L'absence d'authentification,
-utilisée dans la configuration par défaut, est destinée a un usage temporaire:
-la phase d'installation étant relativement courte, et le serveur ne possédant
-pas encore de données sensibles, il est considéré que laisser un tel accès
-ouvert durant quelques secondes (entre le démarrage de l'API et la transmission
-d'une configuration initiale) est convenable#footnote[
+utilisée dans la configuration par défaut, est destinée a un usage
+temporaire#sym.space.narrow: la phase d'installation étant relativement courte,
+et le serveur ne possédant pas encore de données sensibles, il est considéré que
+laisser un tel accès ouvert durant quelques secondes (entre le démarrage de
+l'API et la transmission d'une configuration initiale) est convenable#footnote[
     C'est aussi le parti pris d'autres solutions, tel que Talos Linux.
 ].
 
 Lorsque la configuration est mise à jour, celle-ci n'est pas immédiatement
-acceptée: le serveur va d'abord valider que celle-ci soit syntaxiquement
-correcte et, dans la mesure du possible, que les données s'y trouvant sont
-valides. En cas d'erreur, même partielle, un message avec les détails sera
-retourné à l'utilisateur. De fait, seule une configuration entièrement correcte
-peut être transmise au serveur.
+acceptée#sym.space.narrow: le serveur va d'abord valider que celle-ci soit
+syntaxiquement correcte et, dans la mesure du possible, que les données s'y
+trouvant sont valides. En cas d'erreur, même partielle, un message avec les
+détails sera retourné à l'utilisateur. De fait, seule une configuration
+entièrement correcte peut être transmise au serveur.
 
 == Installation du système et modes de fonctionnement
 L'installation du système s'effectue de la même manière que l'administration des
-ressources courante: en ajoutant un document d'installation dans la
-configuration. Ce document est présenté dans le #code-num-ref(
+ressources courante#sym.space.narrow: en ajoutant un document d'installation
+dans la configuration. Ce document est présenté dans le #code-num-ref(
     <code-config-install>,
-):
+)#sym.space.narrow:
 
 #figure(
     label: <code-config-install>,
@@ -264,15 +268,15 @@ configuration. Ce document est présenté dans le #code-num-ref(
 )
 
 Ce document d'installation décrit les trois volumes de stockages sur lesquels le
-système se repose: le disque de démarrage, contenant les divers artefacts, tels
-que le noyau, les binaires du système, et le bootloader. Ensuite, le volume
-contenant la configuration du système, puis un volume de donnée dans lequel
-seront stockées les images et les volumes des conteneurs.
+système se repose#sym.space.narrow: le disque de démarrage, contenant les divers
+artefacts, tels que le noyau, les binaires du système, et le bootloader.
+Ensuite, le volume contenant la configuration du système, puis un volume de
+donnée dans lequel seront stockées les images et les volumes des conteneurs.
 
-Seul le disque de boot est obligatoire: omettre le disque de configuration et le
-disque de données permet d'avoir un système entièrement éphémère. Chaque
-redémarrage fournit un système complètement neuf, ce qui peut s'avérer
-particulièrement pratique dans le cadre de tests.
+Seul le disque de boot est obligatoire#sym.space.narrow: omettre le disque de
+configuration et le disque de données permet d'avoir un système entièrement
+éphémère. Chaque redémarrage fournit un système complètement neuf, ce qui peut
+s'avérer particulièrement pratique dans le cadre de tests.
 
 Les disques supportent le chiffrement à travers un TPM2, ou à travers une clef
 statique. Dans le cas de la clef, celle-ci peut optionnellement être stockée
@@ -292,7 +296,7 @@ un runtime qui sera en charge de l'administrer. Actuellement, seul Podman est
 disponible comme runtime, mais il est toujours utile de pouvoir instancier
 plusieurs fois ce runtime, par exemple lorsqu'il est souhaitable de disposer de
 container entièrement "rootless". Le #code-num-ref(<code-config-runtime>) décrit
-une telle configuration:
+une telle configuration#sym.space.narrow:
 
 #figure(
     label: <code-config-runtime>,
@@ -326,7 +330,7 @@ toutefois ces dépendances optionnelles, car il est capable de se rétablir seul
 
 Une fois un runtime configuré, il est possible d'y créer diverses ressources,
 telles que des réseaux de conteneurs ou des instances de conteneurs, comme
-décrits dans le #code-num-ref(<code-config-container>):
+décrits dans le #code-num-ref(<code-config-container>)#sym.space.narrow:
 
 #figure(
     label: <code-config-container>,
@@ -356,7 +360,7 @@ ports sur l'hôte via une syntaxe similaire à Docker Compose. La création de
 réseau de conteneurs se fait via une ressource dédiée, illustrée dans le
 #code-num-ref(
     <code-config-container-network>,
-):
+)#sym.space.narrow:
 
 #figure(
     label: <code-config-container-network>,
@@ -379,20 +383,22 @@ runtime sur lequel sera créé ce réseau, et il est naturellement impossible d'
 ajouter des conteneurs extérieurs à ce runtime sur le réseau ainsi créé.
 
 == Prérequis matériels <ch:functional-overview:hardware>
-Le système nécessite très peu de ressources: sur un processeur 64 bits, il est
-possible de démarrer un serveur web minimal avec seulement 160 MiB de mémoire
-vive. Il est même possible de démarrer le système sur moins de 80 MiB de mémoire
-vive si les aspects liés à la conteneurisation ne sont pas nécessaires, par
-exemple, afin de fournir un routeur rudimentaire. En outre, dans le cadre d'une
-installation complète, le système ne nécessite que 1 GiB de stockage. L'ensemble
-de ces chiffres sont détaillés dans le #chapter-full-ref(<ch:validation:bench>).
+Le système nécessite très peu de ressources#sym.space.narrow: sur un processeur
+64 bits, il est possible de démarrer un serveur web minimal avec seulement 160
+MiB de mémoire vive. Il est même possible de démarrer le système sur moins de 80
+MiB de mémoire vive si les aspects liés à la conteneurisation ne sont pas
+nécessaires, par exemple, afin de fournir un routeur rudimentaire. En outre,
+dans le cadre d'une installation complète, le système ne nécessite que 1 GiB de
+stockage. L'ensemble de ces chiffres sont détaillés dans le #chapter-full-ref(
+    <ch:validation:bench>,
+).
 
 == Exemple d'utilisation <ch:functional-overview:example>
-Le scénario suivant illustre l'ensemble des éléments présentés dans ce chapitre:
-une instance de machine virtuelle, fraîchement créée chez un fournisseur cloud
-et démarrée depuis l'image ISO du système, est configurée, installée sur son
-disque, puis déployée avec un serveur HTTP retournant le message "Hello,
-world!".
+Le scénario suivant illustre l'ensemble des éléments présentés dans ce
+chapitre#sym.space.narrow: une instance de machine virtuelle, fraîchement créée
+chez un fournisseur cloud et démarrée depuis l'image ISO du système, est
+configurée, installée sur son disque, puis déployée avec un serveur HTTP
+retournant le message "Hello, world!".
 
 L'ensemble des ressources nécessaires à ce scénario est combiné au sein d'un
 unique fichier de configuration, versionnable dans un dépôt Git. Ce fichier doit
@@ -404,8 +410,9 @@ serveur HTTP minimal et accessible depuis l'extérieur.
 
 Une fois la machine virtuelle démarrée depuis l'image ISO, la commande présentée
 au #code-num-ref(<cmd-install>) permet de transmettre cette configuration au
-serveur dont l'adresse est désignée par `$IP`; elle déclenche à la fois
-l'installation du système sur le disque et le déploiement du serveur HTTP:
+serveur dont l'adresse est désignée par `$IP`#sym.space.narrow; elle déclenche à
+la fois l'installation du système sur le disque et le déploiement du serveur
+HTTP#sym.space.narrow:
 
 #figure(
     label: <cmd-install>,
@@ -436,7 +443,7 @@ redémarrage ni interruption des ressources déjà en place, tel que décrit dan
 
 Le même processus est également accessible via Terraform, dans le cas où
 l'instance cloud et le déploiement du système sont administrés au sein d'une
-même infrastructure:
+même infrastructure#sym.space.narrow:
 
 #figure(
     label: <code-terraform>,
@@ -454,6 +461,6 @@ même infrastructure:
     ```,
 )
 
-Cette même configuration marche tant pour un serveur cloud, comme illustré, que
-pour un serveur bare-metal ou bien même un Raspberry Pi, moyennant l'adaptation
-du disque de stockage.
+Cette même configuration fonctionne tant pour un serveur cloud, comme illustré,
+que pour un serveur bare-metal ou bien même un Raspberry Pi, moyennant
+l'adaptation du chemin vers le disque de stockage.

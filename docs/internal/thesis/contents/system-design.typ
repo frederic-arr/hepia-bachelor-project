@@ -32,34 +32,36 @@ $T$, d'un statut et d'une phase. Le type fixe le schéma structurel de la
 spécification et de l'état observé, tandis que le nom identifie de manière
 unique une instance au sein de ce type. La spécification constitue l'état
 désiré, tandis que l'état observé reflète la réalité constatée par le
-contrôleur; l'état observé est réévalué à chaque cycle de réconciliation, tel
-que détaillé dans le #chapter-full-ref(<ch:system-design:declarativity>). Entre
-deux réconciliations, l'état observé demeure celui résultant de la dernière
-réconciliation effectuée. Le type et le nom d'une ressource sont immuables:
-modifier l'un ou l'autre de ces champs équivaut à supprimer la ressource
-existante et à en recréer une nouvelle.
+contrôleur#sym.space.narrow; l'état observé est réévalué à chaque cycle de
+réconciliation, tel que détaillé dans le #chapter-full-ref(
+    <ch:system-design:declarativity>,
+). Entre deux réconciliations, l'état observé demeure celui résultant de la
+dernière réconciliation effectuée. Le type et le nom d'une ressource sont
+immuables#sym.space.narrow: modifier l'un ou l'autre de ces champs équivaut à
+supprimer la ressource existante et à en recréer une nouvelle.
 
 === Relations entre les ressources
-Deux types de relations lient les ressources entre elles: la possession et le
-dépendance. Une ressource peut avoir au plus un détenteur; celui-ci dispose des
-droits de modification et de suppression sur la ressource, ainsi que le droit de
-consulter la spécification et l'état observé de celle-ci. Le détenteur d'une
-ressource donnée est simplement celui qui crée cette ressource. La dépendance
-permet de consulter la spécification et l'état observé, sans pour autant pouvoir
-modifier la ressource.
+Deux types de relations lient les ressources entre elles#sym.space.narrow: la
+possession et le dépendance. Une ressource peut avoir au plus un
+détenteur#sym.space.narrow; celui-ci dispose des droits de modification et de
+suppression sur la ressource, ainsi que le droit de consulter la spécification
+et l'état observé de celle-ci. Le détenteur d'une ressource donnée est
+simplement celui qui crée cette ressource. La dépendance permet de consulter la
+spécification et l'état observé, sans pour autant pouvoir modifier la ressource.
 
-Le lien de dépendance a aussi un impact sur la planification: lorsqu'une
-ressource $A$ dépend d'une ressource $B$, il est raisonnable de ne pas tenter de
-réconcilier $A$ tant que $B$ n'est pas prête. En outre, ces relations ne sont
-jamais transitives: si $A$ possède $B$, et $B$ possède $C$, $A$ ne possède pas
-$C$. Le mécanisme exact est décrit dans le #chapter-full-ref(
+Le lien de dépendance a aussi un impact sur la planification#sym.space.narrow:
+lorsqu'une ressource $A$ dépend d'une ressource $B$, il est raisonnable de ne
+pas tenter de réconcilier $A$ tant que $B$ n'est pas prête. En outre, ces
+relations ne sont jamais transitives#sym.space.narrow: si $A$ possède $B$, et
+$B$ possède $C$, $A$ ne possède pas $C$. Le mécanisme exact est décrit dans le
+#chapter-full-ref(
     <ch:system-design:scheduling>,
 ).
 
 === Catégories de ressources <ch:system-design:restypes>
-Les ressources sont classées en deux catégories primaires: les ressources qui
-peuvent être détenues, et celles ne pouvant pas l'être. Il s'agit respectivement
-de ressources privées et de ressources mutualisées.
+Les ressources sont classées en deux catégories primaires#sym.space.narrow: les
+ressources qui peuvent être détenues, et celles ne pouvant pas l'être. Il s'agit
+respectivement de ressources privées et de ressources mutualisées.
 
 Une ressource privée dispose d'un détenteur unique, disposant seul des droits de
 modification et de suppression sur celle-ci. Trois sous-catégories de ressources
@@ -71,25 +73,28 @@ dynamique est détenue par une autre ressource, qui décide seule de son contenu
 et de son cycle de vie. Une ressource éphémère est détenue par une autre
 ressource au même titre qu'une ressource dynamique, mais ne persiste jamais à
 travers un redémarrage du système, indépendamment de la persistance de la
-configuration elle-même; cette dernière catégorie est notamment utilisée pour
-les ressources d'adresse ou de route obtenues dynamiquement par DHCP et qui,
-selon la spécification du protocole, ne devraient pas persister entre deux
-redémarrages @bib-dhcp-rfc.
+configuration elle-même#sym.space.narrow; cette dernière catégorie est notamment
+utilisée pour les ressources d'adresse ou de route obtenues dynamiquement par
+DHCP et qui, selon la spécification du protocole, ne devraient pas persister
+entre deux redémarrages @bib-dhcp-rfc.
 
-Une ressource partagée, à l'inverse, ne dispose d'aucun détenteur propre: elle
-est détenue par l'orchestrateur, identifiée uniquement par son type et son nom.
-Son fonctionnement précis, en particulier la motivation derrière son existence,
-est détaillé dans le #chapter-full-ref(<ch:system-design:shared>). Il est à
-noter qu'une ressource mutualisée peut, au même titre qu'une ressource privée,
-être elle-même détentrice d'autres ressources: la distinction entre ces deux
-catégories ne porte que sur l'impossibilité d'être détenue, non sur la capacité
-à détenir.
+Une ressource partagée, à l'inverse, ne dispose d'aucun détenteur
+propre#sym.space.narrow: elle est détenue par l'orchestrateur, identifiée
+uniquement par son type et son nom. Son fonctionnement précis, en particulier la
+motivation derrière son existence, est détaillé dans le #chapter-full-ref(
+    <ch:system-design:shared>,
+). Il est à noter qu'une ressource mutualisée peut, au même titre qu'une
+ressource privée, être elle-même détentrice d'autres
+ressources#sym.space.narrow: la distinction entre ces deux catégories ne porte
+que sur l'impossibilité d'être détenue, non sur la capacité à détenir.
 
 Il convient de préciser que le qualificatif "privée" ne signifie pas que la
-ressource est invisible au reste du système: sa spécification et son état
-observé demeurent consultables par toute ressource déclarant une dépendance à
-son égard, conformément au #chapter-full-ref(<ch:system-design:struct>). Seuls
-les droits de modification et de suppression sont restreints à son détenteur.
+ressource est invisible au reste du système#sym.space.narrow: sa spécification
+et son état observé demeurent consultables par toute ressource déclarant une
+dépendance à son égard, conformément au #chapter-full-ref(
+    <ch:system-design:struct>,
+). Seuls les droits de modification et de suppression sont restreints à son
+détenteur.
 
 Les ressources statiques sont les seules ressources que l'administrateur peut
 modifier. En effet, le lien de possession n'étant pas transitif, lorsque
@@ -103,7 +108,9 @@ l'accès de l'administrateur aux seules ressources pertinentes du point de vue d
 la configuration, en masquant les détails d'implémentation qu'une ressource
 statique délègue à ses enfants dynamiques. Cela rend aussi possible d'abstraire
 une configuration complexe, nécessitant plusieurs ressources, derrière une seule
-ressource simple, tel qu'illustré dans la #figure-num-ref(<cfgdyn>):
+ressource simple, tel qu'illustré dans la #figure-num-ref(
+    <cfgdyn>,
+)#sym.space.narrow:
 
 #include "../diagrams/cfgdyn.typ"
 
@@ -114,12 +121,12 @@ système, un configuration de type `network:interface` #bref(<cfgdyn-cfg>)
 abstrait cette complexité en créant et en possédant plusieurs sous-ressources
 dynamiques (`network:link`, `network:address` et `network:route`), chacune
 correspondant à un aspect distinct #bref(<cfgdyn-dyn>). Le détenteur gère
-entièrement la spécification de ces enfants: lorsque sa propre spécification est
-mise à jour puis réconciliée, alors celui-ci mettra à jour la spécification de
-ses enfants. L'administrateur du système n'a qu'à se préoccuper de la
-spécification de la ressource parente. D'autre part, cela permet de modéliser
-des aspects dynamiques par nature, tel que la configuration du réseau via DHCP,
-tel qu'illustré dans la #figure-num-ref(<cfgdhcp>):
+entièrement la spécification de ces enfants#sym.space.narrow: lorsque sa propre
+spécification est mise à jour puis réconciliée, alors celui-ci mettra à jour la
+spécification de ses enfants. L'administrateur du système n'a qu'à se préoccuper
+de la spécification de la ressource parente. D'autre part, cela permet de
+modéliser des aspects dynamiques par nature, tel que la configuration du réseau
+via DHCP, tel qu'illustré dans la #figure-num-ref(<cfgdhcp>)#sym.space.narrow:
 
 #include "../diagrams/cfgdhcp.typ"
 
@@ -141,7 +148,7 @@ Toutefois, ne pas les déclarer explicitement pose le problème de l'attribution
 de la responsabilité de les concevoir et de les supprimer. C'est notamment le
 cas des images de conteneurs, comme illustré dans la #figure-num-ref(
     <cfgshared>,
-):
+)#sym.space.narrow:
 
 #page(flipped: true)[
     #include "../diagrams/cfgshared.typ"
@@ -151,45 +158,46 @@ cas des images de conteneurs, comme illustré dans la #figure-num-ref(
     #bref(<cfgshared-real>), mais qui pointent en réalité vers une même
     ressource, en l'espèce l'image #bref(<cfgshared-conflict>). En raison des
     propriétés de la gestion des images dans un runtime de conteneurs, la
-    création ne pose pas de problèmes; l'image sera téléchargée par le runtime,
-    puis utilisée par les conteneurs. En revanche, la suppression pose problème:
-    un runtime ne supprime jamais les images de lui-même, et, au fil de
-    l'utilisation du système, les images prendraient de plus en plus de places
-    sans jamais être supprimées.
+    création ne pose pas de problèmes#sym.space.narrow; l'image sera téléchargée
+    par le runtime, puis utilisée par les conteneurs. En revanche, la
+    suppression pose problème#sym.space.narrow: un runtime ne supprime jamais
+    les images de lui-même, et, au fil de l'utilisation du système, les images
+    prendraient de plus en plus de places sans jamais être supprimées.
 ]
 
 Il n'est aussi pas possible de supprimer la ressource dès qu'un seul conteneur
-est supprimé: l'image est toujours requise par l'autre configuration. Selon la
-nature de la ressource sous-jacente, deux comportements seraient alors
-possibles: soit la suppression échoue et la réconciliation reste bloquée, soit
-la ressource est détruite et doit être recréé par l'autre configuration, ce qui
-est inefficace. La création d'une sous-ressource image par chaque conteneur est
-également impossible, toute ressource ne pouvant être possédée que par un seul
-parent.
+est supprimé#sym.space.narrow: l'image est toujours requise par l'autre
+configuration. Selon la nature de la ressource sous-jacente, deux comportements
+seraient alors possibles#sym.space.narrow: soit la suppression échoue et la
+réconciliation reste bloquée, soit la ressource est détruite et doit être recréé
+par l'autre configuration, ce qui est inefficace. La création d'une
+sous-ressource image par chaque conteneur est également impossible, toute
+ressource ne pouvant être possédée que par un seul parent.
 
 C'est précisément ce problème que la catégorie des ressources mutualisées,
 introduite au #chapter-full-ref(<ch:system-design:restypes>), permet de
 résoudre. Contrairement à une ressource privée, une ressource mutualisée ne
-possède aucune spécification propre: l'orchestrateur en est l'unique détenteur
-et, en l'absence de tout paramètre, ne gère que sa création implicite et sa
-suppression. Il suffit qu'une ressource déclare une dépendance vers une
-ressource mutualisée pour que l'orchestrateur la crée si elle n'existe pas déjà;
-si une autre ressource déclare ultérieurement dépendre de cette même ressource
-mutualisée, aucune seconde instance n'est créée, la dépendance référençant
-simplement l'instance existante.
+possède aucune spécification propre#sym.space.narrow: l'orchestrateur en est
+l'unique détenteur et, en l'absence de tout paramètre, ne gère que sa création
+implicite et sa suppression. Il suffit qu'une ressource déclare une dépendance
+vers une ressource mutualisée pour que l'orchestrateur la crée si elle n'existe
+pas déjà#sym.space.narrow; si une autre ressource déclare ultérieurement
+dépendre de cette même ressource mutualisée, aucune seconde instance n'est
+créée, la dépendance référençant simplement l'instance existante.
 
 L'orchestrateur décidant seul de la suppression d'une ressource mutualisée, la
-règle appliquée est simple: dès qu'aucune ressource ne dépend plus d'elle, elle
-est placée en cours de suppression, et suit alors les mêmes règles que toute
-autre ressource, détaillées au #chapter-full-ref(<ch:system-design:deletion>).
-De même, les principes de déclarativité présentés au #chapter-full-ref(
+règle appliquée est simple#sym.space.narrow: dès qu'aucune ressource ne dépend
+plus d'elle, elle est placée en cours de suppression, et suit alors les mêmes
+règles que toute autre ressource, détaillées au #chapter-full-ref(
+    <ch:system-design:deletion>,
+). De même, les principes de déclarativité présentés au #chapter-full-ref(
     <ch:system-design:declarativity>,
-) s'appliquent également à cette catégorie: en particulier, même en l'absence de
-spécification propre, une ressource mutualisée peut créer des sous-ressources
-dont le contenu est arbitraire.
+) s'appliquent également à cette catégorie#sym.space.narrow: en particulier,
+même en l'absence de spécification propre, une ressource mutualisée peut créer
+des sous-ressources dont le contenu est arbitraire.
 
 La #figure-num-ref(<cfgjoint>) illustre la résolution du conflit précédent grâce
-à une ressource mutualisée:
+à une ressource mutualisée#sym.space.narrow:
 
 #page(flipped: true)[
     #include "../diagrams/cfgjoint.typ"
@@ -200,34 +208,35 @@ La #figure-num-ref(<cfgjoint>) illustre la résolution du conflit précédent gr
     ), plutôt que de créer chacun leur propre ressource. Cette ressource
     mutualisée unique #bref(<cfgjoint-joint>) est ainsi seule responsable de la
     ressource physique correspondante #bref(<cfgjoint-noconflict>). Il n'existe
-    donc plus de conflit: si l'une des deux configurations change le nom de
-    l'image référencée, cela crée simplement une nouvelle ressource mutualisée
-    distincte, plutôt qu'un conflit sur l'ancienne.
+    donc plus de conflit#sym.space.narrow: si l'une des deux configurations
+    change le nom de l'image référencée, cela crée simplement une nouvelle
+    ressource mutualisée distincte, plutôt qu'un conflit sur l'ancienne.
 ]
 
-Dans l'exemple des conteneurs, la réconciliation se déroule ainsi:
+Dans l'exemple des conteneurs, la réconciliation se déroule
+ainsi#sym.space.narrow:
 + la ressource représentant la configuration du conteneur $A$ récupère d'abord,
     d'une manière ou d'une autre, le nom complet de l'image configurée, avec son
-    hash;
+    hash#sym.space.narrow;
 + à partir de cette information, elle déclare une dépendance envers une
     ressource mutualisée de type `container:image`, portant pour nom le nom
-    complet de l'image avec son hash;
+    complet de l'image avec son hash#sym.space.narrow;
 + cette ressource mutualisée se charge alors de télécharger l'image sur le
-    disque; cette opération, pouvant nécessiter plusieurs itérations, est
-    effectuée en arrière-plan, la ressource conservant entre-temps le statut
-    "pas prêt";
+    disque#sym.space.narrow; cette opération, pouvant nécessiter plusieurs
+    itérations, est effectuée en arrière-plan, la ressource conservant
+    entre-temps le statut "pas prêt"#sym.space.narrow;
 + tant que la ressource `container:image` n'a pas atteint le statut "terminé",
     la ressource `container:instance` correspondante n'entreprend aucune autre
-    action;
+    action#sym.space.narrow;
 + une fois l'image téléchargée, la ressource `container:image` passe au statut
-    "terminé";
-+ la ressource `container:instance` crée alors le conteneur;
-+ le cycle de vie normal de la ressource se poursuit ensuite;
+    "terminé"#sym.space.narrow;
++ la ressource `container:instance` crée alors le conteneur#sym.space.narrow;
++ le cycle de vie normal de la ressource se poursuit ensuite#sym.space.narrow;
 + lorsqu'un conteneur dépendant de cette image est supprimé, le lien de
-    dépendance correspondant est rompu;
+    dépendance correspondant est rompu#sym.space.narrow;
 + si le nombre de dépendances entrantes de la ressource `container:image` tombe
     à zéro, l'orchestrateur ordonne sa suppression, ce qui efface l'image du
-    disque;
+    disque#sym.space.narrow;
 + si d'autres conteneurs dépendent encore de cette même image, aucune action
     supplémentaire n'est entreprise.
 
@@ -240,11 +249,12 @@ bon ordre, et de garantir que le système se comporte correctement.
 
 === Contrôleur et déclarativité <ch:system-design:declarativity>
 La réconciliation est le processus qui assure que l'état observé d'une ressource
-converge vers sa spécification; le contrôleur est le composant logiciel qui en a
-la responsabilité. Ce processus s'inscrit dans une boucle permettant de corriger
-toute dérive: à chaque itération, le contrôleur observe l'état physique réel de
-la ressource, le compare à sa spécification, puis produit les actions
-correctives nécessaires. La #figure-num-ref(<decl>) illustre cette boucle:
+converge vers sa spécification#sym.space.narrow; le contrôleur est le composant
+logiciel qui en a la responsabilité. Ce processus s'inscrit dans une boucle
+permettant de corriger toute dérive#sym.space.narrow: à chaque itération, le
+contrôleur observe l'état physique réel de la ressource, le compare à sa
+spécification, puis produit les actions correctives nécessaires. La
+#figure-num-ref(<decl>) illustre cette boucle#sym.space.narrow:
 
 #include "../diagrams/decl.typ"
 
@@ -264,9 +274,9 @@ l'état observé, puis comparé à la spécification #bref(<decl-diff>). Dans le
 où le statut administratif serait "down", le système s'en rend compte et sait
 qu'il doit exécuter l'équivalent de `ip link set up` afin de mettre en route
 l'interface #bref(<decl-actions>). Ce même mécanisme s'applique à toute
-modification ou suppression de la ressource: une modification de la
-configuration déclarative se traduit automatiquement par les actions correctives
-adéquates.
+modification ou suppression de la ressource#sym.space.narrow: une modification
+de la configuration déclarative se traduit automatiquement par les actions
+correctives adéquates.
 
 En ce qui concerne les sous-ressources, lors de la réconciliation d'une
 ressource donnée, celle-ci retourne d'une part le nouvel état observé, mais elle
@@ -283,27 +293,31 @@ Le système est composé de plusieurs ressources, chacune gérée par une logiqu
 réconciliation indépendante. Une réconciliation peut survenir de manière
 périodique ou en réponse à un événement, qu'il soit interne, tel qu'une mise à
 jour de la configuration, ou externe, comme un conteneur qui s'arrête. À ce
-titre, deux modèles d'orchestration sont envisageables: un modèle centralisé,
-dans lequel une boucle unique appelle, à chaque itération, la méthode de
-réconciliation d'une ressource donnée; et un autre modèle décentralisé, dans
-lequel chaque contrôleur contient sa propre boucle, organisée de la manière qui
-lui convient (une boucle par ressource, une boucle par type, etc.). Le modèle
-centralisé est illustré dans la #figure-num-ref(<ctrlloop>):
+titre, deux modèles d'orchestration sont envisageables#sym.space.narrow: un
+modèle centralisé, dans lequel une boucle unique appelle, à chaque itération, la
+méthode de réconciliation d'une ressource donnée#sym.space.narrow; et un autre
+modèle décentralisé, dans lequel chaque contrôleur contient sa propre boucle,
+organisée de la manière qui lui convient (une boucle par ressource, une boucle
+par type, etc.). Le modèle centralisé est illustré dans la #figure-num-ref(
+    <ctrlloop>,
+)#sym.space.narrow:
 
 #include "../diagrams/ctrlloop.typ"
 
-L'orchestrateur exécute une unique boucle: à chaque itération, il retire de la
-file d'attente la ressource dont l'échéance de réconciliation est la plus
-proche, délègue sa réconciliation au contrôleur correspondant, traite la réponse
-de celui-ci (nouvel état observé, statut et sous-ressources déclarées), puis
-replanifie la ressource selon le délai retourné. Dans ce modèle, le contrôleur
-n'a pas connaissance des autres ressources, même celle sous son contrôle. La
-réconciliation se repose uniquement sur les informations de la ressource
-courante et d'éventuels détails sur d'autres ressources transmis par
-l'orchestrateur sur la base des liens de possession ou de dépendance.
+L'orchestrateur exécute une unique boucle#sym.space.narrow: à chaque itération,
+il retire de la file d'attente la ressource dont l'échéance de réconciliation
+est la plus proche, délègue sa réconciliation au contrôleur correspondant,
+traite la réponse de celui-ci (nouvel état observé, statut et sous-ressources
+déclarées), puis replanifie la ressource selon le délai retourné. Dans ce
+modèle, le contrôleur n'a pas connaissance des autres ressources, même celle
+sous son contrôle. La réconciliation se repose uniquement sur les informations
+de la ressource courante et d'éventuels détails sur d'autres ressources transmis
+par l'orchestrateur sur la base des liens de possession ou de dépendance.
 
 Le modèle décentralisé adopte l'approche opposée en déplaçant la boucle dans
-chaque contrôleur, tel qu'illustré dans la #figure-num-ref(<indloop>):
+chaque contrôleur, tel qu'illustré dans la #figure-num-ref(
+    <indloop>,
+)#sym.space.narrow:
 
 #include "../diagrams/indloop.typ"
 
@@ -317,66 +331,70 @@ leurs dépendances, ce qui permet de mieux coordonner la réconciliation à trav
 plusieurs contrôleurs. Dans le cadre de ce modèle, l'orchestrateur pourrait
 décider de ne pas réconcilier une ressource tant que ses dépendances ne sont pas
 prêtes. À l'inverse, dans le modèle décentralisé, la ressource serait quand même
-réconciliée quoi qu'il arrive; il incomberait alors au contrôleur de décider si
-une dépendance non prête nécessite d'attendre ou non. Ce dernier modèle permet
-en revanche davantage de flexibilité.
+réconciliée quoi qu'il arrive#sym.space.narrow; il incomberait alors au
+contrôleur de décider si une dépendance non prête nécessite d'attendre ou non.
+Ce dernier modèle permet en revanche davantage de flexibilité.
 
 Cette vue globale donne également au modèle centralisé un avantage quant à la
-réaction aux changements d'état et de spécification des ressources: un élément
-central coordonnant l'ensemble, il devient trivial de propager ces changements
-ou de redéclencher les réconciliations des ressources dépendantes. Un tel
-mécanisme de propagation, dans un modèle décentralisé, nécessiterait un
-mécanisme additionnel. La réaction aux événements externes (par exemple, un
-conteneur qui s'arrête, ou une interface réseau qui tombe) suit toutefois la
-logique inverse: elle est nativement plus simple à traiter dans le modèle
-décentralisé, tandis que le modèle centralisé nécessiterait l'ajout d'une
-procédure dédiée permettant de notifier l'orchestrateur.
+réaction aux changements d'état et de spécification des
+ressources#sym.space.narrow: un élément central coordonnant l'ensemble, il
+devient trivial de propager ces changements ou de redéclencher les
+réconciliations des ressources dépendantes. Un tel mécanisme de propagation,
+dans un modèle décentralisé, nécessiterait un mécanisme additionnel. La réaction
+aux événements externes (par exemple, un conteneur qui s'arrête, ou une
+interface réseau qui tombe) suit toutefois la logique inverse#sym.space.narrow:
+elle est nativement plus simple à traiter dans le modèle décentralisé, tandis
+que le modèle centralisé nécessiterait l'ajout d'une procédure dédiée permettant
+de notifier l'orchestrateur.
 
 Le modèle centralisé présente enfin deux avantages mineurs. D'une part, il
-permet d'assigner trivialement le parent d'une ressource: l'appel de
-réconciliation étant effectué sur une ressource connue, et sa réponse contenant
-les sous-ressources à créer, aucun risque de mauvaise assignation n'existe.
-D'autre part, il permet de détecter aisément la panne d'un contrôleur, celui-ci
-étant simplement considéré comme bloqué s'il ne répond pas dans le délai
-imparti.
+permet d'assigner trivialement le parent d'une ressource#sym.space.narrow:
+l'appel de réconciliation étant effectué sur une ressource connue, et sa réponse
+contenant les sous-ressources à créer, aucun risque de mauvaise assignation
+n'existe. D'autre part, il permet de détecter aisément la panne d'un contrôleur,
+celui-ci étant simplement considéré comme bloqué s'il ne répond pas dans le
+délai imparti.
 
 Deux critères supplémentaires ont été écartés de la comparaison. Le premier
-concerne le nombre d'appels API: le modèle centralisé n'en requiert qu'un,
-contre au moins deux pour le modèle décentralisé (l'un pour récupérer la
-ressource, l'autre pour mettre à jour l'état); ce critère n'est pas retenu, car
-le nombre de ressources reste faible et les contrôleurs sont tous locaux. Le
-second concerne la robustesse: le modèle décentralisé limite la panne à un
-nombre restreint de ressources, mais ce critère n'est pas non plus retenu, les
-contrôleurs étant de toute façon primordiaux au fonctionnement du système, si
-bien que leur panne le rend inutilisable indépendamment du modèle choisi.
+concerne le nombre d'appels API#sym.space.narrow: le modèle centralisé n'en
+requiert qu'un, contre au moins deux pour le modèle décentralisé (l'un pour
+récupérer la ressource, l'autre pour mettre à jour l'état)#sym.space.narrow; ce
+critère n'est pas retenu, car le nombre de ressources reste faible et les
+contrôleurs sont tous locaux. Le second concerne la robustesse#sym.space.narrow:
+le modèle décentralisé limite la panne à un nombre restreint de ressources, mais
+ce critère n'est pas non plus retenu, les contrôleurs étant de toute façon
+primordiaux au fonctionnement du système, si bien que leur panne le rend
+inutilisable indépendamment du modèle choisi.
 
-L'ensemble de ces points sont synthétisés dans le #table-num-ref(<scheduling>) :
+L'ensemble de ces points sont synthétisés dans le #table-num-ref(
+    <scheduling>,
+)#sym.space.narrow:
 
 #include "../diagrams/scheduling.typ"
 
-Le modèle centralisé présente enfin une propriété plus fondamentale: la
-réconciliation d'une ressource repose alors uniquement sur des éléments
-entièrement déterminés par l'orchestrateur, à savoir sa spécification et son
-état, ce qui garantit un comportement reproductible d'un cycle à l'autre. Un
-contrôleur disposant de sa propre boucle pourrait, à l'inverse, introduire un
-état ou une logique de planification propre, non visible de l'extérieur, ce qui
-nuirait à cette prévisibilité.
+Le modèle centralisé présente enfin une propriété plus
+fondamentale#sym.space.narrow: la réconciliation d'une ressource repose alors
+uniquement sur des éléments entièrement déterminés par l'orchestrateur, à savoir
+sa spécification et son état, ce qui garantit un comportement reproductible d'un
+cycle à l'autre. Un contrôleur disposant de sa propre boucle pourrait, à
+l'inverse, introduire un état ou une logique de planification propre, non
+visible de l'extérieur, ce qui nuirait à cette prévisibilité.
 
 Au regard de l'ensemble de ces éléments, le modèle centralisé a été retenu comme
 modèle d'orchestration. Sa propriété la plus importante réside dans la pureté de
-la réconciliation qu'il permet: celle-ci ne dépend alors que d'éléments
-entièrement déterminés par l'orchestrateur, à savoir la spécification et l'état
-de la ressource. Les avantages en termes de coordination des dépendances, de
-réaction aux événements internes et de détection de pannes renforcent encore ce
-choix, et l'emportent sur la flexibilité de planification et la capacité de
-réaction aux événements externes offerte par le modèle décentralisé. Les
-faiblesses du modèle centralisé (réaction aux événements externes spontanés,
-flexibilité de la planification) sont compensées par un mécanisme explicite de
-notification: chaque contrôleur peut signaler un événement externe à
-l'orchestrateur, qui place alors la ressource concernée en tête de la file
-d'attente. Les aspects de robustesse et de charge d'appels API sont considérés
-comme secondaires dans un contexte où les contrôleurs sont locaux et en nombre
-limité.
+la réconciliation qu'il permet#sym.space.narrow: celle-ci ne dépend alors que
+d'éléments entièrement déterminés par l'orchestrateur, à savoir la spécification
+et l'état de la ressource. Les avantages en termes de coordination des
+dépendances, de réaction aux événements internes et de détection de pannes
+renforcent encore ce choix, et l'emportent sur la flexibilité de planification
+et la capacité de réaction aux événements externes offerte par le modèle
+décentralisé. Les faiblesses du modèle centralisé (réaction aux événements
+externes spontanés, flexibilité de la planification) sont compensées par un
+mécanisme explicite de notification#sym.space.narrow: chaque contrôleur peut
+signaler un événement externe à l'orchestrateur, qui place alors la ressource
+concernée en tête de la file d'attente. Les aspects de robustesse et de charge
+d'appels API sont considérés comme secondaires dans un contexte où les
+contrôleurs sont locaux et en nombre limité.
 
 === Boucle de réconciliation <ch:system-design:scheduling>
 L'orchestrateur maintient une file d'attente de ressources à réconcilier. Lors
@@ -385,13 +403,15 @@ ressource existante, celle-ci est placée dans la file si ses dépendances sont
 prêtes. Régulièrement, l'orchestrateur va prendre l'ensemble des ressources
 arrivées à échéance et les réconcilier.
 
-La réconciliation demeure purement séquentielle: il n'y a jamais plus d'une
-ressource réconciliée en parallèle, ce qui exclut tout problème de concurrence
-lors de ce processus. Afin de ne pas bloquer la boucle indéfiniment, une durée
-maximale par réconciliation est imposée. En outre, lorsqu'une réconciliation
-change le statut d'une ressource, en particulier son passage à un statut prêt ou
-terminé, les ressources qui en dépendent sont à leur tour ajoutées à la file
-d'attente comme décrit dans le #chapter-full-ref(<ch:system-design:events>).
+La réconciliation demeure purement séquentielle#sym.space.narrow: il n'y a
+jamais plus d'une ressource réconciliée en parallèle, ce qui exclut tout
+problème de concurrence lors de ce processus. Afin de ne pas bloquer la boucle
+indéfiniment, une durée maximale par réconciliation est imposée. En outre,
+lorsqu'une réconciliation change le statut d'une ressource, en particulier son
+passage à un statut prêt ou terminé, les ressources qui en dépendent sont à leur
+tour ajoutées à la file d'attente comme décrit dans le #chapter-full-ref(
+    <ch:system-design:events>,
+).
 
 Afin d'éviter toute incohérence, l'ensemble des ressources sont verrouillées le
 temps d'une réconciliation. Toute modification de n'importe quelle ressource est
@@ -415,13 +435,14 @@ Un événement, interne ou externe, se traduit par la (re)planification d'une
 ressource au sein de la file d'attente décrite dans le #chapter-full-ref(
     <ch:system-design:scheduling>,
 ). Un événement interne survient lorsque l'administrateur transmet une nouvelle
-configuration: la ressource cible, une fois sa nouvelle spécification validée,
-est immédiatement replanifiée. Un événement interne peut aussi survenir lorsque
-le statut d'une ressource change après une réconciliation: les ressources qui en
-dépendent sont alors planifiées afin de réagir à ce changement de statut. Un
-événement externe survient lorsqu'un contrôleur constate, en dehors de tout
-appel de réconciliation, un changement d'état pertinent pour une ressource dont
-il a la charge, par exemple l'arrêt inattendu d'un conteneur; il lui suffit
-alors de demander à l'orchestrateur de placer cette ressource dans la file. Dans
-les deux cas, le mécanisme reste identique du point de vue de l'orchestrateur,
-qui ne distingue pas l'origine de l'événement.
+configuration#sym.space.narrow: la ressource cible, une fois sa nouvelle
+spécification validée, est immédiatement replanifiée. Un événement interne peut
+aussi survenir lorsque le statut d'une ressource change après une
+réconciliation#sym.space.narrow: les ressources qui en dépendent sont alors
+planifiées afin de réagir à ce changement de statut. Un événement externe
+survient lorsqu'un contrôleur constate, en dehors de tout appel de
+réconciliation, un changement d'état pertinent pour une ressource dont il a la
+charge, par exemple l'arrêt inattendu d'un conteneur#sym.space.narrow; il lui
+suffit alors de demander à l'orchestrateur de placer cette ressource dans la
+file. Dans les deux cas, le mécanisme reste identique du point de vue de
+l'orchestrateur, qui ne distingue pas l'origine de l'événement.

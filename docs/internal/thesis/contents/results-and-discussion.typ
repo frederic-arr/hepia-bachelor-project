@@ -24,16 +24,16 @@ inférieures à celles des modèles visés initialement.
 D'un point de vue fonctionnel, la valeur ajoutée du système réside dans sa
 rapidité de démarrage et dans sa faible empreinte mémoire, deux propriétés
 mesurées au #chapter-full-ref(<ch:validation:bench>) et confirmées par la
-comparaison avec les solutions existantes: le système démarre un conteneur en
-quelques secondes et fonctionne avec une empreinte mémoire de 160 MiB, ce qui
-permet un déploiement quasi immédiat, aussi bien depuis une image ISO que depuis
-une installation sur disque.
+comparaison avec les solutions existantes#sym.space.narrow: le système démarre
+un conteneur en quelques secondes et fonctionne avec une empreinte mémoire de
+160 MiB, ce qui permet un déploiement quasi immédiat, aussi bien depuis une
+image ISO que depuis une installation sur disque.
 
 Le système présente toutefois des limites fonctionnelles. Deux fonctionnalités
-identifiées lors de la planification ne sont pas implémentées: la gestion de
-tâches planifiées ("job scheduling") ainsi que le monitoring du système.
-L'absence de tâches planifiées fait qu'il est plus compliqué d'exécuter des
-routines régulières (par exemple des sauvegardes), tandis que l'absence de
+identifiées lors de la planification ne sont pas implémentées#sym.space.narrow:
+la gestion de tâches planifiées ("job scheduling") ainsi que le monitoring du
+système. L'absence de tâches planifiées fait qu'il est plus compliqué d'exécuter
+des routines régulières (par exemple des sauvegardes), tandis que l'absence de
 monitoring complique la détection et le diagnostic d'une défaillance. Ces deux
 limitations restent toutefois partiellement contournables dans l'état actuel du
 système, ces deux fonctionnalités pouvant elles-mêmes être déployées sous forme
@@ -86,20 +86,20 @@ utilisé.
 Un comportement inattendu est observé lors de la mise en place de l'initrd
 nécessaire au démarrage du système. Lorsque la mémoire disponible est
 insuffisante, l'initrd n'est que partiellement chargé, ce qui introduit une
-confusion importante lors du diagnostic: le processus `/init` s'exécute
-normalement et parvient à lire certains fichiers, tandis que d'autres fichiers,
-censés être présents, sont rapportés comme inexistants. Ce mode de défaillance
-silencieux est surprenant, d'autant plus qu'aucune information affichée sur la
-console par le noyau ne laissait supposer un tel problème.
+confusion importante lors du diagnostic#sym.space.narrow: le processus `/init`
+s'exécute normalement et parvient à lire certains fichiers, tandis que d'autres
+fichiers, censés être présents, sont rapportés comme inexistants. Ce mode de
+défaillance silencieux est surprenant, d'autant plus qu'aucune information
+affichée sur la console par le noyau ne laissait supposer un tel problème.
 
 Un bug est également identifié dans smoltcp, seule bibliothèque Rust utilisable
 comme client DHCP dans le contexte de ce système. La bibliothèque standard de
 Rust fourni plusieurs types qui sont réutilisés à travers tout l'écosystème,
 mais certaines, dont smoltcp, réimplémentent leurs propres types, notamment un
 équivalent de `std::time::Instant`. Une interface `From` est alors fournie pour
-convertir un type vers l'autre; dans le cas de smoltcp, cette conversion est
-incorrectement implémentée et retourne systématiquement l'instant présent,
-faussant l'ensemble des calculs de délai reposant sur cette conversion
+convertir un type vers l'autre#sym.space.narrow; dans le cas de smoltcp, cette
+conversion est incorrectement implémentée et retourne systématiquement l'instant
+présent, faussant l'ensemble des calculs de délai reposant sur cette conversion
 @bib-smoltcp-issue. Le bug c'est avérer trivialement réglable et, étant donné
 qu'il s'agit d'un élément essentiel du système, et compte tenu de l'absence
 d'autres alternatives, un correctif permettant de régler ce bogue a été crée,
@@ -109,32 +109,32 @@ soumis via une pull request, et accepté, sur le dépôt de smoltcp
 Un bug est aussi rencontré dans Podman, version 5.8.4. Podman revendique une
 compatibilité "drop-in" avec Docker, sans que cette compatibilité soit exacte en
 pratique. La fonction `list_containers` retourne notamment une structure
-légèrement différente: Docker rapporte un état `"status": "exited"` associé au
-champ `"stopped": true`, alors que Podman rapporte, pour un état équivalent, la
-valeur `"stopped"` pour ce même champ `status`. Ce bug est connu depuis 2023
-@bib-podman-issue et n'est corrigé par le projet qu'en mars 2026
-@bib-podman-pull, la correction n'étant intégrée à une version officielle
-qu'avec la publication de la version 6.0.0, le 24 juin 2026 @bib-podman-release.
-L'intégration de cette version dans Nix, celle-ci constituant une "breaking
-release", nécessite un délai supplémentaire et demeure bloquée~@bib-podman-nix.
-Le paquet Nix officiel est alors repris et adapté directement à partir de son
-code source, l'aspect "breaking" de la version 6.0 de Podman n'ayant pas
-d'impact dans le cadre de ce système.
+légèrement différente#sym.space.narrow: Docker rapporte un état
+`"status": "exited"` associé au champ `"stopped": true`, alors que Podman
+rapporte, pour un état équivalent, la valeur `"stopped"` pour ce même champ
+`status`. Ce bug est connu depuis 2023 @bib-podman-issue et n'est corrigé par le
+projet qu'en mars 2026 @bib-podman-pull, la correction n'étant intégrée à une
+version officielle qu'avec la publication de la version 6.0.0, le 24 juin 2026
+@bib-podman-release. L'intégration de cette version dans Nix, celle-ci
+constituant une "breaking release", nécessite un délai supplémentaire et demeure
+bloquée~@bib-podman-nix. Le paquet Nix officiel est alors repris et adapté
+directement à partir de son code source, l'aspect "breaking" de la version 6.0
+de Podman n'ayant pas d'impact dans le cadre de ce système.
 
-Au-delà de ce bug, Podman présente une autre particularité: son fonctionnement
-sans daemon ("daemon-less") ne s'applique qu'à l'utilisation de la ligne de
-commande `podman`. Aucune interface native ("bindings") n'est fournie pour une
-intégration directe. Podman doit donc être exécuté comme une API, avec laquelle
-une interaction s'effectue via HTTP ou TCP, ce qui revient, en pratique, à le
-traiter comme un daemon.
+Au-delà de ce bug, Podman présente une autre particularité#sym.space.narrow: son
+fonctionnement sans daemon ("daemon-less") ne s'applique qu'à l'utilisation de
+la ligne de commande `podman`. Aucune interface native ("bindings") n'est
+fournie pour une intégration directe. Podman doit donc être exécuté comme une
+API, avec laquelle une interaction s'effectue via HTTP ou TCP, ce qui revient,
+en pratique, à le traiter comme un daemon.
 
 Un bug est par ailleurs observé sous WSL, environnement utilisé pour une partie
 du développement. La création d'un fichier temporaire via `open2` et l'option
 `O_TMPFILE`, suivie d'une tentative de le rendre permanent via `linkat`, produit
 une erreur indiquant que le fichier n'existe pas. Ce bug affecte les tests
-d'intégration du contrôleur système, responsable de la gestion des fichiers; ces
-tests échouent sous WSL, mais s'exécutent correctement sur une machine Debian
-standard.
+d'intégration du contrôleur système, responsable de la gestion des
+fichiers#sym.space.narrow; ces tests échouent sous WSL, mais s'exécutent
+correctement sur une machine Debian standard.
 
 Le temps de build de Nix constitue une autre difficulté notable. Nix isole
 intégralement chaque build et ne tire volontairement pas parti de la compilation
@@ -176,20 +176,21 @@ d'évolution se dégagent de ce travail, tant dans le périmètre initial que da
 des directions plus larges.
 
 Concernant l'usage primaire du système, centré sur les conteneurs, trois
-fonctionnalités apparaissent prioritaires: l'ajout d'une couche d'observabilité,
-l'ajout d'un mécanisme de planification de tâches similaire à CRON, et la
-gestion plus poussée du stockage. D'autres extensions sont envisageables dans un
-second temps, notamment l'extension de la gestion du réseau, par exemple pour le
-support des VPN ou du routage plus complexe, ainsi que l'extension de la gestion
-des conteneurs avec un modèle similaire aux "Pods" de Kubernetes ou de Podman.
+fonctionnalités apparaissent prioritaires#sym.space.narrow: l'ajout d'une couche
+d'observabilité, l'ajout d'un mécanisme de planification de tâches similaire à
+CRON, et la gestion plus poussée du stockage. D'autres extensions sont
+envisageables dans un second temps, notamment l'extension de la gestion du
+réseau, par exemple pour le support des VPN ou du routage plus complexe, ainsi
+que l'extension de la gestion des conteneurs avec un modèle similaire aux "Pods"
+de Kubernetes ou de Podman.
 
 Le projet peut également être rendu plus générique. La partie orchestration et
 ordonnancement est conceptuellement découplée des ressources qu'elle gère, ce
 qui ouvre la voie à une bibliothèque générique. La gestion du réseau, en
 particulier, réimplémente en grande partie des fonctionnalités déjà couvertes
-par systemd-networkd ou Netplan; cette partie pourrait être extraite sous forme
-de composant externe qui serait à la fois une alternative à ces deux solutions,
-tout en étant une partie intégrale du système.
+par systemd-networkd ou Netplan#sym.space.narrow; cette partie pourrait être
+extraite sous forme de composant externe qui serait à la fois une alternative à
+ces deux solutions, tout en étant une partie intégrale du système.
 
 Le système peut aussi être étendu pour supporter la virtualisation via libvirt,
 l'orchestrateur ne percevant, dans tous les cas, qu'une ressource à réconcilier,

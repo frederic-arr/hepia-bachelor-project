@@ -23,17 +23,18 @@ employé.
 Les tests unitaires et les tests d'intégration portent principalement sur les
 contrôleurs. La logique de validation des ressources est systématiquement
 couverte par des tests unitaires. Les tests d'intégration couvrent
-systématiquement les cas suivants: la création d'une nouvelle ressource, la mise
-à jour d'une ressource existante, la tentative de gestion d'une ressource
-inexistante (par exemple une interface réseau absente), la tentative de gestion
-d'une ressource déjà gérée par un autre composant, ainsi que la suppression
-d'une ressource. Seule une partie des contrôleurs sont testés via des tests
-d'intégration. En effet, l'environnement dans lequel les tests sont isolés ne
-dispose pas de tous les éléments nécessaires pour mener à bien le test de
-certains composants. C'est notamment le cas du contrôleur de conteneurs:
-l'environnement de test disposant d'un système de fichier racine vide, le
-runtime de conteneur n'est pas présent et celui-ci nécessite un nombre important
-de dépendances qu'il serait fastidieux de lier dans cet environnement.
+systématiquement les cas suivants#sym.space.narrow: la création d'une nouvelle
+ressource, la mise à jour d'une ressource existante, la tentative de gestion
+d'une ressource inexistante (par exemple une interface réseau absente), la
+tentative de gestion d'une ressource déjà gérée par un autre composant, ainsi
+que la suppression d'une ressource. Seule une partie des contrôleurs sont testés
+via des tests d'intégration. En effet, l'environnement dans lequel les tests
+sont isolés ne dispose pas de tous les éléments nécessaires pour mener à bien le
+test de certains composants. C'est notamment le cas du contrôleur de
+conteneurs#sym.space.narrow: l'environnement de test disposant d'un système de
+fichier racine vide, le runtime de conteneur n'est pas présent et celui-ci
+nécessite un nombre important de dépendances qu'il serait fastidieux de lier
+dans cet environnement.
 
 Toutefois, des tests de bout en bout (end-to-end, E2E), implémentés dans #repo(
     "rust/e2e/tests/",
@@ -52,10 +53,10 @@ mais reflète bien l'état réel du système et démontre que le conteneur
 fonctionne.
 
 == Validation
-Parmi les tests de bout en bout, trois scénarios notables sont définis:
-l'exécution d'un conteneur dans un environnement éphémère, l'installation du
-système suivi de l'exécution d'un conteneur, et le déploiement d'une application
-3 tiers.
+Parmi les tests de bout en bout, trois scénarios notables sont
+définis#sym.space.narrow: l'exécution d'un conteneur dans un environnement
+éphémère, l'installation du système suivi de l'exécution d'un conteneur, et le
+déploiement d'une application 3 tiers.
 
 === Exécution dans un environnement éphémère
 La configuration est appliquée directement sur le système démarré depuis l'image
@@ -70,15 +71,15 @@ Le système est installé sur le disque de la machine virtuelle à partir de
 l'image ISO, puis redémarré. La configuration appliquée définit également un
 conteneur, dont l'exécution est vérifiée selon les mêmes critères que ceux du
 scénario précédent. La validation porte en outre sur la persistance de l'état à
-travers le redémarrage: l'état de la configuration et du conteneur, tel que
-rapporté par l'API après redémarrage, doit correspondre à l'état appliqué avant
-redémarrage.
+travers le redémarrage#sym.space.narrow: l'état de la configuration et du
+conteneur, tel que rapporté par l'API après redémarrage, doit correspondre à
+l'état appliqué avant redémarrage.
 
 === Application 3 tiers
-Ce scénario met en œuvre une configuration composée de quatre conteneurs: une
-base de données, un service backend dépendant de la base de données, un service
-web dépendant du backend, et un conteneur de "probe" dépendant du service web,
-chargé d'émettre une requête HTTP l'hôte.
+Ce scénario met en œuvre une configuration composée de quatre
+conteneurs#sym.space.narrow: une base de données, un service backend dépendant
+de la base de données, un service web dépendant du backend, et un conteneur de
+"probe" dépendant du service web, chargé d'émettre une requête HTTP l'hôte.
 
 Lorsque l'hôte reçoit la requête HTTP, le test va alors initier une requête sur
 le conteneur "web" qui va transmettre celle-ci au conteneur "backend", puis la
@@ -118,25 +119,28 @@ messages émis sur la console par les différents composants du système, cette
 dernière étant flushée immédiatement après chaque message afin de garantir la
 fidélité de l'horodatage par rapport à l'instant d'émission. La marge d'erreur
 associée à ce mécanisme est jugée négligeable au regard de l'échelle de temps
-mesurée. Le démarrage d'un conteneur constitue une exception à ce mécanisme:
-cette mesure repose sur le même protocole que les tests de bout en bout décrits
-précédemment, à savoir la réception, par un serveur à l'écoute sur l'hôte, d'une
-requête HTTP émise par le conteneur concerné.
+mesurée. Le démarrage d'un conteneur constitue une exception à ce
+mécanisme#sym.space.narrow: cette mesure repose sur le même protocole que les
+tests de bout en bout décrits précédemment, à savoir la réception, par un
+serveur à l'écoute sur l'hôte, d'une requête HTTP émise par le conteneur
+concerné.
 
 === Rapidité <ch:validation:speed>
 La #figure-num-ref(<val-boot-time>) présente la chronologie des étapes de
-démarrage jusqu'à l'exécution d'un conteneur, pour deux modes de démarrage: une
-installation préalable sur disque (plan supérieur) et un démarrage éphémère
-depuis l'image ISO, sans installation (plan inférieur). Cinq instants sont
-mesurés depuis le démarrage du noyau par le bootloader: le passage à `/init`
-("Time until /init", en vert #vl(green)), la réception d'une route via DHCP
-("Time until DHCP route received", en bleu #vl(blue)), moment à partir duquel
-l'API devient accessible, le début du téléchargement d'une image de conteneur
-("Time until image downloading", en turquoise #vl(teal)), le démarrage d'un
-conteneur dont l'image est déjà présente localement ("Time until container
-started (no pull)", en violet #vl(purple)), et le démarrage d'un conteneur dont
-l'image doit être téléchargée ("Time until container started (pull)", en rouge
-#vl(red)):
+démarrage jusqu'à l'exécution d'un conteneur, pour deux modes de
+démarrage#sym.space.narrow: une installation préalable sur disque (plan
+supérieur) et un démarrage éphémère depuis l'image ISO, sans installation (plan
+inférieur). Cinq instants sont mesurés depuis le démarrage du noyau par le
+bootloader#sym.space.narrow: le passage à `/init` ("Time until /init", en vert
+#vl(green)), la réception d'une route via DHCP ("Time until DHCP route
+received", en bleu #vl(blue)), moment à partir duquel l'API devient accessible,
+le début du téléchargement d'une image de conteneur ("Time until image
+downloading", en turquoise #vl(teal)), le démarrage d'un conteneur dont l'image
+est déjà présente localement ("Time until container started (no pull)", en
+violet #vl(purple)), et le démarrage d'un conteneur dont l'image doit être
+téléchargée ("Time until container started (pull)", en rouge #vl(
+    red,
+))#sym.space.narrow:
 
 #include "../diagrams/val-boot-time.typ"
 
@@ -171,7 +175,8 @@ started", en orange #vl(orange)). La première mesure l'intervalle entre la
 réception de la configuration et la fin de l'écriture des artefacts sur le
 disque cible, avant redémarrage. La seconde mesure l'intervalle entre ce même
 instant de référence et le démarrage du conteneur, incluant le redémarrage du
-système, la réconciliation réseau et le téléchargement de l'image:
+système, la réconciliation réseau et le téléchargement de
+l'image#sym.space.narrow:
 
 #include "../diagrams/val-install-time.typ"
 
@@ -185,17 +190,17 @@ du bootloader (environ 5 secondes).
 === Légèreté
 Une machine virtuelle disposant de 256 MiB de RAM est utilisée pour ce test. Une
 configuration minimale est appliquée en mode éphémère, définissant un conteneur
-nommé chargé d'exécuter en boucle la séquence suivante: allocation d'un vecteur,
-écriture d'une suite de valeurs dans ce vecteur, vérification de la suite, envoi
-de la taille d'allocation courante via un socket, désallocation, puis
-incrémentation de l'allocation d'un mégaoctet. Cette boucle se poursuit jusqu'à
-l'échec de l'allocation ou de la vérification, ce qui permet de déterminer la
-quantité de mémoire effectivement disponible pour un conteneur une fois le
-système démarré.
+nommé chargé d'exécuter en boucle la séquence suivante#sym.space.narrow:
+allocation d'un vecteur, écriture d'une suite de valeurs dans ce vecteur,
+vérification de la suite, envoi de la taille d'allocation courante via un
+socket, désallocation, puis incrémentation de l'allocation d'un mégaoctet. Cette
+boucle se poursuit jusqu'à l'échec de l'allocation ou de la vérification, ce qui
+permet de déterminer la quantité de mémoire effectivement disponible pour un
+conteneur une fois le système démarré.
 
 La #figure-num-ref(<val-memory>) présente la distribution de l'allocation
 mémoire maximale atteinte par le conteneur sur cent exécutions, une fois le
-système démarré:
+système démarré#sym.space.narrow:
 
 #include "../diagrams/val-memory.typ"
 

@@ -48,35 +48,36 @@ d'erreur, l'asynchronicité, ou les interfaces pour les appels système.
 La communication entre composants, détaillée dans le #chapter-full-ref(
     <ch:implementation:grpc>,
 ), repose sur gRPC @bib-grpc. Tonic @bib-tonic constitue, à ce jour, la seule
-implémentation gRPC pour Rust suffisamment mature et maintenue pour cet usage;
-son adoption impose en retour le recours à Tokio @bib-tokio comme runtime
-asynchrone, ce dernier étant par ailleurs la bibliothèque d'exécution asynchrone
-la plus largement adoptée au sein de l'écosystème Rust, ce qui limite le risque
-lié à cette dépendance imposée. La sérialisation des messages échangés repose
-sur Serde @bib-serde, bibliothèque de facto standard au sein de l'écosystème
-Rust pour cet usage. Les bibliothèques restantes sont, pour leur part, propres à
-un contrôleur particulier et sont présentées avec celui-ci.
+implémentation gRPC pour Rust suffisamment mature et maintenue pour cet
+usage#sym.space.narrow; son adoption impose en retour le recours à Tokio
+@bib-tokio comme runtime asynchrone, ce dernier étant par ailleurs la
+bibliothèque d'exécution asynchrone la plus largement adoptée au sein de
+l'écosystème Rust, ce qui limite le risque lié à cette dépendance imposée. La
+sérialisation des messages échangés repose sur Serde @bib-serde, bibliothèque de
+facto standard au sein de l'écosystème Rust pour cet usage. Les bibliothèques
+restantes sont, pour leur part, propres à un contrôleur particulier et sont
+présentées avec celui-ci.
 
 === Communication entre les composants <ch:implementation:grpc>
 Le protocole gRPC est utilisé uniquement comme mécanisme de transport et de
-définition des procédures exposées par chaque composant; la structure des
-messages échangés n'est pas définie par ce protocole. Depuis sa ProtoBuf 3,
-celui-ci ne permet plus de marquer un champ comme obligatoire, dans le but de
-garantir la rétrocompatibilité entre un client et un serveur dont les versions
-diffèrent~@bib-grpc-proto3-optional. Cette contrainte n'est toutefois pas
-pertinente dans le cadre du présent système, l'ensemble des composants étant
-déployé simultanément et implémenté en Rust: le recours systématique à des
-champs optionnels y complexifierait inutilement le code. À la place, chaque
-message ne contient ainsi qu'un unique champ nommé `raw`, correspondant à la
-structure Rust concernée, sérialisée en JSON, plutôt que de reposer sur la
-structure de message générée par gRPC.
+définition des procédures exposées par chaque composant#sym.space.narrow; la
+structure des messages échangés n'est pas définie par ce protocole. Depuis sa
+ProtoBuf 3, celui-ci ne permet plus de marquer un champ comme obligatoire, dans
+le but de garantir la rétrocompatibilité entre un client et un serveur dont les
+versions diffèrent~@bib-grpc-proto3-optional. Cette contrainte n'est toutefois
+pas pertinente dans le cadre du présent système, l'ensemble des composants étant
+déployé simultanément et implémenté en Rust#sym.space.narrow: le recours
+systématique à des champs optionnels y complexifierait inutilement le code. À la
+place, chaque message ne contient ainsi qu'un unique champ nommé `raw`,
+correspondant à la structure Rust concernée, sérialisée en JSON, plutôt que de
+reposer sur la structure de message générée par gRPC.
 
 // TODO?: Dire que ça serait mieux de juste pas utiliser gRPC, mais ça permet
 // d'avoir quelques features utile comme les retry ou les connexion lazy?
 
 Deux services sont définis. Le service `StateService` permet à un contrôleur de
 communiquer vers l'orchestrateur, notamment afin de signaler la nécessité d'une
-réconciliation en dehors du cycle normal:
+réconciliation en dehors du cycle normal#sym.space.narrow:
 
 #figure(
     caption: [Service gRPC pour l'orchestrateur],
@@ -97,7 +98,7 @@ gère, rend le dernier état observé de cette ressource obsolète.
 
 Le service `ReconcilerService`, implémenté cette fois par chaque contrôleur et
 appelé par l'orchestrateur, permet à ce dernier de déclencher la validation ou
-la réconciliation d'une ressource:
+la réconciliation d'une ressource#sym.space.narrow:
 
 #figure(
     caption: [Service gRPC pour les contrôleurs],
@@ -125,48 +126,52 @@ réconciliation de la ressource par le contrôleur qui en a la charge.
 === Sécurité et isolation
 Le travail de semestre préconisait l'isolation de chaque composant au sein de
 namespaces Linux distincts. Cette approche s'avère toutefois peu praticable dans
-le cadre de l'implémentation retenue: les contrôleurs doivent notamment partager
-un même namespace réseau ainsi qu'un même système de fichiers avec le reste du
-système. En l'absence d'une isolation complète par namespace, la réduction de la
-surface d'attaque de chaque composant repose sur la restriction de ses
-privilèges au moyen des capabilities Linux @bib-man7-capns-caps. L'ensemble des
-capabilities est retiré par défaut de chaque composant; seules celles
-strictement nécessaires à l'exécution d'un contrôleur donné, telles que
-`CAP_NET_ADMIN` pour le contrôleur réseau, lui sont accordées. Ces capabilities
-ne sont en outre activées que durant l'exécution d'une réconciliation, et non de
-manière permanente durant l'ensemble du cycle de vie du composant, ce qui réduit
-la durée durant laquelle ces permissions sont exposées.
+le cadre de l'implémentation retenue#sym.space.narrow: les contrôleurs doivent
+notamment partager un même namespace réseau ainsi qu'un même système de fichiers
+avec le reste du système. En l'absence d'une isolation complète par namespace,
+la réduction de la surface d'attaque de chaque composant repose sur la
+restriction de ses privilèges au moyen des capabilities Linux
+@bib-man7-capns-caps. L'ensemble des capabilities est retiré par défaut de
+chaque composant#sym.space.narrow; seules celles strictement nécessaires à
+l'exécution d'un contrôleur donné, telles que `CAP_NET_ADMIN` pour le contrôleur
+réseau, lui sont accordées. Ces capabilities ne sont en outre activées que
+durant l'exécution d'une réconciliation, et non de manière permanente durant
+l'ensemble du cycle de vie du composant, ce qui réduit la durée durant laquelle
+ces permissions sont exposées.
 
 == Orchestrateur <ch:implementation:scheduler>
 La mise à jour groupée d'un ensemble de ressources, invoquée par l'API lors de
 la réception d'une nouvelle configuration, est prise en charge par la procédure
 `bulk_upsert`. Cette procédure calcule d'abord, par comparaison entre l'ensemble
 des ressources précédemment connues et l'ensemble des ressources nouvellement
-soumises, trois catégories: les ressources ajoutées, absentes de l'état
-précédent; les ressources supprimées, absentes de la nouvelle configuration; et
-les ressources modifiées, présentes dans les deux ensembles, mais dont la
-spécification diffère. Les ressources ajoutées et modifiées sont ensuite
-validées, tel que décrit dans le #chapter-full-ref(
+soumises, trois catégories#sym.space.narrow: les ressources ajoutées, absentes
+de l'état précédent#sym.space.narrow; les ressources supprimées, absentes de la
+nouvelle configuration#sym.space.narrow; et les ressources modifiées, présentes
+dans les deux ensembles, mais dont la spécification diffère. Les ressources
+ajoutées et modifiées sont ensuite validées, tel que décrit dans le
+#chapter-full-ref(
     <ch:implementation:validation>,
 ) puis enregistrées.
 
 La procédure `schedule_available` détermine enfin, parmi les ressources ainsi
-ajoutées ou modifiées, celles dont l'ensemble des dépendances est satisfait: une
-dépendance est considérée satisfaite si la ressource correspondante est
-elle-même dans un état prêt ou terminé. Seules les ressources dont l'ensemble
-des dépendances est ainsi satisfait sont effectivement planifiées pour
-réconciliation immédiate au sein de la file d'attente, les autres demeurant en
-attente jusqu'à ce que leurs dépendances respectives atteignent un état
-compatible.
+ajoutées ou modifiées, celles dont l'ensemble des dépendances est
+satisfait#sym.space.narrow: une dépendance est considérée satisfaite si la
+ressource correspondante est elle-même dans un état prêt ou terminé. Seules les
+ressources dont l'ensemble des dépendances est ainsi satisfait sont
+effectivement planifiées pour réconciliation immédiate au sein de la file
+d'attente, les autres demeurant en attente jusqu'à ce que leurs dépendances
+respectives atteignent un état compatible.
 
 === File d'attente
 Comme indiqué dans le #chapter-full-ref(<ch:system-design:scheduling>), la
 boucle de réconciliation dépend d'une file d'attente, structure représentée ici
-par `Queue<K>`. Cette file est implémentée de manière générique: elle permet de
-planifier n'importe quel élément de type `K` à un moment précis. Dans le cadre
-du présent système, `K` représente l'identifiant unique d'une ressource. Son
-état interne est principalement inclus dans la structure `QueueInner<K>`
-illustrée dans le #code-num-ref(<code-queue-inner>):
+par `Queue<K>`. Cette file est implémentée de manière
+générique#sym.space.narrow: elle permet de planifier n'importe quel élément de
+type `K` à un moment précis. Dans le cadre du présent système, `K` représente
+l'identifiant unique d'une ressource. Son état interne est principalement inclus
+dans la structure `QueueInner<K>` illustrée dans le #code-num-ref(
+    <code-queue-inner>,
+)#sym.space.narrow:
 
 #figure(
     label: <code-queue-inner>,
@@ -184,35 +189,36 @@ Les ressources ainsi planifiées sont stockées dans un dictionnaire basé sur u
 B#{ sym.hyph.nobreak }arbre (`BTreeMap`)~@bib-rust-std-btreemap, indexé par
 l'instant auquel leur réconciliation est prévue. Le recours à un B-arbre
 facilite la récupération des ressources dont la planification est arrivée à
-échéance: la date de réconciliation étant une valeur numérique ordonnée, toutes
-les valeurs inférieures à l'instant présent correspondent à des échéances
-passées et peuvent être traitées. L'implémentation Rust des B-arbres permet en
-outre de scinder l'arbre en deux à partir d'une clé donnée, ce qui correspond
-précisément au cas d'utilisation recherché. L'arbre étant par ailleurs ordonné,
-cela permet de parcourir les éléments en commençant par le plus ancien, sans
-recourir à une étape de tri additionnelle.
+échéance#sym.space.narrow: la date de réconciliation étant une valeur numérique
+ordonnée, toutes les valeurs inférieures à l'instant présent correspondent à des
+échéances passées et peuvent être traitées. L'implémentation Rust des B-arbres
+permet en outre de scinder l'arbre en deux à partir d'une clé donnée, ce qui
+correspond précisément au cas d'utilisation recherché. L'arbre étant par
+ailleurs ordonné, cela permet de parcourir les éléments en commençant par le
+plus ancien, sans recourir à une étape de tri additionnelle.
 
 La valeur associée à une clé n'est pas un identifiant unique, mais un ensemble
 d'identifiants. En effet, lorsqu'une nouvelle configuration est soumise,
 l'ensemble des ressources nouvellement définies doit être planifié simultanément
-pour réconciliation; c'est pourquoi chaque clé temporelle est associée à un
-ensemble d'identifiants (`HashSet`) @bib-rust-std-hashset plutôt qu'à un
-identifiant unique. Un champ supplémentaire, `scheduled`, complète cette
+pour réconciliation#sym.space.narrow; c'est pourquoi chaque clé temporelle est
+associée à un ensemble d'identifiants (`HashSet`) @bib-rust-std-hashset plutôt
+qu'à un identifiant unique. Un champ supplémentaire, `scheduled`, complète cette
 structure en fournissant un index inversé permettant de déterminer rapidement
 si, et à quel moment, une ressource donnée est planifiée.
 
 Cette file expose la méthode asynchrone `drain_expired()`, qui attend qu'une ou
 plusieurs clés arrivent à échéance avant de les retourner. L'attente est
-passive: la fonction calcule le délai jusqu'à la prochaine échéance connue, puis
-se met en pause jusqu'à ce délai. Pour gérer le cas où un élément serait
-planifié pendant cette attente, avec une échéance plus proche que celle déjà
-calculée, ou alors qu'aucune échéance n'existait, un canal de notification est
-utilisé, basé sur la structure `Notify` du runtime asynchrone Tokio.
+passive#sym.space.narrow: la fonction calcule le délai jusqu'à la prochaine
+échéance connue, puis se met en pause jusqu'à ce délai. Pour gérer le cas où un
+élément serait planifié pendant cette attente, avec une échéance plus proche que
+celle déjà calculée, ou alors qu'aucune échéance n'existait, un canal de
+notification est utilisé, basé sur la structure `Notify` du runtime asynchrone
+Tokio.
 
 Étant donné que plusieurs opérations d'écriture (ajout individuel, ajout en
 masse, replanification) peuvent modifier l'échéance la plus proche et donc
 nécessiter une notification, ces opérations passent par un `QueueInnerGuard`
-illustré dans le #code-num-ref(<code-queue-gard>):
+illustré dans le #code-num-ref(<code-queue-gard>)#sym.space.narrow:
 
 #figure(
     label: <code-queue-gard>,
@@ -241,7 +247,7 @@ point de vue du code modifiant la file d'attente.
 Enfin, la file est encapsulée dans une structure `Queue`, qui fournit un accès
 concurrent aux différentes méthodes, illustré dans le #code-num-ref(
     <code-queue>,
-):
+)#sym.space.narrow:
 
 #figure(
     label: <code-queue>,
@@ -266,7 +272,7 @@ La réconciliation est une tâche de fond qui récupère, en boucle, l'ensemble 
 identifiants arrivés à échéance via `Queue::drain_expired`, puis transmet une
 requête au contrôleur responsable afin de réconcilier chaque ressource. Cette
 requête reprend la structure de ressource complète, décrite dans le
-#code-num-ref(<code-resource-def>):
+#code-num-ref(<code-resource-def>)#sym.space.narrow:
 
 #figure(
     label: <code-resource-def>,
@@ -291,7 +297,7 @@ Dans le #code-num-ref(<code-resource-def>), les champs `children`,
 `dependencies` et `dependents` reposent sur le type `TerminalResource`, une
 variante de `Resource` dans laquelle ces mêmes champs sont réduits à de simples
 identifiants, ce qui évite la récursion de la structure, comme illustré dans le
-#code-num-ref(<code-resource-term>):
+#code-num-ref(<code-resource-term>)#sym.space.narrow:
 
 #figure(
     label: <code-resource-term>,
@@ -331,7 +337,7 @@ réconciliation de la ressource suivante.
 
 La réponse du contrôleur inclut le nouvel état, le statut, l'ensemble des
 enfants, et l'ensemble des dépendances, dont la structure est décrite dans le
-#code-num-ref(<code-response-def>):
+#code-num-ref(<code-response-def>)#sym.space.narrow:
 
 #figure(
     label: <code-response-def>,
@@ -349,27 +355,27 @@ enfants, et l'ensemble des dépendances, dont la structure est décrite dans le
 
 Le champ `status` indique le résultat de la réconciliation, tel que prêt, pas
 prêt ou une erreur. Le champ `state`, optionnel, correspond au nouvel état de la
-ressource lorsque la réconciliation en produit un; son absence signifie que
-l'état de la ressource reste inchangé. Le champ `children` contient l'ensemble
-des ressources enfants créées ou maintenues par le contrôleur à l'issue de cette
-réconciliation. Le champ `dependencies` contient quant à lui l'ensemble des
-ressources dont dépend la ressource réconciliée. Seul l'identifiant est transmis
-pour les dépendances, tandis que l'identifiant et la spécification sont transmis
-pour les enfants, ces derniers pouvant être nouvellement créés et donc inconnus
-de l'orchestrateur.
+ressource lorsque la réconciliation en produit un#sym.space.narrow; son absence
+signifie que l'état de la ressource reste inchangé. Le champ `children` contient
+l'ensemble des ressources enfants créées ou maintenues par le contrôleur à
+l'issue de cette réconciliation. Le champ `dependencies` contient quant à lui
+l'ensemble des ressources dont dépend la ressource réconciliée. Seul
+l'identifiant est transmis pour les dépendances, tandis que l'identifiant et la
+spécification sont transmis pour les enfants, ces derniers pouvant être
+nouvellement créés et donc inconnus de l'orchestrateur.
 
-Deux catégories d'erreur sont distinguées lors de la réconciliation: l'erreur de
-protocole et l'erreur de logique. Une erreur de protocole survient lorsque les
-données échangées via gRPC sont invalides ou non interprétables, ou lorsqu'une
-erreur imprévue se produit au niveau du transport. Une erreur de logique, en
-revanche, correspond à un échec géré par le contrôleur dans le cadre normal de
-la réconciliation, et se traduit par un statut d'erreur dans le champ `status`
-de la réponse. Dans ce dernier cas, la réconciliation est considérée comme
-réussie du point de vue du protocole gRPC, indépendamment du contenu du statut.
-En cas d'erreur de protocole, l'orchestrateur attribue lui-même à la ressource
-un statut d'erreur qualifié de "transport"; dans tous les autres cas, le statut
-attribué à la ressource correspond à celui fourni par le contrôleur dans sa
-réponse.
+Deux catégories d'erreur sont distinguées lors de la
+réconciliation#sym.space.narrow: l'erreur de protocole et l'erreur de logique.
+Une erreur de protocole survient lorsque les données échangées via gRPC sont
+invalides ou non interprétables, ou lorsqu'une erreur imprévue se produit au
+niveau du transport. Une erreur de logique, en revanche, correspond à un échec
+géré par le contrôleur dans le cadre normal de la réconciliation, et se traduit
+par un statut d'erreur dans le champ `status` de la réponse. Dans ce dernier
+cas, la réconciliation est considérée comme réussie du point de vue du protocole
+gRPC, indépendamment du contenu du statut. En cas d'erreur de protocole,
+l'orchestrateur attribue lui-même à la ressource un statut d'erreur qualifié de
+"transport"#sym.space.narrow; dans tous les autres cas, le statut attribué à la
+ressource correspond à celui fourni par le contrôleur dans sa réponse.
 
 === Validation d'une ressource <ch:implementation:validation>
 La validation d'une ressource s'effectue à chaque création ou mise à jour d'une
@@ -383,8 +389,8 @@ requête contient d'abord la nouvelle spécification de la ressource, et si cett
 ressource existe déjà, la spécification courante de celle-ci ainsi que son état.
 La ressource actuelle est transmise, car certaines ressources, telles que la
 ressource permettant d'installer le système sur le disque, sont totalement ou
-partiellement immuables; leur modification doit alors passer par la recréation
-d'une nouvelle ressource.
+partiellement immuables#sym.space.narrow; leur modification doit alors passer
+par la recréation d'une nouvelle ressource.
 
 La ressource préexistante est optionnelle dans la requête de validation, son
 absence correspondant au cas d'une première réconciliation, pour laquelle aucun
@@ -393,11 +399,11 @@ spécification peuvent être dérivés intégralement à partir de la spécifica
 elle-même, sans intervention de l'utilisateur. Le contrôleur fournit alors, en
 réponse à la validation, une spécification dite dérivée, calculée uniquement à
 partir de la spécification soumise. Cette spécification dérivée n'est recalculée
-que lorsque la spécification change; elle ne peut pas être modifiée lors d'une
-réconciliation normale. Ce mécanisme dispense l'utilisateur de renseigner
-manuellement des champs entièrement déductibles, tout en évitant un recalcul
-systématique de ces champs à chaque réconciliation. La garantie que la
-spécification dérivée existe à chaque réconciliation permet en outre au
+que lorsque la spécification change#sym.space.narrow; elle ne peut pas être
+modifiée lors d'une réconciliation normale. Ce mécanisme dispense l'utilisateur
+de renseigner manuellement des champs entièrement déductibles, tout en évitant
+un recalcul systématique de ces champs à chaque réconciliation. La garantie que
+la spécification dérivée existe à chaque réconciliation permet en outre au
 contrôleur de traiter ce champ comme systématiquement disponible, ce qui allège
 la logique de réconciliation en dispensant celle-ci de toute vérification de
 présence des champs dérivés.
@@ -408,7 +414,7 @@ précédemment, en particulier les procédures `validate` et `reconcile`, selon 
 approche commun. La réception d'une requête entraîne d'abord la désérialisation
 de la ressource générique reçue, puis un branchement est effectué sur le schéma
 de cette ressource, comme illustré dans le #code-num-ref(<code-dispatch>) pour
-la procédure `reconcile` du contrôleur réseau:
+la procédure `reconcile` du contrôleur réseau#sym.space.narrow:
 
 #figure(
     label: <code-dispatch>,
@@ -446,28 +452,30 @@ délègue le traitement de la requête. La macro `reconcile!` permet de masquer 
 grande partie de la logique liée à la désérialisation de la ressource.
 
 La logique de réconciliation propre à chaque type de ressource suit un
-déroulement identique, structuré en quatre étapes: la spécification de la
-ressource est d'abord validée; l'état physique courant de la ressource est
-ensuite récupéré (`refresh`); un plan d'action est calculé par comparaison entre
-cet état et la spécification (`plan`); ce plan est enfin exécuté (`apply`),
-avant qu'un second `refresh` ne détermine l'état résultant réel de la ressource.
-Chacune de ces étapes est susceptible d'échouer indépendamment des autres; un
-échec à n'importe quelle étape interrompt immédiatement la réconciliation et
-retourne une réponse dont le champ `status` est mis à `Error`, tout en
-conservant, autant que possible, le dernier état connu de la ressource.
+déroulement identique, structuré en quatre étapes#sym.space.narrow: la
+spécification de la ressource est d'abord validée#sym.space.narrow; l'état
+physique courant de la ressource est ensuite récupéré
+(`refresh`)#sym.space.narrow; un plan d'action est calculé par comparaison entre
+cet état et la spécification (`plan`)#sym.space.narrow; ce plan est enfin
+exécuté (`apply`), avant qu'un second `refresh` ne détermine l'état résultant
+réel de la ressource. Chacune de ces étapes est susceptible d'échouer
+indépendamment des autres#sym.space.narrow; un échec à n'importe quelle étape
+interrompt immédiatement la réconciliation et retourne une réponse dont le champ
+`status` est mis à `Error`, tout en conservant, autant que possible, le dernier
+état connu de la ressource.
 
 Le statut final d'une réconciliation ayant abouti dépend du plan calculé lors de
-la seconde évaluation et de l'état courant de la ressource: l'absence de toute
-action à entreprendre (`NoOp`) alors que la ressource est en cours de
-suppression indique qu'elle a été supprimée avec succès ou qu'elle n'a jamais
-existé; en dehors de tout contexte de suppression, l'absence d'action correspond
-au statut prêt. À l'inverse, la persistance d'un plan non vide à l'issue de son
-exécution indique que, malgré les actions correctives entreprises, l'état réel
-de la ressource ne correspond toujours pas à la spécification attendue, et
-aboutit à un statut pas prêt. Certaines ressources peuvent également retourner
-un statut terminé plutôt que prêt, lorsque des réconciliations ultérieures
-n'auraient pas de sens, par exemple un conteneur dont la politique de
-redémarrage est "never".
+la seconde évaluation et de l'état courant de la ressource#sym.space.narrow:
+l'absence de toute action à entreprendre (`NoOp`) alors que la ressource est en
+cours de suppression indique qu'elle a été supprimée avec succès ou qu'elle n'a
+jamais existé#sym.space.narrow; en dehors de tout contexte de suppression,
+l'absence d'action correspond au statut prêt. À l'inverse, la persistance d'un
+plan non vide à l'issue de son exécution indique que, malgré les actions
+correctives entreprises, l'état réel de la ressource ne correspond toujours pas
+à la spécification attendue, et aboutit à un statut pas prêt. Certaines
+ressources peuvent également retourner un statut terminé plutôt que prêt,
+lorsque des réconciliations ultérieures n'auraient pas de sens, par exemple un
+conteneur dont la politique de redémarrage est "never".
 
 === Contrôleur système
 Le contrôleur système, implémenté dans #repo("rust/cmd/system-controller"),
@@ -483,16 +491,17 @@ prend actuellement en charge la seule gestion du contenu du répertoire `/etc/`
 
 L'écriture d'un fichier au sein de `/etc/` est effectuée de manière atomique.
 Lorsque la spécification de la ressource change, un nouveau fichier temporaire
-est créé au moyen du flag `O_TMPFILE` @bib-linux-open-tmpfile: ce mécanisme
-permet de créer un descripteur de fichier associé à un inode dépourvu de tout
-lien dans l'arborescence, garantissant qu'aucun processus tiers ne puisse
-observer ou accéder à ce fichier avant que son contenu ne soit intégralement
-écrit. L'ensemble des opérations nécessaires (écriture du contenu, application
-des permissions, etc.) est ensuite effectué sur ce fichier temporaire. Une fois
-ces opérations terminées, le fichier est rendu visible dans l'arborescence au
-moyen de `linkat`~@bib-linkat, qui associe l'inode déjà constitué à son chemin
-final; cette opération remplace atomiquement le fichier existant, le cas
-échéant, sans jamais exposer d'état intermédiaire.
+est créé au moyen du flag `O_TMPFILE` @bib-linux-open-tmpfile#sym.space.narrow:
+ce mécanisme permet de créer un descripteur de fichier associé à un inode
+dépourvu de tout lien dans l'arborescence, garantissant qu'aucun processus tiers
+ne puisse observer ou accéder à ce fichier avant que son contenu ne soit
+intégralement écrit. L'ensemble des opérations nécessaires (écriture du contenu,
+application des permissions, etc.) est ensuite effectué sur ce fichier
+temporaire. Une fois ces opérations terminées, le fichier est rendu visible dans
+l'arborescence au moyen de `linkat`~@bib-linkat, qui associe l'inode déjà
+constitué à son chemin final#sym.space.narrow; cette opération remplace
+atomiquement le fichier existant, le cas échéant, sans jamais exposer d'état
+intermédiaire.
 
 Le chemin spécifié dans la spécification de la ressource doit désigner un
 fichier réel, sans aucun lien symbolique, et ne comporter aucun élément relatif
@@ -514,9 +523,9 @@ Le contrôleur réseau, implémenté dans #repo("rust/cmd/network-controller"), 
 l'ensemble des ressources du domaine réseau. L'ensemble de ces ressources
 communique avec le noyau au moyen du protocole netlink @bib-linux-rtnetlink, via
 la bibliothèque Rust rtnetlink @bib-rtnetlink. Les ressources `network:dns` et
-`network:address` ne présentent aucune particularité notable: l'état physique
-correspondant est d'abord récupéré, puis comparé à la spécification, avant
-d'être créé s'il est absent.
+`network:address` ne présentent aucune particularité notable#sym.space.narrow:
+l'état physique correspondant est d'abord récupéré, puis comparé à la
+spécification, avant d'être créé s'il est absent.
 
 La ressource `link` #footnote[
     Implémentée dans #repo("rust/cmd/network-controller/src/resources/link.rs").
@@ -526,7 +535,7 @@ lien réseau, mais un message contenant une liste d'attributs hétérogènes, do
 seul un sous-ensemble est pertinent, et dont le sous-ensemble effectivement
 présent varie selon le lien concerné, comme illustré dans le #code-num-ref(
     <code-link-attr>,
-):
+)#sym.space.narrow:
 
 #figure(
     label: <code-link-attr>,
@@ -545,7 +554,7 @@ présent varie selon le lien concerné, comme illustré dans le #code-num-ref(
 Or, en Rust, l'instanciation d'une structure requiert de fournir une valeur pour
 chacun de ses champs, ce qui empêche de construire directement la structure
 finale, illustrée dans le #code-num-ref(<code-link-base-strict>), à partir d'une
-liste d'attributs incomplète:
+liste d'attributs incomplète#sym.space.narrow:
 
 #figure(
     label: <code-link-base-strict>,
@@ -567,10 +576,10 @@ liste d'attributs incomplète:
 Rendre l'ensemble des champs de cette structure optionnels ne constitue pas une
 solution satisfaisante, la plupart de ces champs étant en réalité obligatoires
 dans l'état final d'un lien réseau. Un pattern "builder" est employé pour
-résoudre ce problème: la macro `Builder`, appliquée à `LinkState`, génère
-automatiquement une structure intermédiaire, `LinkStateBuilder`, illustrée dans
-le #code-num-ref(<code-link-builder-strict>), dans laquelle chaque champ est
-rendu optionnel:
+résoudre ce problème#sym.space.narrow: la macro `Builder`, appliquée à
+`LinkState`, génère automatiquement une structure intermédiaire,
+`LinkStateBuilder`, illustrée dans le #code-num-ref(<code-link-builder-strict>),
+dans laquelle chaque champ est rendu optionnel#sym.space.narrow:
 
 #figure(
     label: <code-link-builder-strict>,
@@ -592,7 +601,7 @@ au moyen d'une boucle et de variables intermédiaires dédiées, l'accumulation
 progressive des attributs reçus avant de pouvoir construire la structure finale.
 Chaque attribut reconnu dans le message netlink renseigne directement le champ
 correspondant de cette structure intermédiaire, comme illustré dans le
-#code-num-ref(<code-link-builder>):
+#code-num-ref(<code-link-builder>)#sym.space.narrow:
 
 #figure(
     label: <code-link-builder>,
@@ -626,12 +635,12 @@ Une fois l'ensemble des attributs du message traités, la structure intermédiai
 conversion échouant si l'un des champs obligatoires de `LinkState` demeure non
 spécifié à l'issue du traitement.
 
-La ressource `network:route` présente une particularité: avec la librairie
-rtnetlink, la récupération d'une route unique par son identifiant ne retourne
-pas l'entrée correspondante, mais tente de résoudre la route associée à cet
-identifiant, ce qui ne correspond pas au comportement recherché. Le contrôleur
-récupère par conséquent l'ensemble des routes existantes, puis filtre ce
-résultat afin d'isoler celle qui correspond à la ressource gérée.
+La ressource `network:route` présente une particularité#sym.space.narrow: avec
+la librairie rtnetlink, la récupération d'une route unique par son identifiant
+ne retourne pas l'entrée correspondante, mais tente de résoudre la route
+associée à cet identifiant, ce qui ne correspond pas au comportement recherché.
+Le contrôleur récupère par conséquent l'ensemble des routes existantes, puis
+filtre ce résultat afin d'isoler celle qui correspond à la ressource gérée.
 
 La ressource `network:dhcp` repose sur la bibliothèque smoltcp @bib-smoltcp,
 seule bibliothèque Rust fournissant un client DHCP réutilisable comme composant
@@ -664,20 +673,23 @@ sur gRPC. Les procédures disponibles correspondent à celles présentées dans 
 vérification d'authentification (`auth_or_fail`), qui interrompt la requête
 avant tout traitement en cas d'échec.
 
-La procédure `push_config` constitue le point d'entrée principal de l'API: elle
-reçoit l'ensemble des ressources composant la configuration déclarative du
-système tel que présenté dans le #chapter-full-ref(<ch:functional-overview>).
-Cette procédure identifie, parmi ces ressources, celle de schéma `api`, dont la
-présence est obligatoire, ainsi qu'une éventuelle ressource de schéma `install`.
-La configuration de l'API elle-même est mise à jour, puis l'ensemble des
-ressources soumises remplace, par une opération de mise à jour groupée
-(`bulk_upsert`), les ressources précédemment connues du système; les ressources
-absentes de la nouvelle configuration sont ainsi implicitement supprimées.
-Lorsque le système se trouve en mode maintenance et qu'une ressource `install`
-est présente, cette procédure déclenche en outre, une fois la mise à jour des
-ressources effectuée, l'installation du système sur le disque, suivie d'un
-redémarrage automatique après un court délai, processus décrit plus en détail
-dans le #chapter-full-ref(<ch:implementation:install>).
+La procédure `push_config` constitue le point d'entrée principal de
+l'API#sym.space.narrow: elle reçoit l'ensemble des ressources composant la
+configuration déclarative du système tel que présenté dans le #chapter-full-ref(
+    <ch:functional-overview>,
+). Cette procédure identifie, parmi ces ressources, celle de schéma `api`, dont
+la présence est obligatoire, ainsi qu'une éventuelle ressource de schéma
+`install`. La configuration de l'API elle-même est mise à jour, puis l'ensemble
+des ressources soumises remplace, par une opération de mise à jour groupée
+(`bulk_upsert`), les ressources précédemment connues du
+système#sym.space.narrow; les ressources absentes de la nouvelle configuration
+sont ainsi implicitement supprimées. Lorsque le système se trouve en mode
+maintenance et qu'une ressource `install` est présente, cette procédure
+déclenche en outre, une fois la mise à jour des ressources effectuée,
+l'installation du système sur le disque, suivie d'un redémarrage automatique
+après un court délai, processus décrit plus en détail dans le #chapter-full-ref(
+    <ch:implementation:install>,
+).
 
 == Système de fichier racine <ch:implementation:rootfs>
 Le système repose sur un fonctionnement presque entièrement immuable. Le système
@@ -689,22 +701,24 @@ totalement immuables. Cette archive représente le système de fichiers racine
 durant le fonctionnement normal du système, par exemple pour configurer la
 résolution DNS ou Podman. Afin de permettre cela, un système de fichiers
 temporaire est superposé à l'archive SquashFS grâce à OverlayFS @bib-overlayfs.
-Ce système de fichiers temporaire est entièrement persisté en mémoire; ainsi,
-lorsque le système d'exploitation redémarre, l'ensemble de son contenu est
-perdu. Ceci ne constitue pas un problème compte tenu du modèle déclaratif du
-système: l'ensemble de ces fichiers est en réalité dérivé de la configuration,
-et recréé identique à chaque redémarrage.
+Ce système de fichiers temporaire est entièrement persisté en
+mémoire#sym.space.narrow; ainsi, lorsque le système d'exploitation redémarre,
+l'ensemble de son contenu est perdu. Ceci ne constitue pas un problème compte
+tenu du modèle déclaratif du système#sym.space.narrow: l'ensemble de ces
+fichiers est en réalité dérivé de la configuration, et recréé identique à chaque
+redémarrage.
 
 == Démarrage du système
 Le bootloader, quel qu'il soit, charge le noyau ainsi que l'initrd en mémoire.
 L'initrd est un système de fichiers racine minimal et temporaire, dont le seul
 rôle est de charger le système de fichiers racine réel décrit au
 #chapter-full-ref(<ch:implementation:rootfs>). Une fois le noyau démarré,
-celui-ci exécute le processus `/init` se trouvant sur l'initrd; dans le cas du
-présent système, ce processus est le seul présent sur ce système de fichiers. Ce
-processus, implémenté dans #repo("rust/cmd/init"), a pour but de localiser
-l'archive SquashFS du système de fichiers racine réel, où qu'elle se trouve, de
-la préparer, puis d'y apposer la surcouche d'écriture au moyen d'OverlayFS.
+celui-ci exécute le processus `/init` se trouvant sur l'initrd#sym.space.narrow;
+dans le cas du présent système, ce processus est le seul présent sur ce système
+de fichiers. Ce processus, implémenté dans #repo("rust/cmd/init"), a pour but de
+localiser l'archive SquashFS du système de fichiers racine réel, où qu'elle se
+trouve, de la préparer, puis d'y apposer la surcouche d'écriture au moyen
+d'OverlayFS.
 
 Pour localiser le système de fichiers racine réel, l'`/init` se base sur le
 paramètre de démarrage `cos.bootdisk`, qui spécifie le disque et le numéro de
@@ -721,20 +735,21 @@ de monter le reste du système de fichiers. Cette répartition des rôles entre
 `/init` et le superviseur s'explique par le fait que l'initrd, contenant
 l'`/init`, est chargé en mémoire et doit à ce titre demeurer aussi léger que
 possible. Le superviseur suit ensuite les étapes illustrée dans la
-#figure-num-ref(<sysinit>):
+#figure-num-ref(<sysinit>)#sym.space.narrow:
 
 #include "../diagrams/sysinit.typ"
 
 Le superviseur construit l'arborescence de fichiers standard de Linux telle que
 spécifiée par le Filesystem Hierarchy Standard @bib-linux-fhs. Il met ensuite en
 place le réseau local de l'hôte, l'interface `localhost` n'étant pas activée par
-défaut sous Linux; cette interface est essentielle au fonctionnement du système,
-les différents contrôleurs communiquant entre eux via une adresse locale. Puis
-monte les différents volumes additionnels spécifiés dans les paramètres de
-démarrage, tels que `/config/` via `cos.configdisk` ou `/var/` via
-`cos.datadisk`. Le superviseur démarre alors ces contrôleurs et attend qu'ils
-soient prêts avant de démarrer l'orchestrateur. À partir de ce point, le
-superviseur n'a plus d'autre rôle que d'attendre l'extinction du système.
+défaut sous Linux#sym.space.narrow; cette interface est essentielle au
+fonctionnement du système, les différents contrôleurs communiquant entre eux via
+une adresse locale. Puis monte les différents volumes additionnels spécifiés
+dans les paramètres de démarrage, tels que `/config/` via `cos.configdisk` ou
+`/var/` via `cos.datadisk`. Le superviseur démarre alors ces contrôleurs et
+attend qu'ils soient prêts avant de démarrer l'orchestrateur. À partir de ce
+point, le superviseur n'a plus d'autre rôle que d'attendre l'extinction du
+système.
 
 Si l'une de ces étapes échoue, pour quelque raison que ce soit, le programme
 s'interrompt et déclenche un "kernel panic". À ce stade du cycle de vie du
@@ -742,7 +757,8 @@ système, les composants permettant une gestion déclarative ne sont pas encore
 chargés et il n'y a donc aucune autre possibilité pour joindre le système.
 
 La #figure-num-ref(<img:kernel-panic>) illustre un tel comportement, provoqué
-par l'indisponibilité du disque de configuration attendu par le système:
+par l'indisponibilité du disque de configuration attendu par le
+système#sym.space.narrow:
 
 #figure(
     label: <img:kernel-panic>,
@@ -757,7 +773,7 @@ En l'absence du disque de configuration, le système ne dispose d'aucune
 spécification à réconcilier et son exécution ne présenterait aucune utilité,
 tout en risquant d'exposer le système à des risques inutiles. La
 #figure-num-ref(<procstart>) illustre l'arbre des processus démarrés par le
-système, ainsi que les relations de filiation entre ceux-ci:
+système, ainsi que les relations de filiation entre ceux-ci#sym.space.narrow:
 
 #include "../diagrams/procstart.typ"
 
@@ -779,18 +795,18 @@ dans l'état interne du système, tel que décrit au #chapter-full-ref(
 installation ne soit commencée, ce qui empêche toute réconciliation d'une
 ressource et garantit que l'installation s'exécute sur un état stable.
 
-Le disque système est partitionné selon un schéma composé de quatre partitions:
-une partition de boot de 1 MiB, une partition contenant les fichiers de Limine
-ainsi que l'archive SquashFS du système, le noyau et l'initrd (`limine`, 512
-MiB), une partition optionnelle destinée au disque de configuration (`config`,
-10 MiB), et une partition optionnelle de données occupant l'espace restant
-(`data`). Limine est ensuite installé sur le disque, les partitions requises
-sont formatées et montées, avant que les fichiers de démarrage extraits de
-l'image ISO ne soient copiés vers la partition `limine`. Une configuration de
-démarrage est enfin générée, définissant deux entrées: l'une destinée à
-l'exécution normale du système, référençant les disques présents par leur chemin
-respectif au moyen de paramètres de démarrage dédiés, l'autre destinée au mode
-maintenance.
+Le disque système est partitionné selon un schéma composé de quatre
+partitions#sym.space.narrow: une partition de boot de 1 MiB, une partition
+contenant les fichiers de Limine ainsi que l'archive SquashFS du système, le
+noyau et l'initrd (`limine`, 512 MiB), une partition optionnelle destinée au
+disque de configuration (`config`, 10 MiB), et une partition optionnelle de
+données occupant l'espace restant (`data`). Limine est ensuite installé sur le
+disque, les partitions requises sont formatées et montées, avant que les
+fichiers de démarrage extraits de l'image ISO ne soient copiés vers la partition
+`limine`. Une configuration de démarrage est enfin générée, définissant deux
+entrées#sym.space.narrow: l'une destinée à l'exécution normale du système,
+référençant les disques présents par leur chemin respectif au moyen de
+paramètres de démarrage dédiés, l'autre destinée au mode maintenance.
 
 Le chiffrement des disques repose sur LUKS @bib-luks, combiné à Clevis
 @bib-clevis pour l'automatisation du déchiffrement. Le mode de chiffrement
@@ -800,12 +816,12 @@ l'un des disques gérés par le système, tel que `configdisk` ou `datadisk`.
 
 == Système de build <ch:implementation:build>
 L'environnement de build repose sur l'outil Nix. Une distinction est requise
-entre trois usages du terme "Nix": Nix en tant que système de build
-@bib-nix-build, Nix en tant que gestionnaire de paquets @bib-nixpkgs, et Nix en
-tant que distribution Linux (NixOS) @bib-nixos. Seul le premier usage, complété
-partiellement par le second, est utilisé dans le cadre de ce projet. Les
-concepts essentiels de Nix nécessaires à la compréhension de ce chapitre sont
-présentés à l'#appendix-num-ref(<appendix:nix-primer>).
+entre trois usages du terme "Nix"#sym.space.narrow: Nix en tant que système de
+build @bib-nix-build, Nix en tant que gestionnaire de paquets @bib-nixpkgs, et
+Nix en tant que distribution Linux (NixOS) @bib-nixos. Seul le premier usage,
+complété partiellement par le second, est utilisé dans le cadre de ce projet.
+Les concepts essentiels de Nix nécessaires à la compréhension de ce chapitre
+sont présentés à l'#appendix-num-ref(<appendix:nix-primer>).
 
 Le recours à Nix vise à fournir un environnement stable entre la machine de
 développement locale et l'environnement d'intégration continue. Nix permet non
@@ -817,10 +833,10 @@ constitue une propriété désirée pour le projet. Nix facilite en outre la mis
 particulière vers une architecture différente, par exemple, de x86_64 vers
 ARM64.
 
-L'ensemble de la chaîne de build du système est pris en charge par Nix: le
-noyau, les différentes crates composant le projet, ainsi que les artefacts
-finaux assemblés à partir de ces éléments. Le détail de cet assemblage est
-développé ultérieurement dans le #chapter-full-ref(
+L'ensemble de la chaîne de build du système est pris en charge par
+Nix#sym.space.narrow: le noyau, les différentes crates composant le projet,
+ainsi que les artefacts finaux assemblés à partir de ces éléments. Le détail de
+cet assemblage est développé ultérieurement dans le #chapter-full-ref(
     <ch:implementation:system-image>,
 ).
 
@@ -840,11 +856,11 @@ fonctionnalité elle-même @bib-rust-unstable.
 La configuration du noyau repose sur la configuration par défaut propre à
 l'architecture cible, complétée par un ensemble d'options supplémentaires
 situées dans le fichier #repo("linux/config/common.conf"). Plusieurs fragments
-de configuration peuvent être fournis simultanément; une fonction Nix est créée
-à cet effet, permettant de fusionner l'ensemble de ces fragments avec la
-configuration par défaut. Cette approche permet de ne stocker, dans le dépôt,
-que les changements apportés à la configuration par défaut, plutôt que la
-configuration complète.
+de configuration peuvent être fournis simultanément#sym.space.narrow; une
+fonction Nix est créée à cet effet, permettant de fusionner l'ensemble de ces
+fragments avec la configuration par défaut. Cette approche permet de ne stocker,
+dans le dépôt, que les changements apportés à la configuration par défaut,
+plutôt que la configuration complète.
 
 Une commande est mise à disposition afin de faciliter la modification de cette
 configuration. Cette commande fusionne l'ensemble des fragments, ouvre
@@ -857,23 +873,23 @@ références distinctes. La différence par rapport au `defconfig` est exposée 
 == Génération de l'image du système <ch:implementation:system-image>
 L'image finale du système, qu'il s'agisse d'une image ISO ou d'une image disque
 brute, est assemblée entièrement au moyen de Nix. Chaque crate Rust du projet
-correspond à une dérivation Nix; l'ensemble de ces dérivations est regroupé dans
-uns autre dérivation nommé `rootfsEnv`, lequel intègre également des binaires
-additionnels, tels que Podman. Cette dérivation génère un dossier regroupant
-l'ensemble de ces éléments au sein du `/nix/store`.
+correspond à une dérivation Nix#sym.space.narrow; l'ensemble de ces dérivations
+est regroupé dans uns autre dérivation nommé `rootfsEnv`, lequel intègre
+également des binaires additionnels, tels que Podman. Cette dérivation génère un
+dossier regroupant l'ensemble de ces éléments au sein du `/nix/store`.
 
 Une dérivation `rootfs` reprend cet environnement et y ajoute les liens
 symboliques nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc.,
 contiennent des liens symboliques pointant vers le `/nix/store`. Cette
 dérivation produit, en sortie, une archive au format SquashFS. Deux dérivations
-additionnels complètent cet assemblage: `kernel`, qui construit l'image du noyau
-selon les options de configuration retenues, et initrd, qui fournit le système
-de fichiers initial.
+additionnels complètent cet assemblage#sym.space.narrow: `kernel`, qui construit
+l'image du noyau selon les options de configuration retenues, et initrd, qui
+fournit le système de fichiers initial.
 
 À partir de ces trois dérivations, `rootfs`, `initrd` et `kernel`, une
 dérivation `iso` assemble l'ensemble en une image ISO, exécutable via QEMU
 @bib-qemu ou sur un système physique. L'arbre de build est illustré dans la
-#figure-num-ref(<img>):
+#figure-num-ref(<img>)#sym.space.narrow:
 
 #include "../diagrams/img.typ"
 
@@ -886,28 +902,29 @@ regroupe les éléments propres à cette plateforme et produit une image
 directement destinée au flashage sur une carte SD.
 
 == Environnement de test <ch:implementation:tests>
-Trois catégories de tests sont mises en œuvre: les tests unitaires, les tests
-d'intégration, et les tests de bout en bout (end-to-end). Les tests unitaires
-sont dépourvus de complexité particulière, n'interagissant pas ou peu avec
-l'environnement extérieur. Ces tests sont réalisés à l'aide du système de test
-standard de Rust, via la macro `#[test]`.
+Trois catégories de tests sont mises en œuvre#sym.space.narrow: les tests
+unitaires, les tests d'intégration, et les tests de bout en bout (end-to-end).
+Les tests unitaires sont dépourvus de complexité particulière, n'interagissant
+pas ou peu avec l'environnement extérieur. Ces tests sont réalisés à l'aide du
+système de test standard de Rust, via la macro `#[test]`.
 
 Les tests d'intégration présentent une complexité supérieure. Le test du
-contrôleur réseau en constitue un exemple représentatif: une exécution directe
-sur l'hôte est exclue, la configuration réseau de ce dernier étant affectée,
-tandis qu'une exécution au sein du système complet introduirait de nombreux
-points de défaillance supplémentaires, certains éléments internes n'étant par
-ailleurs pas exposés à ce niveau. Une crate nommée `isolation`#footnote[
+contrôleur réseau en constitue un exemple représentatif#sym.space.narrow: une
+exécution directe sur l'hôte est exclue, la configuration réseau de ce dernier
+étant affectée, tandis qu'une exécution au sein du système complet introduirait
+de nombreux points de défaillance supplémentaires, certains éléments internes
+n'étant par ailleurs pas exposés à ce niveau. Une crate nommée
+`isolation`#footnote[
     Implémenté dans #repo("rust/crates/isolation")
 ] est créée à cet effet, permettant l'exécution d'un test dans un processus
 séparé, via un appel `fork` @bib-man2-fork, isolé par des namespaces Linux
 @bib-man-ns. Un environnement entièrement vierge est ainsi fourni pour chaque
 test, dépourvu d'interface réseau et disposant d'un système de fichiers racine
-propre; l'ensemble de cet environnement est détruit à l'issue du test. Cette
-isolation complète empêche cependant le test de binaires externes non présents
-dans l'environnement vierge ainsi constitué. Ces tests sont, comme les tests
-unitaires, réalisés via la macro~`#[test]`, et localisés à proximité du code
-testé.
+propre#sym.space.narrow; l'ensemble de cet environnement est détruit à l'issue
+du test. Cette isolation complète empêche cependant le test de binaires externes
+non présents dans l'environnement vierge ainsi constitué. Ces tests sont, comme
+les tests unitaires, réalisés via la macro~`#[test]`, et localisés à proximité
+du code testé.
 
 Les tests unitaires et les tests d'intégration partagent la propriété de ne pas
 nécessiter la reconstruction du système complet, ne reposant que sur
@@ -924,8 +941,8 @@ crate dédiée, nommée `e2e`#footnote[
 du système, ce qui nécessite l'exécution de l'image ISO complète. L'exécution de
 ces tests repose sur le lancement d'une machine virtuelle via QEMU, à partir de
 cette image ISO. Cette dépendance à l'image complète empêche l'exécution directe
-de ces tests via la commande de test standard de Rust; leur exécution passe par
-le système de build dans son intégralité.
+de ces tests via la commande de test standard de Rust#sym.space.narrow; leur
+exécution passe par le système de build dans son intégralité.
 
 L'ensemble des tests Rust est exécuté via l'outil Nextest @bib-nextest. Ce
 recours n'est pas strictement nécessaire pour les tests unitaires, mais s'avère
@@ -938,44 +955,45 @@ indépendamment.
 == Pipeline CI/CD
 L'ensemble du projet reposant sur Nix, la pipeline CI/CD (#repo(
     ".gitlab-ci.yml",
-)) en hérite également, ce qui simplifie sa mise en œuvre: les étapes exécutées
-par la pipeline se limitent, dans une large mesure, à l'invocation de commandes
-Nix génériques, indépendantes de l'environnement d'exécution. L'ordonnancement
-des tâches repose sur GitLab CI @bib-gitlab-ci. Le recours à un runner
-personnalisé est requis, les runners institutionnels ne permettant ni
-l'utilisation de Nix ni la virtualisation imbriquée, requise pour l'exécution
-des tests de bout en bout, et disposant par ailleurs de ressources de calcul
-limitées.
+)) en hérite également, ce qui simplifie sa mise en œuvre#sym.space.narrow: les
+étapes exécutées par la pipeline se limitent, dans une large mesure, à
+l'invocation de commandes Nix génériques, indépendantes de l'environnement
+d'exécution. L'ordonnancement des tâches repose sur GitLab CI @bib-gitlab-ci. Le
+recours à un runner personnalisé est requis, les runners institutionnels ne
+permettant ni l'utilisation de Nix ni la virtualisation imbriquée, requise pour
+l'exécution des tests de bout en bout, et disposant par ailleurs de ressources
+de calcul limitées.
 
 La pipeline est déclenchée à chaque push sur le dépôt, entraînant l'exécution de
 l'ensemble des étapes suivantes, dans l'ordre. Une phase de linting est exécutée
 en premier lieu, portant à la fois sur la documentation et sur le code. Une
-phase de test lui succède, structurée séquentiellement: les tests unitaires et
-les doctests de Rust#footnote[
+phase de test lui succède, structurée séquentiellement#sym.space.narrow: les
+tests unitaires et les doctests de Rust#footnote[
     Un doctest est un exemple de code intégré à la documentation d'une fonction
     ou d'un module, compilé et exécuté automatiquement lors de l'exécution des
     tests afin de garantir la validité des exemples fournis @bib-rust-doctest.
 ] sont exécutés en parallèle, suivis des tests d'intégration. La phase de build
 est ensuite exécutée, suivie enfin des tests de bout en bout. L'ensemble du
-processus est illustré dans la #figure-num-ref(<cicd>):
+processus est illustré dans la #figure-num-ref(<cicd>)#sym.space.narrow:
 
 #include "../diagrams/cicd.typ"
 
-Le linting couvre deux aspects distincts: le formatage et l'analyse statique. Le
-formatage est vérifié via typstfmt @bib-typstfmt pour la documentation, buf
-@bib-buf pour les définitions Protocol Buffers, et l'outil natif pour le code
-Rust @bib-cargo-fmt. L'analyse statique repose aussi sur buf pour les
-définitions Protocol Buffers et sur Clippy @bib-cargo-clippy pour le code Rust.
-Les options les plus strictes de Clippy sont activées, interdisant notamment le
-recours à `unwrap` ou à des méthodes équivalentes, ainsi que l'utilisation de
-`println`, afin de garantir que toute sortie passe par le système de
-journalisation. Diverses règles additionnelles sont par ailleurs activées afin
-d'assurer l'homogénéité du code. Toute désactivation ponctuelle d'une règle doit
-être accompagnée d'une justification explicite, mécanisme nativement supporté
-par Clippy; une exception dépourvue de justification est rejetée par la
-pipeline. Une exception générale est toutefois appliquée au code de test, pour
-lequel le recours à `unwrap` est autorisé, cette approche constituant la méthode
-recommandée pour exprimer une assertion dans ce contexte.
+Le linting couvre deux aspects distincts#sym.space.narrow: le formatage et
+l'analyse statique. Le formatage est vérifié via typstfmt @bib-typstfmt pour la
+documentation, buf @bib-buf pour les définitions Protocol Buffers, et l'outil
+natif pour le code Rust @bib-cargo-fmt. L'analyse statique repose aussi sur buf
+pour les définitions Protocol Buffers et sur Clippy @bib-cargo-clippy pour le
+code Rust. Les options les plus strictes de Clippy sont activées, interdisant
+notamment le recours à `unwrap` ou à des méthodes équivalentes, ainsi que
+l'utilisation de `println`, afin de garantir que toute sortie passe par le
+système de journalisation. Diverses règles additionnelles sont par ailleurs
+activées afin d'assurer l'homogénéité du code. Toute désactivation ponctuelle
+d'une règle doit être accompagnée d'une justification explicite, mécanisme
+nativement supporté par Clippy#sym.space.narrow; une exception dépourvue de
+justification est rejetée par la pipeline. Une exception générale est toutefois
+appliquée au code de test, pour lequel le recours à `unwrap` est autorisé, cette
+approche constituant la méthode recommandée pour exprimer une assertion dans ce
+contexte.
 
 Afin de simplifier l'invocation des commandes fréquemment utilisées, telles que
 le linting, Just @bib-justfile, alternative au Makefile @bib-makefile, est mis
