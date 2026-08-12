@@ -278,9 +278,9 @@ configuration et le disque de données permet d'avoir un système entièrement
 éphémère. Chaque redémarrage fournit un système complètement neuf, ce qui peut
 s'avérer particulièrement pratique dans le cadre de tests.
 
-Les disques supportent le chiffrement à travers un TPM2, ou à travers une clef
-statique. Dans le cas de la clef, celle-ci peut optionnellement être stockée
-conjointement avec la configuration, au détriment de la sécurité, mais
+Les disques supportent le chiffrement à travers un TPM 2.0, ou à travers une
+clef statique. Dans le cas de la clef, celle-ci peut optionnellement être
+stockée conjointement avec la configuration, au détriment de la sécurité, mais
 permettant de déverrouiller le volume de manière autonome.
 
 Il est aussi possible d'omettre complètement le document d'installation, auquel

@@ -54,6 +54,20 @@
             puis de le réconcilier via des fournisseurs (_providers_) dédiés à
             chaque plateforme ou système ciblé],
     ),
+    (
+        key: "tpm",
+        short: [TPM 2.0],
+        long: [_Trusted Platform Module 2.0_],
+        description: [
+            Un TPM 2.0 est un composant de sécurité, typiquement matériel,
+            implémentant la deuxième édition de la norme ISO/IEC 11889. Il
+            permet de générer, de stocker et d'utiliser des clefs
+            cryptographiques de manière protégée, et de mesurer l'état du
+            système lors du démarrage @bib-intelTpm. La version 2.0 étend les
+            algorithmes cryptographiques disponibles et introduit diverses
+            améliorations par rapport aux versions précédentes.
+        ],
+    ),
 )
 #register-glossary(entry-list)
 
