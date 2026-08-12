@@ -81,6 +81,12 @@ externes #footnote[
 ]. Ce choix de conception permet de réduire la complexité superflue et de
 limiter encore la surface d'attaque.
 
+Plusieurs modes de déploiement sont pris en charge par le
+système#sym.space.narrow: une image ISO bootable, utilisable sans installation
+(mode éphémère), et permettant également l'installation de la solution sur un
+disque, tant dans un contexte bare metal que cloud. Le déploiement sur les
+architectures ARM et x86-64 est par ailleurs pris en charge.
+
 == Cadre du travail et méthodologie
 Ce travail s'inscrit dans l'obtention du titre de Bachelor of Science en
 Informatique et systèmes de communication, orientation Informatique logicielle,
