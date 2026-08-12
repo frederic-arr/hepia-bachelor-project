@@ -11,6 +11,10 @@
     )
     set list(marker: [#sym.dash.em], indent: 1.5em)
     set enum(indent: 1.5em)
+    show heading.where(level: 1): set text(size: 22pt)
+    show heading.where(level: 2): set text(size: 17pt)
+    show heading.where(level: 3): set text(size: 12pt)
+    show heading: set block(above: 1.5em)
 
     body
 }
