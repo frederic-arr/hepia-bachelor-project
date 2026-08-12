@@ -20,6 +20,7 @@ use cos_proto_state::v1::ReconcileNowRequest;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use system_controller::StaticFileSpec;
+use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 use tokio::process::{Child, Command};
 use tokio::sync::Mutex;
 use tokio::time::timeout;
@@ -220,13 +221,16 @@ impl RuntimeReconciler {
         let mut binding = Command::new("/bin/podman");
         let cmd = binding
             .args([
-                // "--log-level=trace",
-                "system", "service", "--time=0", &port_arg,
+                "--log-level=trace",
+                "system",
+                "service",
+                "--time=0",
+                &port_arg,
             ])
             .env("NETAVARK_FW", "nftables")
             .env("HOME", &home_dir)
-            .stderr(Stdio::null())
-            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
             .uid(uid)
             .gid(gid);
 
@@ -239,7 +243,14 @@ impl RuntimeReconciler {
             });
         }
 
-        let child = cmd.spawn().context("unable to start podman")?;
+        let mut child = cmd.spawn().context("unable to start podman")?;
+
+        if let Some(stdout) = child.stdout.take() {
+            tokio::spawn(forward_chunks(stdout));
+        }
+        if let Some(stderr) = child.stderr.take() {
+            tokio::spawn(forward_chunks(stderr));
+        }
 
         let key = resource.id.key().clone();
         tokio::spawn(async move {
@@ -312,4 +323,18 @@ impl RuntimeReconciler {
         }))
         .map_err(Into::into)
     }
+}
+
+#[expect(clippy::print_stdout, reason = "TODO")]
+async fn forward_chunks<R>(stream: R) -> Result<()>
+where
+    R: AsyncRead + Unpin + Send + 'static,
+{
+    let mut reader = BufReader::new(stream).lines();
+    while let Some(line) = reader.next_line().await? {
+        for chunk in line.as_bytes().chunks(100) {
+            println!("{}", String::from_utf8_lossy(chunk));
+        }
+    }
+    Ok(())
 }

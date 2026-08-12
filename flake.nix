@@ -92,7 +92,7 @@
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          paths  = [ supervisor statemgr netctl conctl sysctl podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace ];
+          paths  = [ supervisor statemgr netctl conctl sysctl podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace pkgs.shadow ];
           pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 

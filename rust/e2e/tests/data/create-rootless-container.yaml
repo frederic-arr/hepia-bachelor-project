@@ -41,11 +41,11 @@ path: /etc/passwd
 readable_by_group: true
 readable_by_others: true
 content: |
-  rootfull:x:1000:1000:::
+  rootless:x:1000:1000:::
 
 ---
 schema: container:runtime
-name: rootfull
+name: rootless
 engine: podman
 uid: 1000
 gid: 1000
@@ -58,7 +58,7 @@ depends_on:
 
 ---
 schema: container:instance
-name: demo
+name: probe
 image: docker.io/alpine/curl:latest
-runtime: rootfull
-cmd: [http://10.0.2.2:1234]
+runtime: rootless
+cmd: [http://10.0.2.2:%%PORT%%]

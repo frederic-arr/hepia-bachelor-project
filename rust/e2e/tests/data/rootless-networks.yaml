@@ -41,11 +41,11 @@ path: /etc/passwd
 readable_by_group: true
 readable_by_others: true
 content: |
-  rootfull:x:1000:1000:::
+  rootless:x:1000:1000:::
 
 ---
 schema: container:runtime
-name: rootfull
+name: rootless
 engine: podman
 uid: 1000
 gid: 1000
@@ -57,8 +57,28 @@ depends_on:
   - network:route/eth0-dhcp
 
 ---
+schema: container:network
+name: my_api_net
+runtime: rootless
+
+---
 schema: container:instance
-name: demo
+name: server
+image: docker.io/fredericarr/simple-http-server:latest
+runtime: rootless
+networks:
+  - my_api_net
+
+---
+schema: container:instance
+name: probe
 image: docker.io/alpine/curl:latest
-runtime: rootfull
-cmd: [http://10.0.2.2:1234]
+runtime: rootless
+networks:
+  - my_api_net
+depends_on:
+  - container:instance/server
+entrypoint: [/bin/sh]
+cmd:
+  - -c
+  - curl -fsS -X POST "http://10.0.2.2:%%PORT%%/" --data-binary "$(curl -sS http://server:80 2>&1)"

@@ -94,9 +94,36 @@ mod validation {
     }
 
     #[tokio::test]
+    async fn create_rootless_container() {
+        let port = random_port();
+        let data = include_str!("./data/create-rootless-container.yaml")
+            .replace("%%PORT%%", &port.to_string());
+
+        let mut vm = create_vm().await;
+        let () = vm.push_str(&data).await.unwrap();
+        wait_for_request(port).await.unwrap();
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
     async fn networks() {
         let port = random_port();
         let data = include_str!("./data/networks.yaml")
+            .replace("%%PORT%%", &port.to_string());
+
+        let mut vm = create_vm().await;
+        let () = vm.push_str(&data).await.unwrap();
+        let data = wait_for_request(port).await.unwrap();
+        assert!(data.contains("Hello, world!"));
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn rootless_networks() {
+        let port = random_port();
+        let data = include_str!("./data/rootless-networks.yaml")
             .replace("%%PORT%%", &port.to_string());
 
         let mut vm = create_vm().await;
