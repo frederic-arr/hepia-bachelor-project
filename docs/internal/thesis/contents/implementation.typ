@@ -766,7 +766,7 @@ système#sym.space.narrow:
     note: [Le noyau tente de monter le disque de configuration, mais celui-ci
         n'est pas disponible alors qu'il devrait l'être.],
     source: made-by-self,
-    image("../../lib/assets/kernel-panic.png"),
+    box(stroke: black, image("../../lib/assets/kernel-panic.png")),
 )
 
 En l'absence du disque de configuration, le système ne dispose d'aucune
