@@ -2,7 +2,13 @@ use std::fs::set_permissions;
 use std::os::unix::fs::PermissionsExt;
 
 use anyhow::{Result, bail};
-use linux_utils::{SpecialFs, get_config_disk, get_data_disk, mount_special};
+use linux_utils::{
+    SpecialFs,
+    get_config_disk,
+    get_data_disk,
+    is_rpi,
+    mount_special,
+};
 use rustix::mount::{MountFlags, mount};
 
 const INIT_PID: u32 = 1;
@@ -39,21 +45,24 @@ fn create_rfs() -> Result<()> {
         &["mode=620"],
     )?;
 
-    mount_special(
-        &SpecialFs::Hugetlbfs,
-        "/dev/hugepages",
-        MountFlags::NOSUID | MountFlags::NODEV | MountFlags::RELATIME,
-        &["pagesize=2M"],
-    )?;
+    // TODO: Enable Kernel flags in RPI
+    if !is_rpi() {
+        mount_special(
+            &SpecialFs::Hugetlbfs,
+            "/dev/hugepages",
+            MountFlags::NOSUID | MountFlags::NODEV | MountFlags::RELATIME,
+            &["pagesize=2M"],
+        )?;
 
-    mount_special(
-        &SpecialFs::Trace,
-        "/sys/kernel/tracing",
-        MFSEC,
-        &[],
-    )?;
+        mount_special(
+            &SpecialFs::Trace,
+            "/sys/kernel/tracing",
+            MFSEC,
+            &[],
+        )?;
+    }
 
-    // TODO: Enable Kernel flag
+    // TODO: Enable Kernel flags
     // mount_special(
     //     SpecialFs::Debug,
     //     "/sys/kernel/debug",
@@ -62,7 +71,6 @@ fn create_rfs() -> Result<()> {
     // )
     // ?;
 
-    // TODO: Enable Kernel flag
     // mount_special(
     //     SpecialFs::Security,
     //     "/sys/kernel/security",
@@ -71,7 +79,6 @@ fn create_rfs() -> Result<()> {
     // )
     // ?;
 
-    // TODO: Enable Kernel flag
     // mount_special(
     //     SpecialFs::Bpf,
     //     "/sys/fs/bpf",
@@ -90,6 +97,8 @@ fn create_rfs() -> Result<()> {
     if let Some(disk) = get_config_disk() {
         std::fs::create_dir_all("/config")?;
         mount(disk, "/config", "vfat", MountFlags::empty(), None)?;
+    } else {
+        tmpfs.push("/config");
     }
 
     if let Some(disk) = get_data_disk() {
@@ -144,6 +153,15 @@ fn create_rfs() -> Result<()> {
     }
 
     set_permissions("/var/tmp", PermissionsExt::from_mode(0o1777))?;
+    set_permissions(
+        "/bin/newuidmap",
+        PermissionsExt::from_mode(0o6777),
+    )?;
+    set_permissions(
+        "/bin/newgidmap",
+        PermissionsExt::from_mode(0o6777),
+    )?;
+    set_permissions("/dev/net/tun", PermissionsExt::from_mode(0o777))?;
 
     Ok(())
 }

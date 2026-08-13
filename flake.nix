@@ -54,8 +54,8 @@
         rpiKernelSrc = pkgs.fetchFromGitHub {
           owner  = "raspberrypi";
           repo   = "linux";
-          rev    = "refs/heads/rpi-6.18.y";
-          hash   = "sha256-wOA7rhawFLNsbCMRBzV8bdS4fSrm9KB4SQLDu1cbcD4=";
+          rev    = "60ea684";
+          hash   = "sha256-IT/SkF458oLmnFIPbN76Qp6s8KVxKQOC02XmN7NRdBc=";
         };
 
         rpi1 = kernelFn-cross {
@@ -63,7 +63,7 @@
           base      = "bcmrpi_defconfig";
           fragments = [ ./linux/config/common.conf ];
           src       = rpiKernelSrc;
-          version   = "6.18.38";
+          version   = "6.18.39";
         };
 
         x86_64-generic = kernelFn {
@@ -92,7 +92,7 @@
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          paths  = [ supervisor statemgr netctl conctl sysctl podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace pkgs.shadow ];
+          paths  = [ supervisor statemgr netctl conctl sysctl podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.chrony pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace pkgs.shadow ];
           pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 
@@ -219,13 +219,68 @@
 
         init-rpi = rustFn-rpi { package = "init"; deps = [ "crates/linux-utils" ]; };
         supervisor-rpi = rustFn-rpi { package = "supervisor"; deps = [ "crates/linux-utils" ]; };
-        netctl-rpi = rustFn-rpi { package = "network-controller"; deps = [ "crates/linux-utils" "crates/cos-proto-reconciler" "crates/cos-proto-reconciler-server" "cmd/system-controller" ]; };
-        sysctl-rpi = rustFn-rpi { package = "system-controller"; deps = [ "crates/cos-proto-reconciler" "crates/cos-proto-reconciler-server" ]; };
-        statemgr-rpi = rustFn-rpi { package = "state-manager"; deps = [ "crates/cos-proto-reconciler" "crates/cos-proto-reconciler-client" "crates/cos-proto-reconciler-server" "cmd/network-controller" "cmd/system-controller" ]; };
+        netctl-rpi = rustFn-rpi { package = "network-controller"; deps = [
+          "crates/cos-proto-reconciler"
+          "crates/cos-proto-reconciler-server"
+          "crates/isolation"
+          "crates/isolation-macros"
+          "crates/linux-utils"
+
+          "crates/cos-proto-state"
+          "crates/cos-proto-state-client"
+          "cmd/system-controller"
+        ]; };
+
+        conctl-rpi = rustFn-rpi { package = "container-controller"; deps = [
+          "crates/cos-proto-reconciler"
+          "crates/cos-proto-reconciler-server"
+          "crates/isolation"
+          "crates/isolation-macros"
+          "crates/linux-utils"
+
+          "crates/cos-proto-state"
+          "crates/cos-proto-state-client"
+          "cmd/system-controller"
+        ]; };
+
+        sysctl-rpi = rustFn-rpi { package = "system-controller"; deps = [
+          "crates/cos-proto-reconciler"
+          "crates/cos-proto-reconciler-server"
+          "crates/isolation"
+          "crates/isolation-macros"
+          "crates/linux-utils"
+        ]; };
+
+        statemgr-rpi = rustFn-rpi { package = "state-manager"; deps = [
+          "crates/cos-proto-reconciler"
+          "crates/cos-proto-reconciler-server"
+          "crates/isolation"
+          "crates/isolation-macros"
+          "crates/linux-utils"
+
+          "crates/cos-proto-state"
+          "crates/cos-proto-state-client"
+
+          "crates/cos-proto-reconciler-client"
+          "crates/cos-proto-state-server"
+          "crates/cos-proto-api"
+          "crates/cos-proto-api-server"
+
+          "cmd/network-controller"
+          "cmd/container-controller"
+          "cmd/system-controller"
+        ]; };
+
+        netavark-rpi = crossPkgs.callPackage ./nix/netavark {};
+        podman-rpi = (crossPkgs.callPackage ./nix/podman {
+          netavark = netavark-rpi;
+        }).overrideAttrs (old: {
+          doInstallCheck = false;
+        });
 
         rpi1-rootfsEnv = crossPkgs.buildEnv {
           name = "rootfs-env-rpi1";
-          paths = [ supervisor statemgr netctl sysctl podman pkgs.busybox pkgs.cacert pkgs.util-linux ];
+          paths  = [ supervisor-rpi statemgr-rpi netctl-rpi conctl-rpi sysctl-rpi podman-rpi crossPkgs.busybox crossPkgs.chrony crossPkgs.cacert crossPkgs.util-linux crossPkgs.shadow ];
           pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 
@@ -274,7 +329,7 @@
         rpi1-sd-image = pkgs.runCommand "rpi1-sd-image.img" {
           nativeBuildInputs = with pkgs; [ dosfstools mtools parted ];
         } ''
-          diskSize=$(( 128 * 1024 * 1024 ))
+          diskSize=$(( 512 * 1024 * 1024 ))
           start=$(( 1 * 1024 * 1024 ))
           partSize=$(( diskSize - start ))
           sectorSize=512
@@ -290,18 +345,19 @@
 
           mcopy -i boot.img -s ${rpiFirmware}/boot/* ::/
 
-          mcopy -i boot.img -o ${rpi1.kernel}/zImage ::/kernel.img
-          mcopy -i boot.img ${rpi1-initrd}/initrd ::/initramfs
+          mcopy -i boot.img -o ${rpi1.kernel}/zImage ::/zImage
+          mcopy -i boot.img ${rpi1-initrd}/initrd ::/initrd.gz
           mcopy -i boot.img ${rpi1-rootfs}        ::/root.squashfs
 
           cat > config.txt <<EOF
-          kernel=kernel.img
-          initramfs initramfs followkernel
+          kernel=zImage
+          enable_uart=1
+          initramfs initrd.gz followkernel
           arm_boost=0
           EOF
-          # mcopy -i boot.img config.txt ::/config.txt
+          mcopy -i boot.img config.txt ::/config.txt
 
-          echo "console=serial0,115200 console=tty1 rootwait quiet init=/init splash cos.maintenance" > cmdline.txt
+          echo "console=serial0,115200 console=tty1 rootwait quiet init=/init splash cos.platform=rpi cos.bootdisk=/dev/mmcblk0p1" > cmdline.txt
           mcopy -i boot.img cmdline.txt ::/cmdline.txt
 
           dd if=boot.img of=$out bs=$sectorSize seek=$startSector conv=notrunc status=none
@@ -329,7 +385,7 @@
       {
         formatter = pkgs.nixfmt-tree;
         packages = {
-          inherit qemu-boot-x86_64 iso rootfs initrd init supervisor netctl rpi1-sd-image;
+          inherit qemu-boot-x86_64 iso rootfs initrd init supervisor netctl rpi1-sd-image rpi1-rootfs rpi1-initrd rpiFirmware;
           kernel-x86_64-generic = x86_64-generic.kernel;
           podman = podman;
         };

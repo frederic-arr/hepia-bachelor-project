@@ -15,6 +15,6 @@ use tonic::transport::{Channel, Endpoint};
 pub static STATE_CLIENT: LazyLock<StateServiceClient<Channel>> =
     LazyLock::new(|| {
         StateServiceClient::new(
-            Endpoint::from_static("http://[::1]:50050").connect_lazy(),
+            Endpoint::from_static("http://127.0.0.1:50050").connect_lazy(),
         )
     });

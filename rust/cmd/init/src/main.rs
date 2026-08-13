@@ -1,6 +1,7 @@
 use std::os::unix::process::CommandExt as _;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::time::Duration;
 
 use anyhow::{Result, anyhow, bail};
 use linux_utils::{
@@ -69,17 +70,16 @@ fn main() -> Result<()> {
     }
 
     mount_pseudofs()?;
-    if is_maintenance() {
-        mount_iso("/mnt/iso", "/dev/sr0", MountFlags::empty(), &[])?;
 
-        let ld = attach_loop("/mnt/iso/root.squashfs")?;
-        mount_squashfs(
-            "/mnt/rootfs",
-            ld.path().ok_or_else(|| anyhow!("TODO"))?,
-            MountFlags::empty(),
-            &[],
-        )?;
-    } else if let Some(disk) = get_boot_disk() {
+    if let Some(disk) = get_boot_disk() {
+        for _ in 0..=3 {
+            if std::fs::exists(&disk).is_ok_and(|v| v) {
+                break;
+            }
+
+            std::thread::sleep(Duration::from_secs(1));
+        }
+
         std::fs::create_dir_all("/mnt/boot")?;
         std::fs::create_dir_all("/mnt/rootfs")?;
         mount(
@@ -97,7 +97,20 @@ fn main() -> Result<()> {
             MountFlags::empty(),
             &[],
         )?;
+    } else if is_maintenance() {
+        mount_iso("/mnt/iso", "/dev/sr0", MountFlags::empty(), &[])?;
+
+        let ld = attach_loop("/mnt/iso/root.squashfs")?;
+        mount_squashfs(
+            "/mnt/rootfs",
+            ld.path().ok_or_else(|| anyhow!("TODO"))?,
+            MountFlags::empty(),
+            &[],
+        )?;
+    } else {
+        bail!("no disk specified");
     }
+
     mount_overlayfs(
         &["/mnt/rootfs"],
         Some(("/mnt/upper", "/mnt/work")),

@@ -292,7 +292,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let sm = Arc::new(sm);
-    let addr = "[::1]:50050".parse()?;
+    let addr = "127.0.0.1:50050".parse()?;
     let server = Server::builder()
         .add_service(StateServiceServer::new(StateManagerService {
             sm: Arc::clone(&sm),

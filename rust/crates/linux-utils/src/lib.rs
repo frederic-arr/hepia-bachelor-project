@@ -233,3 +233,9 @@ pub fn get_data_disk() -> Option<String> {
         .next()
         .map(std::borrow::ToOwned::to_owned)
 }
+
+#[must_use]
+pub fn is_rpi() -> bool {
+    let cmdline = std::fs::read_to_string("/proc/cmdline").unwrap_or_default();
+    cmdline.contains("cos.platform=rpi")
+}
