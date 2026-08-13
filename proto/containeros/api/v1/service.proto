@@ -3,58 +3,103 @@ syntax = "proto3";
 package containeros.api.v1;
 
 service ApiService {
-  rpc ReconcileNow(ReconcileNowRequest) returns (ReconcileNowResponse) {}
-  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {}
-  rpc GetResource(GetResourceRequest) returns (GetResourceResponse) {}
-  rpc PushConfig(PushConfigRequest) returns (PushConfigResponse) {}
-  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse) {}
-  rpc ForceDelete(ForceDeleteRequest) returns (ForceDeleteResponse) {}
+  rpc ConfigValidate(ConfigValidateRequest) returns (ConfigValidateResponse) {}
+  rpc ConfigPush(ConfigPushRequest) returns (ConfigPushResponse) {}
+  rpc ConfigPull(ConfigPullRequest) returns (ConfigPullResponse) {}
+  rpc FsWrite(FsWriteRequest) returns (FsWriteResponse) {}
+  rpc FsList(FsListRequest) returns (FsListResponse) {}
+  rpc FsRead(FsReadRequest) returns (FsReadResponse) {}
+  rpc ResourcesList(ResourcesListRequest) returns (ResourcesListResponse) {}
+  rpc ResourcesGet(ResourcesGetRequest) returns (ResourcesGetResponse) {}
+  rpc ResourcesReconcileNow(ResourcesReconcileNowRequest) returns (ResourcesReconcileNowResponse) {}
+  rpc ResourcesForceDelete(ResourcesForceDeleteRequest) returns (ResourcesForceDeleteResponse) {}
+  rpc SystemReboot(SystemRebootRequest) returns (SystemRebootResponse) {}
 }
 
-message ReconcileNowRequest {
+message ConfigValidateRequest {
   bytes raw = 1;
 }
 
-message ReconcileNowResponse {
+message ConfigValidateResponse {
   bytes raw = 1;
 }
 
-message PushConfigRequest {
+message ConfigPushRequest {
   bytes raw = 1;
 }
 
-message PushConfigResponse {
+message ConfigPushResponse {
   bytes raw = 1;
 }
 
-message ListResourcesRequest {
+message ConfigPullRequest {
   bytes raw = 1;
 }
 
-message ListResourcesResponse {
+message ConfigPullResponse {
   bytes raw = 1;
 }
 
-message GetResourceRequest {
+message FsWriteRequest {
   bytes raw = 1;
 }
 
-message GetResourceResponse {
+message FsWriteResponse {
   bytes raw = 1;
 }
 
-message ShutdownRequest {
+message FsListRequest {
   bytes raw = 1;
 }
 
-message ShutdownResponse {
+message FsListResponse {
   bytes raw = 1;
 }
 
-message ForceDeleteRequest {
+message FsReadRequest {
   bytes raw = 1;
 }
 
-message ForceDeleteResponse {
+message FsReadResponse {
+  bytes raw = 1;
+}
+
+message ResourcesListRequest {
+  bytes raw = 1;
+}
+
+message ResourcesListResponse {
+  bytes raw = 1;
+}
+
+message ResourcesGetRequest {
+  bytes raw = 1;
+}
+
+message ResourcesGetResponse {
+  bytes raw = 1;
+}
+
+message ResourcesReconcileNowRequest {
+  bytes raw = 1;
+}
+
+message ResourcesReconcileNowResponse {
+  bytes raw = 1;
+}
+
+message ResourcesForceDeleteRequest {
+  bytes raw = 1;
+}
+
+message ResourcesForceDeleteResponse {
+  bytes raw = 1;
+}
+
+message SystemRebootRequest {
+  bytes raw = 1;
+}
+
+message SystemRebootResponse {
   bytes raw = 1;
 }

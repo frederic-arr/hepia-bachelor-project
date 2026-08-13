@@ -385,6 +385,82 @@ impl StateManager {
         ))
     }
 
+    pub async fn bulk_validate(
+        clients: &Clients,
+        self_resources: &Resources,
+        resources: Vec<SubResourceCreate<Value>>,
+    ) -> Result<Vec<(SubResourceCreate<Value>, ValidateResponse<Value>)>> {
+        let mut requests = JoinSet::new();
+        for resource in resources {
+            if resource.id.schema() == "api"
+                || resource.id.schema() == "install"
+            {
+                requests.spawn(async {
+                    let response = ValidateResponse::<Value> {
+                        derived_spec: Value::Null,
+                        children: vec![],
+                        dependencies: HashSet::new(),
+                    };
+
+                    Ok((resource, response))
+                });
+                continue;
+            }
+
+            let mut client =
+                clients.get(resource.id.schema()).cloned().ok_or_else(
+                    || anyhow!("no clients for {}", resource.id.schema()),
+                )?;
+
+            let existing =
+                self_resources.get(resource.id.key()).cloned().map(|v| {
+                    Resource {
+                        id: v.id,
+                        phase: v.phase,
+                        status: v.status,
+                        spec: v.spec,
+                        derived_spec: v.derived_spec,
+                        state: v.state,
+                        children: v
+                            .children
+                            .iter()
+                            .filter_map(|k| self_resources.get(k.key()))
+                            .cloned()
+                            .collect(),
+                        dependencies: v
+                            .dependencies
+                            .iter()
+                            .filter_map(|k| self_resources.get(k.key()))
+                            .cloned()
+                            .collect(),
+                        dependents: v
+                            .dependents
+                            .iter()
+                            .filter_map(|k| self_resources.get(k.key()))
+                            .cloned()
+                            .collect(),
+                    }
+                });
+
+            requests.spawn(async move {
+                tracing::info!(key = %resource.id, "validating resource");
+
+                let request = tonic::Request::new(ValidateRequest {
+                    raw: serde_json::to_vec(&(resource.clone(), existing))?,
+                });
+
+                let response = client.validate(request).await?.into_inner();
+                let response: ValidateResponse<Value> =
+                    serde_json::from_slice(&response.raw)?;
+
+                anyhow::Ok((resource, response))
+            });
+        }
+
+        let requests = requests.join_all().await;
+        requests.into_iter().collect::<Result<Vec<_>, _>>()
+    }
+
     pub async fn bulk_upsert(
         clients: &Clients,
         queue: &Queue<Key>,
@@ -418,90 +494,11 @@ impl StateManager {
 
         drop(updated_resources);
 
-        let mut added_fut = JoinSet::new();
-        let mut modified_fut = JoinSet::new();
+        let added_fut = Self::bulk_validate(clients, self_resources, added);
+        let modified_fut =
+            Self::bulk_validate(clients, self_resources, modified);
 
-        for resource in added {
-            if resource.id.schema() == "api"
-                || resource.id.schema() == "install"
-            {
-                added_fut.spawn(async {
-                    let response = ValidateResponse::<Value> {
-                        derived_spec: Value::Null,
-                        children: vec![],
-                        dependencies: HashSet::new(),
-                    };
-
-                    Ok((resource, response))
-                });
-                continue;
-            }
-
-            let mut client =
-                clients.get(resource.id.schema()).cloned().ok_or_else(
-                    || anyhow!("no clients for {}", resource.id.schema()),
-                )?;
-
-            added_fut.spawn(async move {
-                tracing::info!(key = %resource.id.key(), "validating creation");
-                let request = tonic::Request::new(ValidateRequest {
-                    raw: serde_json::to_vec(&(
-                        resource.clone(),
-                        None::<Resource<Value, Value, Value>>,
-                    ))?,
-                });
-
-                let response = client.validate(request).await?.into_inner();
-                let response: ValidateResponse<Value> =
-                    serde_json::from_slice(&response.raw)?;
-
-                anyhow::Ok((resource, response))
-            });
-        }
-
-        for resource in modified {
-            if resource.id.schema() == "api"
-                || resource.id.schema() == "install"
-            {
-                added_fut.spawn(async {
-                    let response = ValidateResponse::<Value> {
-                        derived_spec: Value::Null,
-                        children: vec![],
-                        dependencies: HashSet::new(),
-                    };
-
-                    Ok((resource, response))
-                });
-                continue;
-            }
-
-            let mut client =
-                clients.get(resource.id.schema()).cloned().ok_or_else(
-                    || anyhow!("no clients for {}", resource.id.schema()),
-                )?;
-
-            modified_fut.spawn(async move {
-                tracing::info!(key = %resource.id, "validating modification");
-                let request = tonic::Request::new(ValidateRequest {
-                    raw: serde_json::to_vec(&(
-                        resource.clone(),
-                        None::<Resource<Value, Value, Value>>,
-                    ))?,
-                });
-
-                let response = client.validate(request).await?.into_inner();
-                let response: ValidateResponse<Value> =
-                    serde_json::from_slice(&response.raw)?;
-
-                anyhow::Ok((resource, response))
-            });
-        }
-
-        let (added, modified) =
-            tokio::join!(added_fut.join_all(), modified_fut.join_all());
-
-        let added = added.into_iter().collect::<Result<Vec<_>, _>>()?;
-        let modified = modified.into_iter().collect::<Result<Vec<_>, _>>()?;
+        let (added, modified) = tokio::try_join!(added_fut, modified_fut)?;
 
         let mut scheduled_removal = vec![];
         for resource in removed {

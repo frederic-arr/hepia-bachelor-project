@@ -32,6 +32,7 @@ use network_controller::{
     LinkSpec,
     LinkSpecType,
     LinkSpecUnspec,
+    NtpSpec,
 };
 use serde_json::Value;
 use tokio::signal::ctrl_c;
@@ -83,6 +84,31 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             })
             .unwrap(),
         },
+        // SubResourceCreate::<Value> {
+        //     id: Identity::Private(PrivateIdentity::Static(Key {
+        //         schema: "network:ntp".to_owned(),
+        //         name: None,
+        //     })),
+        //     spec: serde_json::to_value(NtpSpec {
+        //         servers: vec![
+        //             "0.pool.ntp.org".to_owned(),
+        //             "1.pool.ntp.org".to_owned(),
+        //             "2.pool.ntp.org".to_owned(),
+        //             "3.pool.ntp.org".to_owned(),
+        //         ],
+        //         depends_on: HashSet::from([
+        //             Key {
+        //                 schema: "network:dns".to_owned(),
+        //                 name: None,
+        //             },
+        //             Key {
+        //                 schema: "network:route".to_owned(),
+        //                 name: Some("eth0-dhcp".to_owned()),
+        //             },
+        //         ]),
+        //     })
+        //     .unwrap(),
+        // },
         SubResourceCreate::<Value> {
             id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "network:dhcp".to_owned(),
@@ -95,15 +121,15 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
 
 fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
     let system_client = ReconcilerServiceClient::new(
-        Endpoint::from_static("http://[::1]:50051").connect_lazy(),
+        Endpoint::from_static("http://127.0.0.1:50051").connect_lazy(),
     );
 
     let network_client = ReconcilerServiceClient::new(
-        Endpoint::from_static("http://[::1]:50052").connect_lazy(),
+        Endpoint::from_static("http://127.0.0.1:50052").connect_lazy(),
     );
 
     let container_client = ReconcilerServiceClient::new(
-        Endpoint::from_static("http://[::1]:50053").connect_lazy(),
+        Endpoint::from_static("http://127.0.0.1:50053").connect_lazy(),
     );
 
     hash_map! {
@@ -111,18 +137,19 @@ fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
         "system:static-file".to_owned() => system_client,
 
         // Network resources
-        "network:dns".to_owned() => network_client.clone(),
-        "network:interface".to_owned() => network_client.clone(),
-        "network:link".to_owned() => network_client.clone(),
-        "network:route".to_owned() => network_client.clone(),
         "network:address".to_owned() => network_client.clone(),
-        "network:dhcp".to_owned() => network_client,
+        "network:dhcp".to_owned() => network_client.clone(),
+        "network:dns".to_owned() => network_client.clone(),
+        "network:link".to_owned() => network_client.clone(),
+        "network:interface".to_owned() => network_client.clone(),
+        "network:ntp".to_owned() => network_client.clone(),
+        "network:route".to_owned() => network_client,
 
         // Container resources
-        "container:runtime".to_owned() => container_client.clone(),
-        "container:instance".to_owned() => container_client.clone(),
         "container:image".to_owned() => container_client.clone(),
-        "container:network".to_owned() => container_client,
+        "container:instance".to_owned() => container_client.clone(),
+        "container:network".to_owned() => container_client.clone(),
+        "container:runtime".to_owned() => container_client,
     }
 }
 

@@ -76,7 +76,7 @@ impl ReconcilerService for Reconciler {
 #[tokio::main(flavor = "local")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-    let addr = "[::1]:50051";
+    let addr = "127.0.0.1:50051";
     let reconciler = Reconciler;
 
     let listener = TcpListener::bind(addr).await?;

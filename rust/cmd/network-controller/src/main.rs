@@ -20,6 +20,8 @@ use network_controller::{
     DnsResource,
     LinkReconciler,
     LinkResource,
+    NtpReconciler,
+    NtpResource,
     RouteReconciler,
     RouteResource,
 };
@@ -84,6 +86,14 @@ impl ReconcilerService for Reconciler {
                     DhcpReconciler::new_with(handle)
                 });
             }
+            "network:ntp" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    NtpResource,
+                    NtpReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -129,6 +139,9 @@ impl ReconcilerService for Reconciler {
                     tokio::spawn(conn);
                     DhcpReconciler::new_with(handle)
                 });
+            }
+            "network:ntp" => {
+                reconcile!(resource, NtpResource, NtpReconciler::new());
             }
             _ => return Err(Status::not_found("schema does not exist")),
         }

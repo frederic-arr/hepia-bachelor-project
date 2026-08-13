@@ -139,26 +139,26 @@ impl CosVm {
     }
 
     pub async fn reconcile(&mut self, key: &Key) -> Result<()> {
-        self.client.reconcile(key).await
+        self.client.resources_reconcile_now(key).await
     }
 
     pub async fn push(
         &mut self,
         configs: &[SubResourceCreate<Value>],
     ) -> Result<()> {
-        self.client.push(configs).await
+        self.client.config_push(configs).await
     }
 
     pub async fn list(&mut self) -> Result<Vec<Resource>> {
-        self.client.list().await
+        self.client.resources_list().await
     }
 
     pub async fn get_resource(&mut self, key: &Key) -> Result<Resource> {
-        self.client.get_resource(key).await
+        self.client.resources_get(key).await
     }
 
     pub async fn push_str(&mut self, s: &str) -> Result<()> {
-        self.client.push_str(s).await
+        self.client.config_push_str(s).await
     }
 
     pub fn set_password(&mut self, password: Option<String>) {

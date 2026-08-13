@@ -6,18 +6,37 @@ use std::time::{Duration, Instant};
 use anyhow::{Result, bail};
 use argon2::{Argon2, PasswordHash, PasswordVerifier as _};
 use cos_proto_api::v1::{
-    ForceDeleteRequest,
-    ForceDeleteResponse,
-    GetResourceRequest,
-    GetResourceResponse,
-    ListResourcesRequest,
-    ListResourcesResponse,
-    PushConfigRequest,
-    PushConfigResponse,
-    ReconcileNowRequest,
-    ReconcileNowResponse,
-    ShutdownRequest,
-    ShutdownResponse,
+    ConfigPullRequest,
+    ConfigPullResponse,
+    ConfigPushRequest,
+    ConfigPushResponse,
+    ConfigValidateRequest,
+    ConfigValidateResponse,
+    FsListRequest,
+    FsListResponse,
+    FsReadRequest,
+    FsReadResponse,
+    FsWriteRequest,
+    FsWriteResponse,
+    ResourcesForceDeleteRequest,
+    ResourcesForceDeleteResponse,
+    ResourcesGetRequest,
+    ResourcesGetResponse,
+    ResourcesListRequest,
+    ResourcesListResponse,
+    ResourcesReconcileNowRequest,
+    ResourcesReconcileNowResponse,
+    SystemRebootRequest,
+    SystemRebootResponse,
+};
+use cos_proto_api::{
+    ConfigPullResponsePayload,
+    ConfigValidateRequestPayload,
+    ConfigValidateResponsePayload,
+    FsListRequestPayload,
+    FsListResponsePayload,
+    FsReadRequestPayload,
+    FsReadResponsePayload,
 };
 use cos_proto_api_server::v1::ApiService;
 use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
@@ -164,8 +183,6 @@ impl ApiServer {
             "/boot/limine-bios.sys",
         )?;
 
-        // TODO: What does the following message mean?
-        // TODO: mount partitions
         mount_iso("/mnt/iso", "/dev/sr0", MountFlags::empty(), &[])?;
 
         tracing::warn!("copying boot assets");
@@ -204,52 +221,33 @@ timeout: 5
 
 #[tonic::async_trait]
 impl ApiService for ApiServer {
-    async fn reconcile_now(
+    async fn config_validate(
         &self,
-        request: Request<ReconcileNowRequest>,
-    ) -> Result<Response<ReconcileNowResponse>, Status> {
+        request: Request<ConfigValidateRequest>,
+    ) -> Result<Response<ConfigValidateResponse>, Status> {
         self.auth_or_fail(&request).await?;
         let req = request.into_inner();
+        let payload: ConfigValidateRequestPayload =
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
 
-        let key: Key = serde_json::from_slice(&req.raw)
-            .map_err(|err| Status::from_error(err.into()))?;
+        let clients = self.sm.clients.read().await;
+        let resources = self.sm.resources.read().await;
+        let validation = StateManager::bulk_validate(
+            &clients,
+            &resources,
+            payload.resources,
+        )
+        .await;
+        drop(clients);
 
-        self.sm.queue.schedule_at(key, Instant::now()).await;
+        let response = match validation {
+            Ok(_) => ConfigValidateResponsePayload::Ok,
+            Err(err) => ConfigValidateResponsePayload::Error(err.to_string()),
+        };
 
-        Ok(Response::new(ReconcileNowResponse {
-            raw: vec![],
-        }))
-    }
-
-    async fn list_resources(
-        &self,
-        request: Request<ListResourcesRequest>,
-    ) -> Result<Response<ListResourcesResponse>, Status> {
-        self.auth_or_fail(&request).await?;
-        let guard = self.sm.resources.read().await;
-        let resources = guard.values().cloned().collect_vec();
-        drop(guard);
-
-        Ok(Response::new(ListResourcesResponse {
-            raw: serde_json::to_vec(&resources)
-                .map_err(|err| Status::from_error(err.into()))?,
-        }))
-    }
-
-    async fn get_resource(
-        &self,
-        request: Request<GetResourceRequest>,
-    ) -> Result<Response<GetResourceResponse>, Status> {
-        self.auth_or_fail(&request).await?;
-        let req = request.into_inner();
-        let key: Key = serde_json::from_slice(&req.raw)
-            .map_err(|err| Status::from_error(err.into()))?;
-        let guard = self.sm.resources.read().await;
-        let resources = guard.get(&key).cloned();
-        drop(guard);
-
-        Ok(Response::new(GetResourceResponse {
-            raw: serde_json::to_vec(&resources)
+        Ok(Response::new(ConfigValidateResponse {
+            raw: serde_json::to_vec(&response)
                 .map_err(|err| Status::from_error(err.into()))?,
         }))
     }
@@ -258,10 +256,10 @@ impl ApiService for ApiServer {
         clippy::significant_drop_tightening,
         reason = "the guard is leaked on purpose"
     )]
-    async fn push_config(
+    async fn config_push(
         &self,
-        request: Request<PushConfigRequest>,
-    ) -> Result<Response<PushConfigResponse>, Status> {
+        request: Request<ConfigPushRequest>,
+    ) -> Result<Response<ConfigPushResponse>, Status> {
         self.auth_or_fail(&request).await?;
         let req = request.into_inner();
         let resources: Vec<SubResourceCreate<Value>> =
@@ -358,21 +356,152 @@ impl ApiService for ApiServer {
             });
         }
 
-        Ok(Response::new(PushConfigResponse { raw: vec![] }))
+        Ok(Response::new(ConfigPushResponse { raw: vec![] }))
     }
 
-    async fn shutdown(
+    async fn config_pull(
         &self,
-        request: Request<ShutdownRequest>,
-    ) -> Result<Response<ShutdownResponse>, Status> {
+        request: Request<ConfigPullRequest>,
+    ) -> Result<Response<ConfigPullResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let resources = self
+            .sm
+            .resources
+            .read()
+            .await
+            .values()
+            .filter_map(|v| {
+                if !matches!(
+                    v.id,
+                    Identity::Private(PrivateIdentity::Static(_))
+                ) {
+                    return None;
+                }
+
+                Some(SubResourceCreate {
+                    id: v.id.clone(),
+                    spec: v.spec.clone(),
+                })
+            })
+            .collect_vec();
+
+        let response = ConfigPullResponsePayload { resources };
+
+        Ok(Response::new(ConfigPullResponse {
+            raw: serde_json::to_vec(&response)
+                .map_err(|err| Status::from_error(err.into()))?,
+        }))
+    }
+
+    async fn fs_write(
+        &self,
+        request: Request<FsWriteRequest>,
+    ) -> Result<Response<FsWriteResponse>, Status> {
         self.auth_or_fail(&request).await?;
         todo!()
     }
 
-    async fn force_delete(
+    async fn fs_list(
         &self,
-        request: Request<ForceDeleteRequest>,
-    ) -> Result<Response<ForceDeleteResponse>, Status> {
+        request: Request<FsListRequest>,
+    ) -> Result<Response<FsListResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let req = request.into_inner();
+        let payload: FsListRequestPayload = serde_json::from_slice(&req.raw)
+            .map_err(|err| Status::from_error(err.into()))?;
+
+        let entries: Vec<_> = std::fs::read_dir(payload.path)?.try_collect()?;
+
+        let response = FsListResponsePayload {
+            entries: entries
+                .into_iter()
+                .map(|v| {
+                    Ok::<_, anyhow::Error>((
+                        v.file_type()?.is_dir(),
+                        v.file_name().to_string_lossy().to_string(),
+                    ))
+                })
+                .try_collect()
+                .map_err(|err| Status::from_error(err.into()))?,
+        };
+
+        Ok(Response::new(FsListResponse {
+            raw: serde_json::to_vec(&response)
+                .map_err(|err| Status::from_error(err.into()))?,
+        }))
+    }
+
+    async fn fs_read(
+        &self,
+        request: Request<FsReadRequest>,
+    ) -> Result<Response<FsReadResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let req = request.into_inner();
+        let payload: FsReadRequestPayload = serde_json::from_slice(&req.raw)
+            .map_err(|err| Status::from_error(err.into()))?;
+
+        let data = std::fs::read(payload.path)?;
+        let response = FsReadResponsePayload { content: data };
+
+        Ok(Response::new(FsReadResponse {
+            raw: serde_json::to_vec(&response)
+                .map_err(|err| Status::from_error(err.into()))?,
+        }))
+    }
+
+    async fn resources_list(
+        &self,
+        request: Request<ResourcesListRequest>,
+    ) -> Result<Response<ResourcesListResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let guard = self.sm.resources.read().await;
+        let resources = guard.values().cloned().collect_vec();
+        drop(guard);
+
+        Ok(Response::new(ResourcesListResponse {
+            raw: serde_json::to_vec(&resources)
+                .map_err(|err| Status::from_error(err.into()))?,
+        }))
+    }
+
+    async fn resources_get(
+        &self,
+        request: Request<ResourcesGetRequest>,
+    ) -> Result<Response<ResourcesGetResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let req = request.into_inner();
+        let key: Key = serde_json::from_slice(&req.raw)
+            .map_err(|err| Status::from_error(err.into()))?;
+        let guard = self.sm.resources.read().await;
+        let resources = guard.get(&key).cloned();
+        drop(guard);
+
+        Ok(Response::new(ResourcesGetResponse {
+            raw: serde_json::to_vec(&resources)
+                .map_err(|err| Status::from_error(err.into()))?,
+        }))
+    }
+
+    async fn resources_reconcile_now(
+        &self,
+        request: Request<ResourcesReconcileNowRequest>,
+    ) -> Result<Response<ResourcesReconcileNowResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let req = request.into_inner();
+
+        let key: Key = serde_json::from_slice(&req.raw)
+            .map_err(|err| Status::from_error(err.into()))?;
+        self.sm.queue.schedule_at(key, Instant::now()).await;
+
+        Ok(Response::new(ResourcesReconcileNowResponse {
+            raw: vec![],
+        }))
+    }
+
+    async fn resources_force_delete(
+        &self,
+        request: Request<ResourcesForceDeleteRequest>,
+    ) -> Result<Response<ResourcesForceDeleteResponse>, Status> {
         self.auth_or_fail(&request).await?;
         let req = request.into_inner();
         let key: Key = serde_json::from_slice(&req.raw)
@@ -384,6 +513,16 @@ impl ApiService for ApiServer {
         let _ = guard.remove(&key);
         drop(guard);
 
-        Ok(Response::new(ForceDeleteResponse { raw: vec![] }))
+        Ok(Response::new(ResourcesForceDeleteResponse {
+            raw: vec![],
+        }))
+    }
+
+    async fn system_reboot(
+        &self,
+        request: Request<SystemRebootRequest>,
+    ) -> Result<Response<SystemRebootResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        todo!()
     }
 }
