@@ -20,8 +20,23 @@ leur réconciliation et de maintenir la cohérence des relations qui les lient. 
 contrôleur implémente, pour un ou plusieurs types de ressources, la logique
 permettant de faire converger l'état observé vers la spécification. Enfin, la
 réconciliation désigne le processus, exécuté de manière continue, par lequel un
-contrôleur observe l'état réel d'une ressource, le compare à sa spécification,
-et produit les actions correctives nécessaires à leur convergence.
+contrôleur observe l'état physique réel d'une ressource, le compare à sa
+spécification, et produit les actions correctives nécessaires à leur
+convergence. La #figure-num-ref(<synthesis>) illustre la manière dont ces
+composants interagissent entre eux#sym.space.narrow:
+
+#include "../diagrams/synthesis.typ"
+
+Lorsque l'orchestrateur souhaite réconcilier une ressource #bref(
+    <synthesis-res>,
+), il va transmettre la spécification #bref(<synthesis-spec>) au contrôleur
+responsable #bref(<synthesis-con>). Durant la procédure de réconciliation de ce
+dernier #bref(<synthesis-rec>), l'état réel de la ressource concernée va être
+récupéré #bref(<synthesis-phy>) et les actions nécessaires afin de faire
+converger cet état avec la spécification vont être entreprises. Une fois cela
+fait, un nouvel état est retourné pour être enregistré dans la ressource #bref(
+    <synthesis-state>,
+).
 
 == Modèle de ressource
 
