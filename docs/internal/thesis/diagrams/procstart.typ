@@ -25,6 +25,7 @@
             label: <procstart-legend-fp>,
             (-1.5, -1),
             title: [first-party process],
+            stroke: teal,
         )
         node(
             label: <procstart-legend-tp>,
@@ -56,31 +57,36 @@
             title: align(top + center, place(dx: 0cm, dy: 0em)[_Legend_]),
         )
 
-        node(label: <procstart-init>, (0, 0), title: [init])
+        node(label: <procstart-init>, (0, 0), title: [init], stroke: teal)
         node(
             label: <procstart-supervisor>,
             (0, 1),
             title: [supervisor],
+            stroke: teal,
         )
         node(
             label: <procstart-core>,
             (-1, 1),
             title: [state-manager],
+            stroke: teal,
         )
         node(
             label: <procstart-con>,
             (-1, 2),
             title: [container-controller],
+            stroke: teal,
         )
         node(
             label: <procstart-net>,
             (0, 2),
             title: [network-controller],
+            stroke: teal,
         )
         node(
             label: <procstart-other>,
             (1, 2),
             title: [system-controller],
+            stroke: teal,
         )
         node(
             label: <procstart-rt>,
@@ -93,7 +99,7 @@
         node(
             label: <procstart-dhcp>,
             (0, 3),
-            title: [dhcp-client],
+            title: [ntp-client],
             stroke: (dash: "dashed"),
         )
 

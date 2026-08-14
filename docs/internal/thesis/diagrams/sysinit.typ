@@ -46,7 +46,8 @@
                 <sysinit-orch>,
             ),
             inset: 2mm,
-            title: place(dx: -2.5cm)[*supervisor*],
+            stroke: red,
+            title: place(dx: -2.5cm, text(fill: red)[*supervisor*]),
         )
     },
 )
