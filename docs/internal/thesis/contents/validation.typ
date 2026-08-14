@@ -52,7 +52,7 @@ que l'état rapporté par l'API ne se contente pas d'être cohérent en apparenc
 mais reflète bien l'état réel du système et démontre que le conteneur
 fonctionne.
 
-== Validation
+== Validation <ch:validation:tests>
 Parmi les tests de bout en bout, trois scénarios notables sont
 définis#sym.space.narrow: l'exécution d'un conteneur dans un environnement
 éphémère, l'installation du système suivi de l'exécution d'un conteneur, et le
@@ -213,6 +213,26 @@ démarrer une machine virtuelle avec seulement 20 MiB de mémoire. En effet,
 durant le démarrage, un minimum de 80 MiB sont requis afin que le système
 démarre, et dans l'optique de télécharger une image et exécuter un conteneur, au
 minimum 160 MiB sont requis.
+
+== Exécution sur un Raspberry Pi 1B
+Le Raspberry Pi 1B est l'un des premiers modèles de Raspberry
+Pi#sym.space.narrow: il repose sur une puce BCM2835 comportant 512 MiB de
+mémoire vive et un CPU ARM1176JZF-S, sous architecture ARMv6. La famille de CPU
+ARM11 est commercialisée entre 2002 et 2005, ce qui témoigne de l'ancienneté de
+la plateforme. Cette dernière constitue de ce fait une limite matérielle extrême
+sur laquelle valider la solution.
+
+S'agissant d'un matériel physique, les tests sont exécutés manuellement sur le
+Raspberry Pi. Les trois scénarios notables décrits au #chapter-full-ref(
+    <ch:validation:tests>,
+) sont testés sans qu'aucune adaptation particulière ne soit
+nécessaire#footnote[Le Raspberry Pi ne pouvant être démarré depuis un support
+    externe autre que le lecteur de carte SD intégré, le système est considéré
+    comme déjà installé.]. L'ensemble des tests réussit, avec toutefois une
+durée sensiblement plus longue#sym.space.narrow: les ressources limitées du
+Raspberry Pi allongent considérablement chaque étape, l'exécution complète
+prenant environ une minute contre quelques secondes dans l'environnement
+éphémère de référence.
 
 == Limitations
 Le protocole de mesure employé pour les benchmarks de rapidité et de légèreté ne
