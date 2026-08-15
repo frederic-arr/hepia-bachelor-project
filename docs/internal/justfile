@@ -12,7 +12,6 @@ _output-suffix := "_Arroyo_Gluck_2026.pdf"
 
 subject-statement-output := "Enonce_LOG_diplome" + _output-suffix
 thesis-output := "ISC_LOG_memoire_diplome" + _output-suffix
-poster-output := "ISC_LOG_poster_diplome" + _output-suffix
 abstract-output := "ISC_LOG_resume_diplome" + _output-suffix
 slides-prefix := "ISC_LOG_slides"
 
@@ -28,7 +27,6 @@ fix:
 build: _outdir (_build-slide "handout-16-9") _build-slides
     {{ typst-bin }} compile {{ typst-args }} subject-statement/main.typ output/{{ subject-statement-output }}
     {{ typst-bin }} compile {{ typst-args }} abstract/main.typ output/{{ abstract-output }}
-    {{ typst-bin }} compile {{ typst-args }} poster/main.typ output/{{ poster-output }}
     {{ typst-bin }} compile {{ typst-args }} thesis/main.typ output/{{ thesis-output }}
 
 clean:
