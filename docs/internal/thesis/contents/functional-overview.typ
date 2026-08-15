@@ -78,7 +78,7 @@ de manière unique une ressource, le document contient également la spécificat
 de la ressource, aussi appelée l'état désiré. Cette spécification contient les
 paramètres propres à l'instance spécifique de la ressource, tels que l'image
 d'un conteneur, l'état d'une interface réseau, ou les paramètres
-d'authentification de l'API. Il existe ainsi treize ressources, brièvement
+d'authentification de l'API. Il existe ainsi quatorze ressources, brièvement
 décrites dans le #table-num-ref(
     <tab-resource-types>,
 )#sym.space.narrow:
@@ -106,6 +106,7 @@ décrites dans le #table-num-ref(
         ..([`network:link`], [Configuration d'une interface réseau]),
         ..([`network:address`], [Configuration d'une adresse réseau]),
         ..([`network:route`], [Configuration d'une route réseau]),
+        ..([`network:ntp`], [Configuration du temps via NTP]),
         ..([`container:runtime`], [Configuration d'un runtime de conteneurs]),
         ..([`container:network`], [Configuration d'un réseau de conteneurs]),
         ..([`container:volume`], [Configuration d'un volume de conteneurs]),
@@ -119,7 +120,7 @@ décrites dans le #table-num-ref(
 Ces ressources constituent l'ensemble des aspects configurables du système et
 permettent de disposer d'un hôte de conteneurisation à part entière, sans
 qu'aucun composant ou service supplémentaire ne soit requis en dehors de ceux
-décrits par ces treize types de ressources. Les domaines `network` et
+décrits par ces quatorze types de ressources. Les domaines `network` et
 `container` couvrent respectivement l'ensemble de la configuration réseau et
 l'ensemble du cycle de vie des conteneurs, tandis que les domaines `api`,
 `install` et `system` couvrent l'administration du système lui-même.
