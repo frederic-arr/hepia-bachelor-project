@@ -12,14 +12,6 @@ system-fonts = true
 
 [[document]]
 font-paths = ["file:lib/fonts/alegreya-sans", "file:lib/fonts/liberation"]
-id = "file:poster/main.typ"
-inputs = []
-main = "file:poster/main.typ"
-root = "file:."
-system-fonts = true
-
-[[document]]
-font-paths = ["file:lib/fonts/alegreya-sans", "file:lib/fonts/liberation"]
 id = "file:slides/main.typ"
 inputs = []
 main = "file:slides/main.typ"
@@ -31,6 +23,14 @@ font-paths = ["file:lib/fonts/alegreya-sans", "file:lib/fonts/liberation"]
 id = "file:subject-statement/main.typ"
 inputs = []
 main = "file:subject-statement/main.typ"
+root = "file:."
+system-fonts = true
+
+[[document]]
+font-paths = ["file:lib/fonts/alegreya-sans", "file:lib/fonts/liberation"]
+id = "file:thesis/export.typ"
+inputs = []
+main = "file:thesis/export.typ"
 root = "file:."
 system-fonts = true
 
@@ -56,6 +56,10 @@ priority = 256
 
 [[route]]
 id = "file:subject-statement/main.typ"
+priority = 256
+
+[[route]]
+id = "file:thesis/export.typ"
 priority = 256
 
 [[route]]

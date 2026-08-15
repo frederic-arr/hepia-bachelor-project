@@ -14,7 +14,6 @@
     )
 }
 
-#set page(flipped: true)
 #figure(
     label: <scheduling>,
     caption: [Comparaison des modèles d'orchestration centralisés et

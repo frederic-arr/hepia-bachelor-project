@@ -56,10 +56,9 @@ diagramme de Gantt, structuré par semaine sur l'ensemble de la durée du projet
 La #figure-num-ref(<plan-gantt>) présente cette planification, complétée a
 posteriori par l'avancement effectif de chaque tâche.
 
-#{
-    set page(flipped: true)
-    include "../diagrams/plan-gantt.typ"
-}
+#page(flipped: true)[
+    #include "../diagrams/plan-gantt.typ"
+]
 
 La planification reste fidèle à l'avancement effectif jusqu'au début du mois de
 juillet. À partir de cette période, la correspondance entre la planification et

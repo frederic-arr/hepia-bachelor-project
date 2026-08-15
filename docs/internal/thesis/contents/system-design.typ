@@ -385,7 +385,9 @@ L'ensemble de ces points sont synthétisés dans le #table-num-ref(
     <scheduling>,
 )#sym.space.narrow:
 
-#include "../diagrams/scheduling.typ"
+#page(flipped: true)[
+    #include "../diagrams/scheduling.typ"
+]
 
 Le modèle centralisé présente enfin une propriété plus
 fondamentale#sym.space.narrow: la réconciliation d'une ressource repose alors
