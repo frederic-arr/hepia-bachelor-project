@@ -223,16 +223,19 @@ la plateforme. Cette dernière constitue de ce fait une limite matérielle extr�
 sur laquelle valider la solution.
 
 S'agissant d'un matériel physique, les tests sont exécutés manuellement sur le
-Raspberry Pi. Les trois scénarios notables décrits au #chapter-full-ref(
+Raspberry Pi et les mesures sont donc approximatives. Les trois scénarios
+notables décrits au #chapter-full-ref(
     <ch:validation:tests>,
 ) sont testés sans qu'aucune adaptation particulière ne soit
 nécessaire#footnote[Le Raspberry Pi ne pouvant être démarré depuis un support
     externe autre que le lecteur de carte SD intégré, le système est considéré
     comme déjà installé.]. L'ensemble des tests réussit, avec toutefois une
 durée sensiblement plus longue#sym.space.narrow: les ressources limitées du
-Raspberry Pi allongent considérablement chaque étape, l'exécution complète
-prenant environ une minute contre quelques secondes dans l'environnement
-éphémère de référence.
+Raspberry Pi allongent considérablement chaque étape: dans le scénario
+d'exécution dans un environnement éphémère, l'exécution complète prend environ
+38 secondes. Une grande partie du temps est passé dans la réception d'une route
+DHCP et dans le téléchargement de l'image. En outre, la création a proprement
+dite du conteneur prend également un temps considérable (environ 4 secondes).
 
 == Limitations
 Le protocole de mesure employé pour les benchmarks de rapidité et de légèreté ne

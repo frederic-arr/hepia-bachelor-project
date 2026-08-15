@@ -17,9 +17,10 @@ système présente une empreinte mémoire et des performances nettement meilleur
 Le système fonctionne également sur un Raspberry Pi 1B, sans qu'aucune
 adaptation notable n'ait été nécessaire pour ce matériel. Bien que le projet
 visait à être déployé sur des Raspberry Pi modernes, la capacité du système à
-fonctionner sur un modèle aussi ancien illustre concrètement l'atteinte de
-l'objectif de légèreté, ce matériel disposant de ressources sensiblement
-inférieures à celles des modèles visés initialement.
+fonctionner sur un modèle aussi ancien tout en restant relativement rapide
+illustre concrètement l'atteinte de l'objectif de légèreté, ce matériel
+disposant de ressources sensiblement inférieures à celles des modèles visés
+initialement.
 
 D'un point de vue fonctionnel, la valeur ajoutée du système réside dans sa
 rapidité de démarrage et dans sa faible empreinte mémoire, deux propriétés
