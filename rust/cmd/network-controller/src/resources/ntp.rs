@@ -12,13 +12,10 @@ use cos_proto_reconciler::{
     Resource,
     ResourceResponse,
     Status,
-    SubResourceCreate,
     ValidateResponse,
 };
 use cos_proto_state::v1::ReconcileNowRequest;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use system_controller::StaticFileSpec;
 use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
 use tokio::process::{Child, ChildStdout, Command};
 use tokio::sync::Mutex;
@@ -36,7 +33,13 @@ pub type NtpResource = Resource<NtpSpec, NtpDerivedSpec, NtpState>;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct NtpSpec {
+    #[serde(default)]
+    pub pools: Vec<String>,
+
+    #[serde(default)]
     pub servers: Vec<String>,
+
+    #[serde(default)]
     pub depends_on: HashSet<Key>,
 }
 
@@ -73,7 +76,7 @@ impl NtpReconciler {
 
         Ok(ValidateResponse {
             derived_spec: NtpDerivedSpec {},
-            children: Self::get_children(&spec)?,
+            children: vec![],
             dependencies: Self::get_deps(&spec),
         })
     }
@@ -106,52 +109,13 @@ impl NtpReconciler {
             });
         }
 
-        let children = Self::get_children(&resource.spec)?;
-        if resource.children.len() != 1 {
-            return Ok(ResourceResponse {
-                status: Status::NotReady,
-                state: None,
-                children,
-                dependencies: Self::get_deps(&resource.spec),
-            });
-        }
-
-        for (existing, child) in resource.children.iter().zip(children.iter()) {
-            if existing.id != child.id {
-                return Ok(ResourceResponse {
-                    status: Status::NotReady,
-                    state: None,
-                    children,
-                    dependencies: Self::get_deps(&resource.spec),
-                });
-            }
-
-            if existing.spec != child.spec {
-                return Ok(ResourceResponse {
-                    status: Status::NotReady,
-                    state: None,
-                    children,
-                    dependencies: Self::get_deps(&resource.spec),
-                });
-            }
-
-            if existing.status != Status::Done {
-                return Ok(ResourceResponse {
-                    status: Status::NotReady,
-                    state: None,
-                    children,
-                    dependencies: Self::get_deps(&resource.spec),
-                });
-            }
-        }
-
         if let Some(c) = &mut *daemon
-            && c.try_wait().is_ok_and(|o| o.is_none())
+            && c.try_wait().is_ok_and(|o| o.is_some_and(|s| s.success()))
         {
             return Ok(ResourceResponse {
-                status: Status::Ready,
+                status: Status::Done,
                 state: None,
-                children,
+                children: vec![],
                 dependencies: resource
                     .spec
                     .depends_on
@@ -166,13 +130,13 @@ impl NtpReconciler {
             let _ = c.kill().await;
         }
 
-        *daemon = Some(Self::start_daemon(&resource)?);
+        *daemon = Some(Self::start_query(&resource)?);
         drop(daemon);
 
         Ok(ResourceResponse {
             status: Status::NotReady,
             state: None,
-            children,
+            children: vec![],
             dependencies: resource
                 .spec
                 .depends_on
@@ -191,21 +155,34 @@ impl NtpReconciler {
             .collect()
     }
 
-    fn start_daemon(_resource: &NtpResource) -> Result<Child> {
+    fn start_query(resource: &NtpResource) -> Result<Child> {
         let mut binding = Command::new("/bin/ntpd");
+
+        let servers = resource
+            .spec
+            .servers
+            .iter()
+            .flat_map(|v| ["-p".to_owned(), v.clone()]);
+
+        let pools = resource
+            .spec
+            .pools
+            .iter()
+            .flat_map(|v| ["-p".to_owned(), v.clone()]);
+
         let cmd = binding
-            .args(["-n"])
+            .args(["-n", "-d", "-q"])
+            .args(servers)
+            .args(pools)
             .stderr(Stdio::piped())
             .stdout(Stdio::piped());
 
-        let mut child = cmd.spawn().context("unable to start ntp daemon")?;
+        let mut child = cmd.spawn().context("unable to start ntp client")?;
 
         if let Some(mut stdout) = child.stdout.take() {
             tokio::spawn(async move {
-                tracing::warn!("waiting for time");
                 let _ = wait_for_str(&mut stdout, "setting time to").await;
                 let mut c = (*STATE_CLIENT).clone();
-                tracing::warn!("got time");
 
                 let Ok(raw) = serde_json::to_vec(&Key {
                     schema: "network:ntp".to_owned(),
@@ -219,12 +196,7 @@ impl NtpReconciler {
                     c.reconcile_now(ReconcileNowRequest { raw }),
                 )
                 .await;
-
-                let _ = forward_chunks(stdout).await;
             });
-        }
-        if let Some(stderr) = child.stderr.take() {
-            tokio::spawn(forward_chunks(stderr));
         }
 
         Ok(child)
@@ -240,27 +212,6 @@ impl NtpReconciler {
         spec: &NtpSpec,
     ) -> Result<()> {
         self.validate_new_spec(spec).await
-    }
-
-    fn get_children(spec: &NtpSpec) -> Result<Vec<SubResourceCreate<Value>>> {
-        Ok(vec![SubResourceCreate::<Value> {
-            id: Identity::Private(PrivateIdentity::Dynamic(Key {
-                schema: "system:static-file".to_owned(),
-                name: Some("/etc/ntp.conf".to_owned()),
-            })),
-            spec: serde_json::to_value(StaticFileSpec {
-                path: "/etc/ntp.conf".into(),
-                content: spec
-                    .servers
-                    .iter()
-                    .map(|v| format!("server {v} iburst"))
-                    .collect::<Vec<_>>()
-                    .join("\n"),
-                owner_gid: None,
-                readable_by_group: true,
-                readable_by_others: true,
-            })?,
-        }])
     }
 }
 
@@ -278,7 +229,6 @@ where
     Ok(())
 }
 
-#[expect(clippy::print_stdout, reason = "TODO")]
 pub async fn wait_for_str(out: &mut ChildStdout, pattern: &str) -> Result<()> {
     let reader = BufReader::new(out);
     let mut lines = reader.lines();
@@ -287,7 +237,6 @@ pub async fn wait_for_str(out: &mut ChildStdout, pattern: &str) -> Result<()> {
         let Some(line) = ln? else {
             bail!("reached end of line")
         };
-        println!("{line}");
         if line.contains(pattern) {
             return Ok(());
         }

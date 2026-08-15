@@ -84,31 +84,27 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
             })
             .unwrap(),
         },
-        // SubResourceCreate::<Value> {
-        //     id: Identity::Private(PrivateIdentity::Static(Key {
-        //         schema: "network:ntp".to_owned(),
-        //         name: None,
-        //     })),
-        //     spec: serde_json::to_value(NtpSpec {
-        //         servers: vec![
-        //             "0.pool.ntp.org".to_owned(),
-        //             "1.pool.ntp.org".to_owned(),
-        //             "2.pool.ntp.org".to_owned(),
-        //             "3.pool.ntp.org".to_owned(),
-        //         ],
-        //         depends_on: HashSet::from([
-        //             Key {
-        //                 schema: "network:dns".to_owned(),
-        //                 name: None,
-        //             },
-        //             Key {
-        //                 schema: "network:route".to_owned(),
-        //                 name: Some("eth0-dhcp".to_owned()),
-        //             },
-        //         ]),
-        //     })
-        //     .unwrap(),
-        // },
+        SubResourceCreate::<Value> {
+            id: Identity::Private(PrivateIdentity::Static(Key {
+                schema: "network:ntp".to_owned(),
+                name: None,
+            })),
+            spec: serde_json::to_value(NtpSpec {
+                pools: vec!["pool.ntp.org".to_owned()],
+                servers: vec![],
+                depends_on: HashSet::from([
+                    Key {
+                        schema: "network:dns".to_owned(),
+                        name: None,
+                    },
+                    Key {
+                        schema: "network:route".to_owned(),
+                        name: Some("eth0-dhcp".to_owned()),
+                    },
+                ]),
+            })
+            .unwrap(),
+        },
         SubResourceCreate::<Value> {
             id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "network:dhcp".to_owned(),

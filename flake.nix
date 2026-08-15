@@ -58,13 +58,16 @@
           hash   = "sha256-IT/SkF458oLmnFIPbN76Qp6s8KVxKQOC02XmN7NRdBc=";
         };
 
-        rpi1 = kernelFn-cross {
+        rpi1-kernel-settings = {
           arch      = "arm";
           base      = "bcmrpi_defconfig";
-          fragments = [ ./linux/config/common.conf ];
+          fragments = [ ./linux/config/common.conf ./linux/config/rpi.conf ];
           src       = rpiKernelSrc;
           version   = "6.18.39";
         };
+
+        rpi1 = kernelFn-cross rpi1-kernel-settings;
+        rpi1-menu = kernelFn rpi1-kernel-settings;
 
         x86_64-generic = kernelFn {
           arch      = "x86_64";
@@ -92,7 +95,7 @@
 
         rootfsEnv = pkgs.buildEnv {
           name   = "rootfs-env";
-          paths  = [ supervisor statemgr netctl conctl sysctl podman pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.chrony pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace pkgs.shadow ];
+          paths  = [ supervisor statemgr netctl conctl sysctl podman pkgs.ntpd-rs pkgs.busybox pkgs.cacert pkgs.gptfdisk pkgs.chrony pkgs.e2fsprogs pkgs.util-linux pkgs.limine pkgs.strace pkgs.shadow ];
           pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 
@@ -280,7 +283,7 @@
 
         rpi1-rootfsEnv = crossPkgs.buildEnv {
           name = "rootfs-env-rpi1";
-          paths  = [ supervisor-rpi statemgr-rpi netctl-rpi conctl-rpi sysctl-rpi podman-rpi crossPkgs.busybox crossPkgs.chrony crossPkgs.cacert crossPkgs.util-linux crossPkgs.shadow ];
+          paths  = [ supervisor-rpi statemgr-rpi netctl-rpi conctl-rpi sysctl-rpi podman-rpi crossPkgs.curl crossPkgs.busybox crossPkgs.cacert crossPkgs.util-linux crossPkgs.shadow ];
           pathsToLink = [ "/bin" "/lib" "/etc" "/share" ];
         };
 
@@ -393,6 +396,10 @@
           menuconfig-x86_64-generic = {
             type = "app";
             program = "${x86_64-generic.menuconfig}/bin/menuconfig";
+          };
+          menuconfig-rpi1 = {
+            type = "app";
+            program = "${rpi1-menu.menuconfig}/bin/menuconfig";
           };
         };
         checks.e2e = e2eTests;

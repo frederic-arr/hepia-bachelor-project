@@ -52,8 +52,6 @@ let
       bc bison flex gnumake ncurses ncurses.dev pkg-config diffutils stdenv.cc
     ];
     text = ''
-      set -euo pipefail
-
       export HOSTCC="${pkgs.stdenv.cc}/bin/cc"
       export HOSTCFLAGS="-I${pkgs.ncurses.dev}/include"
       export HOSTLDFLAGS="-L${pkgs.ncurses.out}/lib"
@@ -64,8 +62,15 @@ let
       outdiff="$workdir/config.diff"
       cd "$workdir"
 
-      if [ ! -d linux-${version} ]; then
-        tar -xf ${src}
+      if [ ! -d "linux-${version}" ]; then
+        if [ -d "${src}" ]; then
+          rm -rf "linux-${version}"
+          mkdir "linux-${version}"
+          cp -r "${src}/." "linux-${version}"
+          chmod -R u+rwX "linux-${version}"
+        else
+          tar -xf "${src}"
+        fi
       fi
 
       cd linux-${version}
