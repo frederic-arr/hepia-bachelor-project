@@ -210,7 +210,7 @@ donc autour des 80% de la mémoire allouée à la machine virtuelle. Par extensi
 le système d'exploitation complet, noyau et runtime de conteneur inclus, ne
 consomme donc qu'environ 40 MiB. Toutefois, il n'est pas pour autant possible de
 démarrer une machine virtuelle avec seulement 20 MiB de mémoire. En effet,
-durant le démarrage, un minimum de 80 MiB sont requis afin que le système
+durant le démarrage, un minimum de 80 MiB est requis afin que le système
 démarre, et dans l'optique de télécharger une image et exécuter un conteneur, au
 minimum 160 MiB sont requis.
 

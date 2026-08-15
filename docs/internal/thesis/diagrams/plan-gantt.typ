@@ -62,11 +62,11 @@
     label: <plan-gantt>,
     caption: [Planification du travail],
     note: [
-        Planification du travail sous la forme d'un diagram de Gantt. En vert
-        les tâches dont la planification de la durée est correcte. Si il n'ont
-        pas été fait au moment prévu, le moment prévu est superposé en bleu. En
-        rouge les tâches non effectuée. En orange, les tâches ayant duré plus
-        longtemps que prévu.
+        Planification du travail sous la forme d'un diagramme de Gantt. En vert
+        les tâches dont la planification de la durée est correcte. Si elles
+        n'ont pas été faites au moment prévu, le moment prévu est superposé en
+        bleu. En rouge les tâches non effectuées. En orange, les tâches ayant
+        duré plus longtemps que prévu.
     ],
     source: made-by-self,
     {

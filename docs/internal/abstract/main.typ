@@ -10,7 +10,7 @@ applications, avec un mode d'opération de plus en plus déclaratif. Les systèm
 d'exploitation sous-jacents reposent toutefois majoritairement sur des
 distributions génériques, dont le modèle d'exécution demeure impératif et qui
 n'intègrent pas nativement la conteneurisation. Les solutions plus spécialisées
-existantes présentent des lacunes majeur dans le contexte de déploiement
+existantes présentent des lacunes majeures dans le contexte de déploiements
 modestes ou embarqués. Ce travail présente la conception et l'implémentation
 d'un système d'exploitation minimaliste, dédié au déploiement déclaratif de
 conteneurs sur une machine unique. Le système repose sur un modèle de ressource

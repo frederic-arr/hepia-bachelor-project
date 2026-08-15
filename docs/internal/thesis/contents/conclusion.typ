@@ -30,13 +30,13 @@ build, ce dernier choix garantissant la reproductibilité des artefacts produits
 Les résultats présentés au #chapter-full-ref(<ch:results>) établissent que le
 système dépasse le stade d'une simple preuve de concept. Le déploiement d'une
 application complexe réelle, ainsi que la validation de la persistance des
-données à travers un redémarrage, démontre une robustesse fonctionnelle
+données à travers un redémarrage, démontrent une robustesse fonctionnelle
 suffisante pour des cas d'usage réels, et non uniquement pour des scénarios de
 démonstration simplifiés. Les mesures effectuées dans le #chapter-full-ref(
     <ch:validation:bench>,
 ) confirment par ailleurs l'atteinte de l'objectif de légèreté fixé en
 introduction#sym.space.narrow: le système démarre un conteneur en moins de 5.1
-secondes lorsqu'une image doit être téléchargée, et ne requiert que 160 Mio de
+secondes lorsqu'une image doit être téléchargée, et ne requiert que 160 MiB de
 mémoire pour exécuter un serveur web minimal, un seuil sensiblement inférieur à
 celui des solutions comparables. Au regard de l'ensemble de ces éléments, les
 objectifs techniques fixés par l'énoncé du sujet sont considérés comme atteints.

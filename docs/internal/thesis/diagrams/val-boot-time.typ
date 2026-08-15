@@ -23,7 +23,7 @@
         bootloader, des différentes étapes du cycle de vie sur un échantillon
         de 100.
 
-        La mesure depuis une installation sur disque sont représentée sur le
+        La mesures depuis une installation sur disque sont représentées sur le
         plan supérieur, tandis que les mesures depuis l'image ISO (mode
         éphémère) sont représentées sur le plan inférieur.
     ],

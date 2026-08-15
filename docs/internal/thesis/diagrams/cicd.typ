@@ -6,8 +6,8 @@
     label: <cicd>,
     caption: [Pipeline CI/CD],
     note: [
-        En bleu, la pipeline pour la documentation (thèse, slides, etc.). En
-        rouge, la pipeline pour le code Rust. Les deux pipeline s'exécute de
+        En bleu, le pipeline pour la documentation (thèse, slides, etc.). En
+        rouge, le pipeline pour le code Rust. Les deux pipelines s'exécutent de
         manière indépendante.
     ],
     source: made-by-self,

@@ -10,7 +10,7 @@
     ),
     (
         key: "mib",
-        short: "Mib, GiB",
+        short: "MiB, GiB",
         long: "Mébibyte, Gibibyte",
         description: [unité de mesure en puissance de deux (1 MiB = 1024 \* 1024
             octets)],
@@ -43,7 +43,7 @@
         short: "Cgroup",
         long: "Control Group",
         description: [mécanisme du noyau Linux permettant de limiter,
-            comptabiliser et isoler l'usage de ressources (CPU, mémoire, E/S)
+            comptabiliser et isoler l'usage de ressources (CPU, mémoire, etc.)
             d'un ensemble de processus],
     ),
     (

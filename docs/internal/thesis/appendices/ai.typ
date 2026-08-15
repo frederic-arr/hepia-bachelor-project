@@ -23,7 +23,7 @@ aboutit finalement à un commentaire publié sur le dépôt GitHub de
 podman-compose, fournissant l'option manquante. L'IA n'apporte, dans ce cas,
 qu'un résultat mitigé.
 
-== Amélioration de la pipeline de build Nix pour Rust
+== Amélioration du pipeline de build Nix pour Rust
 Le problème rencontré est que, lors de la construction du workspace Rust au
 moyen de Nix et de Crane, toute modification apportée à l'une des crates
 entraîne la reconstruction de l'ensemble des crates, plutôt que des seules

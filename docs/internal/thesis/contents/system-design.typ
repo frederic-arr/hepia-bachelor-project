@@ -57,7 +57,7 @@ supprimer la ressource existante et à en recréer une nouvelle.
 
 === Relations entre les ressources
 Deux types de relations lient les ressources entre elles#sym.space.narrow: la
-possession et le dépendance. Une ressource peut avoir au plus un
+possession et la dépendance. Une ressource peut avoir au plus un
 détenteur#sym.space.narrow; celui-ci dispose des droits de modification et de
 suppression sur la ressource, ainsi que le droit de consulter la spécification
 et l'état observé de celle-ci. Le détenteur d'une ressource donnée est
@@ -132,7 +132,7 @@ ressource simple, tel qu'illustré dans la #figure-num-ref(
 Il est ainsi commun dans les systèmes existants (netplan, systemd-networkd,
 notamment) de configurer conjointement le lien réseau, les routes et les
 adresses associées au sein d'une seule et même configuration. Dans le présent
-système, un configuration de type `network:interface` #bref(<cfgdyn-cfg>)
+système, une configuration de type `network:interface` #bref(<cfgdyn-cfg>)
 abstrait cette complexité en créant et en possédant plusieurs sous-ressources
 dynamiques (`network:link`, `network:address` et `network:route`), chacune
 correspondant à un aspect distinct #bref(<cfgdyn-dyn>). Le détenteur gère
@@ -175,7 +175,7 @@ cas des images de conteneurs, comme illustré dans la #figure-num-ref(
     propriétés de la gestion des images dans un runtime de conteneurs, la
     création ne pose pas de problèmes#sym.space.narrow; l'image sera téléchargée
     par le runtime, puis utilisée par les conteneurs. En revanche, la
-    suppression pose problème#sym.space.narrow: un runtime ne supprime jamais
+    suppression pose un problème#sym.space.narrow: un runtime ne supprime jamais
     les images de lui-même, et, au fil de l'utilisation du système, les images
     prendraient de plus en plus de places sans jamais être supprimées.
 ]
@@ -295,7 +295,7 @@ correctives adéquates.
 
 En ce qui concerne les sous-ressources, lors de la réconciliation d'une
 ressource donnée, celle-ci retourne d'une part le nouvel état observé, mais elle
-déclarera aussi l'ensemble de ses enfants avec leur spécification. Le ressource
+déclarera aussi l'ensemble de ses enfants avec leur spécification. La ressource
 est libre de déterminer comme elle le souhaite le contenu de la spécification de
 ces enfants spécification, la seule contrainte étant la validité vis-à-vis du
 schéma du type de ressource. De fait, même en l'absence de tout paramètre, comme

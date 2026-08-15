@@ -219,7 +219,7 @@ toute autre ressource du système, comme illustré dans le #code-num-ref(
 ). Cette ressource permet de définir le mécanisme d'authentification requis,
 ainsi que l'adresse depuis laquelle l'API est accessible, restreignant ainsi la
 surface d'exposition du système sur le réseau. L'absence d'authentification,
-utilisée dans la configuration par défaut, est destinée a un usage
+utilisée dans la configuration par défaut, est destinée à un usage
 temporaire#sym.space.narrow: la phase d'installation étant relativement courte,
 et le serveur ne possédant pas encore de données sensibles, il est considéré que
 laisser un tel accès ouvert durant quelques secondes (entre le démarrage de
@@ -245,7 +245,7 @@ dans la configuration. Ce document est présenté dans le #code-num-ref(
     label: <code-config-install>,
     caption: [Configuration d'installation],
     note: [
-        Installation du système entièrement sur le disk /dev/vda, sans
+        Installation du système entièrement sur le disque /dev/vda, sans
         chiffrement.
     ],
     source: made-by-self,
@@ -300,9 +300,9 @@ une telle configuration#sym.space.narrow:
 
 #figure(
     label: <code-config-runtime>,
-    caption: [Configuration d'une runtime de conteneur],
+    caption: [Configuration d'un runtime de conteneur],
     note: [
-        Une runtime de conteneur utilisant Podman est configurée en mode
+        Un runtime de conteneur utilisant Podman est configuré en mode
         "rootless".
     ],
     source: made-by-self,
@@ -319,9 +319,9 @@ une telle configuration#sym.space.narrow:
     ```,
 )
 
-Le #code-num-ref(<code-config-runtime>) spécifie l'id utilisateur et groupe non
-root, mais aussi un ensemble de dépendances à des ressources DNS et réseau. Ces
-dépendances ne sont pas strictement nécessaires, mais permettent d'éviter
+Le #code-num-ref(<code-config-runtime>) spécifie l'id utilisateur et groupe
+non-root, mais aussi un ensemble de dépendances à des ressources DNS et réseau.
+Ces dépendances ne sont pas strictement nécessaires, mais permettent d'éviter
 d'instancier le runtime tant que la couche réseau n'est pas disponible, ce qui
 pourrait avoir pour effet d'empêcher le téléchargement d'images de conteneurs,
 et créerait des messages d'erreur temporaire. La nature déclarative du système
@@ -330,7 +330,7 @@ toutefois ces dépendances optionnelles, car il est capable de se rétablir seul
 
 Une fois un runtime configuré, il est possible d'y créer diverses ressources,
 telles que des réseaux de conteneurs ou des instances de conteneurs, comme
-décrits dans le #code-num-ref(<code-config-container>)#sym.space.narrow:
+décrit dans le #code-num-ref(<code-config-container>)#sym.space.narrow:
 
 #figure(
     label: <code-config-container>,

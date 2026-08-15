@@ -39,7 +39,7 @@ boucle de contrôle ne surveille le système ni n'en corrige les dérives
 susceptibles de survenir par la suite. D'autres solutions, telles que Talos
 Linux @bib-talos, permettent une administration entièrement déclarative et
 continue, mais s'intègrent étroitement avec Kubernetes, au prix d'une complexité
-opérationnelle et d'une empreinte mémoire disproportionnées pour le simple
+opérationnelle et d'une empreinte mémoire disproportionnée pour le simple
 déploiement de quelques conteneurs.
 
 Il manque donc un système d'exploitation dans lequel il est possible de décrire

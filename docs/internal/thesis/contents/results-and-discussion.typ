@@ -42,9 +42,9 @@ et des conteneurs a été implémentée, principalement dans un souci de temps.
 
 == Résultats académiques <results-academic>
 L'ensemble des objectifs techniques formulés dans l'énoncé du sujet sont remplis
-par le système développé. Les résultats fonctionnels présentés à le
+par le système développé. Les résultats fonctionnels présentés au
 #chapter-full-ref(<ch:validation>), en particulier la validation des trois
-scénarios de bout en bout et les mesures effectuées confirme cela. Les deux
+scénarios de bout en bout et les mesures effectuées confirment cela. Les deux
 fonctionnalités non implémentées ne figurent pas parmi les objectifs centraux de
 l'énoncé et sont écartées afin de concentrer l'effort sur la robustesse du
 système, jugée prioritaire. Au regard de l'ensemble de ces éléments, les
@@ -101,7 +101,7 @@ conversion est incorrectement implémentée et retourne systématiquement l'inst
 présent, faussant l'ensemble des calculs de délai reposant sur cette conversion
 @bib-smoltcp-issue. Le bug c'est avérer trivialement réglable et, étant donné
 qu'il s'agit d'un élément essentiel du système, et compte tenu de l'absence
-d'autres alternatives, un correctif permettant de régler ce bogue a été crée,
+d'autres alternatives, un correctif permettant de régler ce bogue a été créé,
 soumis via une pull request, et accepté, sur le dépôt de smoltcp
 @bib-smoltcp-pull.
 
@@ -195,10 +195,10 @@ Le système peut aussi être étendu pour supporter la virtualisation via libvir
 l'orchestrateur ne percevant, dans tous les cas, qu'une ressource à réconcilier,
 le comportement spécifique restant délégué au contrôleur correspondant. Cela
 nécessiterait toutefois d'implémenter divers aspects supplémentaires pour
-permettre de déléguer un disque ou une carte graphique à une machine
-virtuelle.Un autre axe d'amélioration consisterait à renforcer la légèreté du
-système, en se basant sur une configuration du noyau minimale, dans laquelle
-seuls certains pilotes seraient disponibles.
+permettre de déléguer un disque ou une carte graphique à une machine virtuelle.
+Un autre axe d'amélioration consisterait à renforcer la légèreté du système, en
+se basant sur une configuration du noyau minimale, dans laquelle seuls certains
+pilotes seraient disponibles.
 
 Ces perspectives illustrent qu'un nombre restreint de modifications
 conceptuelles est peut transformer fondamentalement la portée du projet,

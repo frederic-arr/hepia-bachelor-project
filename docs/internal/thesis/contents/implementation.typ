@@ -9,7 +9,7 @@ soit détaillée. L'API et ses clients d'administration sont ensuite décrits,
 suivis du système de fichiers racine, du processus de démarrage, ainsi que de
 l'installation et du chiffrement du système. Le chapitre se conclut par la
 description du système de build, de la configuration du noyau, de la génération
-de l'image finale du système, ainsi que de l'environnement de test et de la
+de l'image finale du système, ainsi que de l'environnement de test et du
 pipeline d'intégration continue mise en place.
 
 == Composants
@@ -411,7 +411,7 @@ présence des champs dérivés.
 == Contrôleurs
 Chaque contrôleur implémente le service gRPC `ReconcilerService` décrit
 précédemment, en particulier les procédures `validate` et `reconcile`, selon une
-approche commun. La réception d'une requête entraîne d'abord la désérialisation
+approche commune. La réception d'une requête entraîne d'abord la désérialisation
 de la ressource générique reçue, puis un branchement est effectué sur le schéma
 de cette ressource, comme illustré dans le #code-num-ref(<code-dispatch>) pour
 la procédure `reconcile` du contrôleur réseau#sym.space.narrow:
@@ -736,7 +736,7 @@ superviseur, implémenté dans #repo("rust/cmd/supervisor"), responsable de mont
 le reste du système de fichiers. Cette répartition des rôles entre `/init` et le
 superviseur s'explique par le fait que l'initrd, contenant l'`/init`, est chargé
 en mémoire et doit à ce titre demeurer aussi léger que possible. Le superviseur
-suit ensuite les étapes illustrée dans la #figure-num-ref(
+suit ensuite les étapes illustrées dans la #figure-num-ref(
     <sysinit>,
 )#sym.space.narrow:
 
@@ -877,17 +877,17 @@ références distinctes. La différence par rapport au `defconfig` est exposée 
 L'image finale du système, qu'il s'agisse d'une image ISO ou d'une image disque
 brute, est assemblée entièrement au moyen de Nix. Chaque crate Rust du projet
 correspond à une dérivation Nix#sym.space.narrow; l'ensemble de ces dérivations
-est regroupé dans uns autre dérivation nommé `rootfsEnv`, lequel intègre
+est regroupé dans un autre dérivation nommé `rootfsEnv`, lequel intègre
 également des binaires additionnels, tels que Podman. Cette dérivation génère un
 dossier regroupant l'ensemble de ces éléments au sein du `/nix/store`.
 
 Une dérivation `rootfs` reprend cet environnement et y ajoute les liens
 symboliques nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc.,
 contiennent des liens symboliques pointant vers le `/nix/store`. Cette
-dérivation produit, en sortie, une image SquashFS. Deux dérivations additionnels
-complètent cet assemblage#sym.space.narrow: `kernel`, qui construit l'image du
-noyau selon les options de configuration retenues, et initrd, qui fournit le
-système de fichiers initial.
+dérivation produit, en sortie, une image SquashFS. Deux dérivations
+additionnelles complètent cet assemblage#sym.space.narrow: `kernel`, qui
+construit l'image du noyau selon les options de configuration retenues, et
+initrd, qui fournit le système de fichiers initial.
 
 À partir de ces trois dérivations, `rootfs`, `initrd` et `kernel`, une
 dérivation `iso` assemble l'ensemble en une image ISO, exécutable via QEMU
@@ -899,10 +899,10 @@ dérivation `iso` assemble l'ensemble en une image ISO, exécutable via QEMU
 L'assemblage destiné à d'autres architectures suit une démarche similaire. Une
 image disque brute est par ailleurs requise pour les systèmes ne pouvant
 démarrer depuis une image ISO et nécessitant d'être flashés, tels que le
-Raspberry Pi. Une dérivation spécifique est créé pour chaque système visé par ce
-mode de déploiement. Dans le cas du Raspberry Pi, la dérivation `rpi-sd-image`
-regroupe les éléments propres à cette plateforme et produit une image
-directement destinée au flashage sur une carte SD.
+Raspberry Pi. Une dérivation spécifique est créée pour chaque système visé par
+ce mode de déploiement. Dans le cas du Raspberry Pi, la dérivation
+`rpi-sd-image` regroupe les éléments propres à cette plateforme et produit une
+image directement destinée au flashage sur une carte SD.
 
 == Environnement de test <ch:implementation:tests>
 Trois catégories de tests sont mises en œuvre#sym.space.narrow: les tests
@@ -956,10 +956,10 @@ chaque test étant exécuté dans un thread distinct dont la terminaison est gé
 indépendamment.
 
 == Pipeline CI/CD
-L'ensemble du projet reposant sur Nix, la pipeline CI/CD (#repo(
+L'ensemble du projet reposant sur Nix, le pipeline CI/CD (#repo(
     ".gitlab-ci.yml",
 )) en hérite également, ce qui simplifie sa mise en œuvre#sym.space.narrow: les
-étapes exécutées par la pipeline se limitent, dans une large mesure, à
+étapes exécutées par le pipeline se limitent, dans une large mesure, à
 l'invocation de commandes Nix génériques, indépendantes de l'environnement
 d'exécution. L'ordonnancement des tâches repose sur GitLab CI @bib-gitlab-ci. Le
 recours à un runner personnalisé est requis, les runners institutionnels ne
@@ -967,7 +967,7 @@ permettant ni l'utilisation de Nix ni la virtualisation imbriquée, requise pour
 l'exécution des tests de bout en bout, et disposant par ailleurs de ressources
 de calcul limitées.
 
-La pipeline est déclenchée à chaque push sur le dépôt, entraînant l'exécution de
+Le pipeline est déclenchée à chaque push sur le dépôt, entraînant l'exécution de
 l'ensemble des étapes suivantes, dans l'ordre. Une phase de linting est exécutée
 en premier lieu, portant à la fois sur la documentation et sur le code. Une
 phase de test lui succède, structurée séquentiellement#sym.space.narrow: les
@@ -993,7 +993,7 @@ système de journalisation. Diverses règles additionnelles sont par ailleurs
 activées afin d'assurer l'homogénéité du code. Toute désactivation ponctuelle
 d'une règle doit être accompagnée d'une justification explicite, mécanisme
 nativement supporté par Clippy#sym.space.narrow; une exception dépourvue de
-justification est rejetée par la pipeline. Une exception générale est toutefois
+justification est rejetée par le pipeline. Une exception générale est toutefois
 appliquée au code de test, pour lequel le recours à `unwrap` est autorisé, cette
 approche constituant la méthode recommandée pour exprimer une assertion dans ce
 contexte.
