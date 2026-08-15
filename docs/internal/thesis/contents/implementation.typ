@@ -30,9 +30,9 @@ maîtrise préalable de ce langage, acquise avant le début du projet. Le langag
 Go est par ailleurs utilisé pour la partie du projet reposant sur Terraform, cet
 usage étant imposé par une contrainte propre à cet outil plutôt que par un choix
 indépendant. Les concepts fondamentaux de Rust nécessaires à la compréhension du
-reste de ce chapitre sont documentés dans "Rust by Example"
-@bib-rust-by-example, en particulier dans le chapitre consacré aux types
-standards @bib-rust-by-example-stdlib.
+reste de ce chapitre sont documentés dans "Rust by
+Example"~@bib-rust-by-example, en particulier dans le chapitre consacré aux
+types standards @bib-rust-by-example-stdlib.
 
 === Choix des bibliothèques
 Le nombre de bibliothèques externes est volontairement restreint, dans le but de
@@ -694,17 +694,18 @@ après un court délai, processus décrit plus en détail dans le #chapter-full-
 == Système de fichier racine <ch:implementation:rootfs>
 Le système repose sur un fonctionnement presque entièrement immuable. Le système
 de fichiers racine contient le strict minimum, à savoir les binaires dans
-`/bin/` et quelques fichiers statiques dans `/etc/`. Ces deux répertoires sont
-fournis au système à travers une image d'un système de fichiers de type SquashFS
-@bib-squashfs qui les rend totalement immuables. Cette image représente le
-système de fichiers racine (`/`). Toutefois, certains fichiers doivent pouvoir
-être écrits dans `/etc/` durant le fonctionnement normal du système, par exemple
-pour configurer la résolution DNS ou Podman. Afin de permettre cela, un système
-de fichiers temporaire de type Tmpfs @bib-tmpfs est superposé à l'image SquashFS
-au moyen d'OverlayFS @bib-overlayfs. Ce système de fichiers temporaire est
-entièrement persisté en mémoire#sym.space.narrow; ainsi, lorsque le système
-d'exploitation redémarre, l'ensemble de son contenu est perdu. Ceci ne constitue
-pas un problème compte tenu du modèle déclaratif du système#sym.space.narrow:
+`/bin/` et quelques fichiers statiques dans #text(font: "Liberation Mono")[
+    /#{ sym.wj }etc/]. Ces deux répertoires sont fournis au système à travers
+une image d'un système de fichiers de type SquashFS @bib-squashfs qui les rend
+totalement immuables. Cette image représente le système de fichiers racine
+(`/`). Toutefois, certains fichiers doivent pouvoir être écrits dans `/etc/`
+durant le fonctionnement normal du système, par exemple pour configurer la
+résolution DNS ou Podman. Afin de permettre cela, un système de fichiers
+temporaire de type Tmpfs @bib-tmpfs est superposé à l'image SquashFS au moyen
+d'OverlayFS @bib-overlayfs. Ce système de fichiers temporaire est entièrement
+persisté en mémoire#sym.space.narrow; ainsi, lorsque le système d'exploitation
+redémarre, l'ensemble de son contenu est perdu. Ceci ne constitue pas un
+problème compte tenu du modèle déclaratif du système#sym.space.narrow:
 l'ensemble de ces fichiers est en réalité dérivé de la configuration, et recréé
 identique à chaque redémarrage.
 
@@ -883,11 +884,13 @@ dossier regroupant l'ensemble de ces éléments au sein du `/nix/store`.
 
 Une dérivation `rootfs` reprend cet environnement et y ajoute les liens
 symboliques nécessaires, de sorte que les répertoires `/bin`, `/etc`, etc.,
-contiennent des liens symboliques pointant vers le `/nix/store`. Cette
-dérivation produit, en sortie, une image SquashFS. Deux dérivations
-additionnelles complètent cet assemblage#sym.space.narrow: `kernel`, qui
-construit l'image du noyau selon les options de configuration retenues, et
-initrd, qui fournit le système de fichiers initial.
+contiennent des liens symboliques pointant vers le #text(
+    font: "Liberation Mono",
+)[/#{ sym.wj }nix/#{ sym.wj }store]. Cette dérivation produit, en sortie, une
+image SquashFS. Deux dérivations additionnelles complètent cet
+assemblage#sym.space.narrow: `kernel`, qui construit l'image du noyau selon les
+options de configuration retenues, et initrd, qui fournit le système de fichiers
+initial.
 
 À partir de ces trois dérivations, `rootfs`, `initrd` et `kernel`, une
 dérivation `iso` assemble l'ensemble en une image ISO, exécutable via QEMU

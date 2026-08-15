@@ -111,7 +111,7 @@ pratique. La fonction `list_containers` retourne notamment une structure
 légèrement différente#sym.space.narrow: Docker rapporte un état
 `"status": "exited"` associé au champ `"stopped": true`, alors que Podman
 rapporte, pour un état équivalent, la valeur `"stopped"` pour ce même champ
-`status`. Ce bug est connu depuis 2023 @bib-podman-issue et n'est corrigé par le
+`status`. Ce bug est connu depuis 2023~@bib-podman-issue et n'est corrigé par le
 projet qu'en mars 2026 @bib-podman-pull, la correction n'étant intégrée à une
 version officielle qu'avec la publication de la version 6.0.0, le 24 juin 2026
 @bib-podman-release. L'intégration de cette version dans Nix, celle-ci

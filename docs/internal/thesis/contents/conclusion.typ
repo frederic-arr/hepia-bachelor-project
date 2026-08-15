@@ -36,7 +36,7 @@ démonstration simplifiés. Les mesures effectuées dans le #chapter-full-ref(
     <ch:validation:bench>,
 ) confirment par ailleurs l'atteinte de l'objectif de légèreté fixé en
 introduction#sym.space.narrow: le système démarre un conteneur en moins de 5.1
-secondes lorsqu'une image doit être téléchargée, et ne requiert que 160 MiB de
+secondes lorsqu'une image doit être téléchargée, et ne requiert que 160~MiB de
 mémoire pour exécuter un serveur web minimal, un seuil sensiblement inférieur à
 celui des solutions comparables. Au regard de l'ensemble de ces éléments, les
 objectifs techniques fixés par l'énoncé du sujet sont considérés comme atteints.
