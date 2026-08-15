@@ -46,7 +46,7 @@ mod validation {
     async fn list_resources() {
         let mut vm = create_vm().await;
         let resources = vm.list().await.unwrap();
-        assert_eq!(resources.len(), 7);
+        assert_eq!(resources.len(), 8);
 
         vm.kill().await.unwrap();
     }
@@ -75,7 +75,7 @@ mod validation {
         vm.set_password(Some("hepia2026demo".to_owned()));
 
         let resources = vm.list().await.unwrap();
-        assert_eq!(resources.len(), 7);
+        assert_eq!(resources.len(), 8);
 
         vm.kill().await.unwrap();
     }
