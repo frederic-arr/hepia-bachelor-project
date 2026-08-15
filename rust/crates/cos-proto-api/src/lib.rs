@@ -120,3 +120,12 @@ pub struct SystemRebootRequestPayload;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemRebootResponsePayload;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ConfigResource {
+    pub schema: String,
+    pub name: Option<String>,
+
+    #[serde(flatten)]
+    pub spec: Value,
+}

@@ -11,13 +11,14 @@ use cos_proto_api::v1::{
 };
 use cos_proto_api::{
     ConfigPullResponsePayload,
+    ConfigResource,
     ConfigValidateRequestPayload,
     ConfigValidateResponsePayload,
 };
 use cos_proto_api_client::v1::ApiServiceClient;
 use cos_proto_reconciler::{Identity, PrivateIdentity};
 pub use cos_proto_reconciler::{Key, SubResourceCreate, TerminalResource};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize as _;
 pub use serde_json::Value;
 use tonic::Request;
 use tonic::transport::{Channel, Endpoint};
@@ -28,15 +29,6 @@ pub struct CosClient {
 }
 
 pub type Resource = TerminalResource<Value, Value, Value>;
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ConfigResource {
-    pub schema: String,
-    pub name: Option<String>,
-
-    #[serde(flatten)]
-    pub spec: Value,
-}
 
 impl CosClient {
     pub fn new(addr: &str, password: Option<String>) -> Result<Self> {

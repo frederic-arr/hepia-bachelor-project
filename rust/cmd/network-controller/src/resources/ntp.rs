@@ -16,7 +16,7 @@ use cos_proto_reconciler::{
 };
 use cos_proto_state::v1::ReconcileNowRequest;
 use serde::{Deserialize, Serialize};
-use tokio::io::{AsyncBufReadExt as _, AsyncRead, BufReader};
+use tokio::io::{AsyncBufReadExt as _, BufReader};
 use tokio::process::{Child, ChildStdout, Command};
 use tokio::sync::Mutex;
 use tokio::time::timeout;
@@ -213,20 +213,6 @@ impl NtpReconciler {
     ) -> Result<()> {
         self.validate_new_spec(spec).await
     }
-}
-
-#[expect(clippy::print_stdout, reason = "TODO")]
-async fn forward_chunks<R>(stream: R) -> Result<()>
-where
-    R: AsyncRead + Unpin + Send + 'static,
-{
-    let mut reader = BufReader::new(stream).lines();
-    while let Some(line) = reader.next_line().await? {
-        for chunk in line.as_bytes().chunks(100) {
-            println!("{}", String::from_utf8_lossy(chunk));
-        }
-    }
-    Ok(())
 }
 
 pub async fn wait_for_str(out: &mut ChildStdout, pattern: &str) -> Result<()> {

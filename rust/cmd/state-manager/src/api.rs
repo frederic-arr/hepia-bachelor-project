@@ -10,6 +10,8 @@ use cos_proto_api::v1::{
     ConfigPullResponse,
     ConfigPushRequest,
     ConfigPushResponse,
+    ConfigPushStrRequest,
+    ConfigPushStrResponse,
     ConfigValidateRequest,
     ConfigValidateResponse,
     FsListRequest,
@@ -31,6 +33,7 @@ use cos_proto_api::v1::{
 };
 use cos_proto_api::{
     ConfigPullResponsePayload,
+    ConfigResource,
     ConfigValidateRequestPayload,
     ConfigValidateResponsePayload,
     FsListRequestPayload,
@@ -217,55 +220,15 @@ timeout: 5
 
         Ok(())
     }
-}
-
-#[tonic::async_trait]
-impl ApiService for ApiServer {
-    async fn config_validate(
-        &self,
-        request: Request<ConfigValidateRequest>,
-    ) -> Result<Response<ConfigValidateResponse>, Status> {
-        self.auth_or_fail(&request).await?;
-        let req = request.into_inner();
-        let payload: ConfigValidateRequestPayload =
-            serde_json::from_slice(&req.raw)
-                .map_err(|err| Status::from_error(err.into()))?;
-
-        let clients = self.sm.clients.read().await;
-        let resources = self.sm.resources.read().await;
-        let validation = StateManager::bulk_validate(
-            &clients,
-            &resources,
-            payload.resources,
-        )
-        .await;
-        drop(clients);
-
-        let response = match validation {
-            Ok(_) => ConfigValidateResponsePayload::Ok,
-            Err(err) => ConfigValidateResponsePayload::Error(err.to_string()),
-        };
-
-        Ok(Response::new(ConfigValidateResponse {
-            raw: serde_json::to_vec(&response)
-                .map_err(|err| Status::from_error(err.into()))?,
-        }))
-    }
 
     #[expect(
         clippy::significant_drop_tightening,
         reason = "the guard is leaked on purpose"
     )]
-    async fn config_push(
+    async fn config_push_inner(
         &self,
-        request: Request<ConfigPushRequest>,
-    ) -> Result<Response<ConfigPushResponse>, Status> {
-        self.auth_or_fail(&request).await?;
-        let req = request.into_inner();
-        let resources: Vec<SubResourceCreate<Value>> =
-            serde_json::from_slice(&req.raw)
-                .map_err(|err| Status::from_error(err.into()))?;
-
+        resources: Vec<SubResourceCreate<Value>>,
+    ) -> Result<(), Status> {
         let Some(cfg) = resources.iter().find(|v| {
             v.id.key()
                 == &Key {
@@ -356,7 +319,81 @@ impl ApiService for ApiServer {
             });
         }
 
+        Ok(())
+    }
+}
+
+#[tonic::async_trait]
+impl ApiService for ApiServer {
+    async fn config_validate(
+        &self,
+        request: Request<ConfigValidateRequest>,
+    ) -> Result<Response<ConfigValidateResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let req = request.into_inner();
+        let payload: ConfigValidateRequestPayload =
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
+
+        let clients = self.sm.clients.read().await;
+        let resources = self.sm.resources.read().await;
+        let validation = StateManager::bulk_validate(
+            &clients,
+            &resources,
+            payload.resources,
+        )
+        .await;
+        drop(clients);
+
+        let response = match validation {
+            Ok(_) => ConfigValidateResponsePayload::Ok,
+            Err(err) => ConfigValidateResponsePayload::Error(err.to_string()),
+        };
+
+        Ok(Response::new(ConfigValidateResponse {
+            raw: serde_json::to_vec(&response)
+                .map_err(|err| Status::from_error(err.into()))?,
+        }))
+    }
+
+    async fn config_push(
+        &self,
+        request: Request<ConfigPushRequest>,
+    ) -> Result<Response<ConfigPushResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let req = request.into_inner();
+        let resources: Vec<SubResourceCreate<Value>> =
+            serde_json::from_slice(&req.raw)
+                .map_err(|err| Status::from_error(err.into()))?;
+
+        self.config_push_inner(resources).await?;
         Ok(Response::new(ConfigPushResponse { raw: vec![] }))
+    }
+
+    async fn config_push_str(
+        &self,
+        request: Request<ConfigPushStrRequest>,
+    ) -> Result<Response<ConfigPushStrResponse>, Status> {
+        self.auth_or_fail(&request).await?;
+        let req = request.into_inner();
+        let configs = serde_yaml::Deserializer::from_str(&req.yaml)
+            .map(ConfigResource::deserialize)
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .map_err(|err| Status::from_error(err.into()))?
+            .into_iter()
+            .map(|v| SubResourceCreate {
+                id: Identity::Private(PrivateIdentity::Static(Key {
+                    schema: v.schema,
+                    name: v.name,
+                })),
+                spec: v.spec,
+            })
+            .collect::<Vec<_>>();
+
+        self.config_push_inner(configs).await?;
+        Ok(Response::new(ConfigPushStrResponse {
+            raw: vec![],
+        }))
     }
 
     async fn config_pull(

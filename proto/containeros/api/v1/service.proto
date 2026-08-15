@@ -2,9 +2,12 @@ syntax = "proto3";
 
 package containeros.api.v1;
 
+option go_package = "terraform-provider-containeros/internal/rpc";
+
 service ApiService {
   rpc ConfigValidate(ConfigValidateRequest) returns (ConfigValidateResponse) {}
   rpc ConfigPush(ConfigPushRequest) returns (ConfigPushResponse) {}
+  rpc ConfigPushStr(ConfigPushStrRequest) returns (ConfigPushStrResponse) {}
   rpc ConfigPull(ConfigPullRequest) returns (ConfigPullResponse) {}
   rpc FsWrite(FsWriteRequest) returns (FsWriteResponse) {}
   rpc FsList(FsListRequest) returns (FsListResponse) {}
@@ -29,6 +32,14 @@ message ConfigPushRequest {
 }
 
 message ConfigPushResponse {
+  bytes raw = 1;
+}
+
+message ConfigPushStrRequest {
+  string yaml = 1;
+}
+
+message ConfigPushStrResponse {
   bytes raw = 1;
 }
 

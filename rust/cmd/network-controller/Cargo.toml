@@ -41,7 +41,6 @@ smoltcp = { workspace = true, features = [
     "async",
 ] }
 tokio-stream = { workspace = true, features = ["net"] }
-ntpd = { workspace = true, features = ["aws-lc", "pps", "rustcrypto", "srv"] }
 
 [dev-dependencies]
 isolation.path = "../../crates/isolation"

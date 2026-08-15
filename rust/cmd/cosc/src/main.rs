@@ -4,8 +4,8 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use cos_proto_api::ConfigResource;
 use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
-use cosc::ConfigResource;
 use itertools::Itertools as _;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
