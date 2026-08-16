@@ -1185,7 +1185,6 @@ bib-ibm-docker:
       - Scapicchio, Mark
     url: https://www.ibm.com/think/topics/devops-guide
 
-# TODO
 bib-intelTpm:
   type: web
   title: What Is a Trusted Platform Module (TPM)?
@@ -1578,7 +1577,7 @@ bib-terraform:
 
 bib-semester-projet:
   type: web
-  title: OS pour le déploiemetn d'infrastructures et services conteneurisés
+  title: OS pour le déploiement d'infrastructures et services conteneurisés
   author: Frédéric Arroyo
   date: 2026-03
   url:
@@ -1623,34 +1622,34 @@ bib-linux-fhs:
 
 bib-grpc:
   type: web
-  title: TODO
-  author: TODO
+  title: gRPC - A high performance, open source universal RPC framework
+  author: The gRPC Authors
   url:
-    value: https://example.com
+    value: https://grpc.io/
     date: 2026-08-02
 
 bib-tonic:
   type: web
-  title: TODO
-  author: TODO
+  title: Tonic - A Rust implementation of gRPC
+  author: The gRPC Authors
   url:
-    value: https://example.com
+    value: https://github.com/grpc/grpc-rust
     date: 2026-08-02
 
 bib-tokio:
   type: web
-  title: TODO
-  author: TODO
+  title: Tokio
+  author: The Tokio Authors
   url:
-    value: https://example.com
+    value: https://github.com/tokio-rs/tokio
     date: 2026-08-02
 
 bib-serde:
   type: web
-  title: TODO
-  author: TODO
+  title: Serde
+  author: The Serde Authors
   url:
-    value: https://example.com
+    value: https://github.com/serde-rs/serde
     date: 2026-08-02
 
 bib-grpc-proto3-optional:
@@ -1666,296 +1665,275 @@ bib-grpc-proto3-optional:
 
 bib-linux-open-tmpfile:
   type: web
-  title: TODO
-  author: TODO
+  title: open(2) - Linux System Call
+  author: The Linux man-pages project
   url:
-    value: https://example.com
+    value: https://www.man7.org/linux/man-pages/man2/open.2.html
     date: 2026-08-02
 
 bib-linux-openat2:
   type: web
-  title: TODO
-  author: TODO
+  title: openat2 - open and possibly create a file
+  author: The Linux man-pages project
   url:
-    value: https://example.com
+    value: https://www.man7.org/linux/man-pages/man2/openat2.2.html
     date: 2026-08-02
 
 bib-linux-rtnetlink:
   type: web
-  title: TODO
-  author: TODO
+  title: rtnetlink - Linux routing socket
+  author: The Linux man-pages project
   url:
-    value: https://example.com
+    value: https://www.man7.org/linux/man-pages/man7/rtnetlink.7.html
     date: 2026-08-02
 
 bib-smoltcp:
   type: web
-  title: TODO
-  author: TODO
+  title: smoltcp - A smol tcp/ip stack in Rust
+  author: The smoltcp Authors
   url:
-    value: https://example.com
+    value: https://github.com/smoltcp-rs/smoltcp
     date: 2026-08-02
 
 bib-bollard:
   type: web
-  title: TODO
-  author: TODO
+  title: Bollard - Docker daemon API in Rust
+  author: fussybeaver
   url:
-    value: https://example.com
+    value: https://github.com/fussybeaver/bollard
     date: 2026-08-02
 
 bib-gitops:
   type: web
-  title: TODO
-  author: TODO
+  title: Le GitOps, qu'est-ce que c'est ?
+  author: Red Hat, Inc.
   url:
     value: https://www.redhat.com/fr/topics/devops/what-is-gitops
     date: 2026-08-02
 
 bib-curl:
   type: web
-  title: TODO
-  author: TODO
+  title: curl -  command line tool and library for transferring data with URLs
+  author: Daniel Stenberg
   url:
-    value: https://example.com
+    value: https://curl.se/docs/manpage.html
     date: 2026-08-02
 
 bib-alpine:
   type: web
-  title: TODO
-  author: TODO
+  title: Alpine Linux - a security-oriented, lightweight Linux distribution
+  author: The Alpine Linux Development Team
   url:
-    value: https://example.com
+    value: https://www.alpinelinux.org/
     date: 2026-08-02
 
 bib-dhcp-rfc:
   type: web
-  title: TODO
-  author: TODO
+  title: RFC 2131 - Dynamic Host Configuration Protocol
+  author: Ralph Droms
   url:
     value: https://datatracker.ietf.org/doc/html/rfc2131
     date: 2026-08-02
 
 bib-squashfs:
   type: web
-  title: TODO
-  author: TODO
+  title: Squashfs 4.0 Filesystem
+  author: The kernel development community
   url:
-    value: https://example.com
+    value: https://www.kernel.org/doc/html/latest/filesystems/squashfs.html
     date: 2026-08-02
 
 bib-overlayfs:
   type: web
-  title: TODO
-  author: TODO
+  title: Overlay Filesystem
+  author: The kernel development community
   url:
-    value: https://example.com
+    value: https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html
     date: 2026-08-02
 
 bib-toctou:
   type: web
-  title: TODO
-  author: TODO
+  title: Time-of-check to time-of-use
+  author: The Wikipedia Authors
   url:
-    value: https://example.com
+    value: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
     date: 2026-08-02
 
 bib-rtnetlink:
   type: web
-  title: TODO
-  author: TODO
+  title: rtnetlink - Rust crate for rtnetlink protocol
+  author: The Rust Netlink Authors
   url:
-    value: https://example.com
+    value: https://docs.rs/rtnetlink/latest/rtnetlink/
     date: 2026-08-02
 
 bib-gitlab-ci:
   type: web
-  title: TODO
-  author: TODO
+  title: Get started with GitLab CI/CD
+  author: GitLab Inc.
   url:
     value: https://docs.gitlab.com/ci/
     date: 2026-08-02
 
 bib-man2-fork:
   type: web
-  title: TODO
-  author: TODO
+  title: fork - create a child process
+  author: The Linux man-pages project
   url:
-    value: https://example.com
+    value: https://www.man7.org/linux/man-pages/man2/fork.2.html
     date: 2026-08-02
 
 bib-man-ns:
   type: web
-  title: TODO
-  author: TODO
+  title: namespaces - overview of Linux namespaces
+  author: The Linux man-pages project
   url:
-    value: https://example.com
+    value: https://www.man7.org/linux/man-pages/man7/namespaces.7.html
     date: 2026-08-02
 
 bib-nextest:
   type: web
-  title: TODO
-  author: TODO
+  title: A next-generation test runner for Rust
+  author: The Nextest Contributors
   url:
-    value: https://example.com
+    value: https://nexte.st/
     date: 2026-08-02
 
 bib-exit:
   type: web
-  title: TODO
-  author: TODO
+  title: _exit, _Exit - terminate the calling process
+  author: The Linux man-pages project
   url:
-    value: https://example.com
+    value: https://www.man7.org/linux/man-pages/man2/_exit.2.html
     date: 2026-08-02
 
 bib-typstfmt:
   type: web
-  title: TODO
-  author: TODO
+  title: Typstyle - A beautiful and reliable code formatter for Typst.
+  author: The Typstyle authors
   url:
-    value: https://example.com
+    value: https://github.com/typstyle-rs/typstyle
     date: 2026-08-02
 
 bib-buf:
   type: web
-  title: TODO
-  author: TODO
+  title: Buf - Modern Protobuf and gRPC
+  author: Buf Technologies
   url:
-    value: https://example.com
+    value: https://buf.build/
     date: 2026-08-02
 
 bib-cargo-fmt:
   type: web
-  title: TODO
-  author: TODO
+  title: rustfmt - A tool for formatting Rust code according to style guidelines
+  author: The Rust Authors
   url:
-    value: https://example.com
+    value: https://github.com/rust-lang/rustfmt
     date: 2026-08-02
 
 bib-cargo-clippy:
   type: web
-  title: TODO
-  author: TODO
+  title: Clippy - A collection of lints to catch common mistakes and improve your Rust code
+  author: The Rust Authors
   url:
-    value: https://example.com
+    value: https://github.com/rust-lang/rust-clippy
     date: 2026-08-02
 
 bib-justfile:
   type: web
-  title: TODO
-  author: TODO
+  title: Just a command runner
+  author: Casey Rodarmor
   url:
-    value: https://example.com
+    value: https://just.systems/man/en/
     date: 2026-08-02
 
 bib-makefile:
   type: web
-  title: TODO
-  author: TODO
+  title: GNU make
+  author: Free Software Foundation
   url:
-    value: https://example.com
+    value: https://www.gnu.org/software/make/manual/make.html
     date: 2026-08-02
 
 bib-qemu:
   type: web
-  title: TODO
-  author: TODO
+  title: QEMU - A generic and open source machine emulator and virtualizer
+  author: The QEMU Project Developers
   url:
-    value: https://example.com
+    value: https://www.qemu.org/
     date: 2026-08-02
 
 bib-rust-unstable:
   type: web
-  title: TODO
-  author: TODO
+  title: Rust Unstable features
+  author: The Rust for Linux Authors
   url:
     value: https://rust-for-linux.com/unstable-features
     date: 2026-08-02
 
-bib-nixos:
-  type: web
-  title: TODO
-  author: TODO
-  url:
-    value: https://example.com
-    date: 2026-08-02
-
-bib-nix-build:
-  type: web
-  title: TODO
-  author: TODO
-  url:
-    value: https://example.com
-    date: 2026-08-02
-
-bib-nixpkgs:
-  type: web
-  title: TODO
-  author: TODO
-  url:
-    value: https://example.com
-    date: 2026-08-02
-
 bib-limine:
   type: web
-  title: TODO
-  author: TODO
+  title: Limine - Modern, secure, portable, multiprotocol bootloader and boot manager.
+  author: Mintsuki and contributors.
   url:
-    value: https://example.com
+    value: https://github.com/limine-bootloader/limine
     date: 2026-08-02
 
 bib-linkat:
   type: web
-  title: TODO
-  author: TODO
+  title: link, linkat - make a new name for a file
+  author: The Linux man-pages project
   url:
-    value: https://example.com
+    value: https://www.man7.org/linux/man-pages/man2/linkat.2.html
     date: 2026-08-02
 
 bib-nixos-anywhere:
   type: web
-  title: TODO
-  author: TODO
+  title: nixos-anywhere - Install NixOS everywhere via ssh
+  author: The Nix community projects
   url:
-    value: https://example.com
+    value: https://github.com/nix-community/nixos-anywhere
     date: 2026-08-02
 
 bib-luks:
   type: web
-  title: TODO
-  author: TODO
+  title: Cryptsetup is an open-source utility used to conveniently set up disk encryption
+  author: Free Software Foundation, Inc.
   url:
-    value: https://example.com
+    value: https://gitlab.com/cryptsetup/cryptsetup/blob/master/README.md
     date: 2026-08-02
 
 bib-netsim:
   type: web
-  title: TODO
-  author: TODO
+  title: netsim - a Rust library which allows you to
+  author: Andrew Cann
   url:
-    value: https://example.com
+    value: https://github.com/canndrew/netsim
     date: 2026-08-02
 
 bib-rust-by-example:
   type: web
-  title: TODO
-  author: TODO
+  title: Rust by Example
+  author: The Rust Authors
   url:
-    value: https://example.com
+    value: https://doc.rust-lang.org/stable/rust-by-example/index.html
     date: 2026-08-02
 
 bib-rust-by-example-stdlib:
   type: web
-  title: TODO
-  author: TODO
+  title: Std library types
+  author: The Rust Authors
+  parent:
+    type: web
+    title: Rust By Example
   url:
-    value: https://example.com
+    value: https://doc.rust-lang.org/stable/rust-by-example/std.html
     date: 2026-08-02
 
 bib-tmpfs:
   type: web
-  title: TODO
-  author: TODO
+  title: Tmpfs - A file system which keeps all of its files in virtual memory
+  author: Christoph Rohland
   url:
-    value: https://example.com
+    value: https://www.kernel.org/doc/html/latest/filesystems/tmpfs.html
     date: 2026-08-02

@@ -821,11 +821,11 @@ l'un des disques gérés par le système, tel que `configdisk` ou `datadisk`.
 == Système de build <ch:implementation:build>
 L'environnement de build repose sur l'outil Nix. Une distinction est requise
 entre trois usages du terme "Nix"#sym.space.narrow: Nix en tant que système de
-build @bib-nix-build, Nix en tant que gestionnaire de paquets @bib-nixpkgs, et
-Nix en tant que distribution Linux (NixOS) @bib-nixos. Seul le premier usage,
-complété partiellement par le second, est utilisé dans le cadre de ce projet.
-Les concepts essentiels de Nix nécessaires à la compréhension de ce chapitre
-sont présentés à l'#appendix-num-ref(<appendix:nix-primer>).
+build, Nix en tant que gestionnaire de paquets, et Nix en tant que distribution
+Linux (NixOS) @bib-nix. Seul le premier usage, complété partiellement par le
+second, est utilisé dans le cadre de ce projet. Les concepts essentiels de Nix
+nécessaires à la compréhension de ce chapitre sont présentés à
+l'#appendix-num-ref(<appendix:nix-primer>).
 
 Le recours à Nix vise à fournir un environnement stable entre la machine de
 développement locale et l'environnement d'intégration continue. Nix permet non
