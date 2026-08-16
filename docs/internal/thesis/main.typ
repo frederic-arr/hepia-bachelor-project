@@ -131,6 +131,8 @@
     include "contents/conclusion.typ"
 }
 
+#page(align(center + horizon, text(size: 52pt, [Annexes])))
+
 
 #counter(heading).update(0)
 #{
