@@ -36,6 +36,7 @@ languageSettings:
       - nixpkgs
       - netavark
       - glspl
+      - VirtIO
   - languageId: typst
     ignoreRegExpList:
       - string
