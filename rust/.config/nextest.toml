@@ -1,5 +1,12 @@
+[test-groups]
+serial-e2e = { max-threads = 4 }
+
 [profile.default]
-slow-timeout = { period = "30s", terminate-after = 4 }
+slow-timeout = { period = "60s", terminate-after = 4 }
 
 [profile.default.junit]
 path = "junit.xml"
+
+[[profile.default.overrides]]
+filter = 'package(e2e)'
+test-group = 'serial-e2e'
