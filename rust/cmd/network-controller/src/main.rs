@@ -18,6 +18,8 @@ use network_controller::{
     DhcpResource,
     DnsReconciler,
     DnsResource,
+    InterfaceReconciler,
+    InterfaceResource,
     LinkReconciler,
     LinkResource,
     NtpReconciler,
@@ -101,6 +103,14 @@ impl ReconcilerService for Reconciler {
                     NtpReconciler::new()
                 );
             }
+            "network:interface" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    InterfaceResource,
+                    InterfaceReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -159,6 +169,13 @@ impl ReconcilerService for Reconciler {
             }
             "network:ntp" => {
                 reconcile!(resource, NtpResource, NtpReconciler::new());
+            }
+            "network:interface" => {
+                reconcile!(
+                    resource,
+                    InterfaceResource,
+                    InterfaceReconciler::new()
+                );
             }
             _ => return Err(Status::not_found("schema does not exist")),
         }

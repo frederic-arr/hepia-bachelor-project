@@ -1,6 +1,7 @@
 mod address;
 mod dhcp;
 mod dns;
+mod interface;
 mod link;
 mod ntp;
 mod route;
@@ -11,6 +12,7 @@ pub use address::*;
 use cos_proto_state_client::v1::StateServiceClient;
 pub use dhcp::*;
 pub use dns::*;
+pub use interface::*;
 pub use link::*;
 pub use ntp::*;
 pub use route::*;
