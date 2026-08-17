@@ -39,7 +39,7 @@ dans chaque crate dépendante, résout le problème, moyennant l'ajout d'une opt
 n'apporte, dans ce cas, aucune aide et constitue une perte de temps estimée à 30
 minutes.
 
-== Mise en place de tests d'intégration Rust isolés par espace de noms
+== Mise en place de tests d'intégration Rust isolés par namespace
 Le problème rencontré tient à la nature des paquets concernés, qui interagissent
 directement avec le noyau Linux, ce qui rend l'écriture de tests unitaires ou
 d'intégration délicate: ces tests modifient le noyau "hôte" et risquent de

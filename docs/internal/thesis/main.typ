@@ -1,6 +1,7 @@
 #import "/packages.typ": *
 #import "/lib/templates/cover/lib.typ": *
 #import "lib.typ": *
+#import "conf.typ"
 #import "/lib/_utils.typ"
 #import packages.codly: *
 #import packages.codly-languages: *
@@ -75,8 +76,8 @@
 #full-outline()
 #pagebreak(weak: true)
 
-#show link: set text(blue)
-#show link: underline
+#show link: set text(if conf.IS_PRINT { black } else { blue })
+#show link: if conf.IS_PRINT { text } else { underline }
 #show: codly-init.with()
 #codly(languages: codly-languages)
 
@@ -106,16 +107,27 @@
     ],
 )
 #counter(page).update(1)
+#show heading.where(level: 1): it => {
+    pagebreak(weak: true)
+    h(1cm)
+    block(width: 100%, below: 1.5cm, align(center, {
+        it.body
+    }))
+}
+
 #include "contents/introduction.typ"
 
 #{
     set heading(numbering: "1.")
     show heading.where(level: 1): it => {
         pagebreak(weak: true)
-        [Chapitre ]
-        counter(heading).display(at: it.location(), "1: ")
-        it.body
-        linebreak()
+        h(1cm)
+        block(width: 100%, below: 1.5cm, align(center, {
+            [Chapitre ]
+            counter(heading).display(at: it.location(), "1")
+            linebreak()
+            it.body
+        }))
     }
 
     include "contents/functional-overview.typ"
@@ -140,8 +152,10 @@
     show heading.where(level: 1): set heading(numbering: "A")
     show heading.where(level: 1): it => {
         pagebreak(weak: true)
-        block(width: 100%, below: 2em, align(center, {
-            [Annexe ] + counter(heading).display(at: it.location(), "A")
+        h(1cm)
+        block(width: 100%, below: 1.5cm, align(center, {
+            [Annexe ]
+            counter(heading).display(at: it.location(), "A")
             linebreak()
             it.body
         }))
@@ -154,3 +168,7 @@
 
 #set heading(numbering: none)
 #bibliography("../bibliography.yaml")
+
+#if conf.IS_PRINT {
+    pagebreak()
+}
