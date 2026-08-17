@@ -83,9 +83,12 @@ limiter encore la surface d'attaque.
 
 Plusieurs modes de déploiement sont pris en charge par le
 système#sym.space.narrow: une image ISO bootable, utilisable sans installation
-(mode éphémère), et permettant également l'installation de la solution sur un
-disque, tant dans un contexte bare metal que cloud. Le déploiement sur les
-architectures ARM et x86-64 est par ailleurs pris en charge.
+(mode éphémère), et permettant également l'installation de la solution de
+manière pérenne sur un disque. Le système doit également être aussi homogène que
+possible à travers des environnements physiques, virtualisés, embarqués, et
+cloud: une même configuration doit fonctionner sur ces environnements sans
+nécessiter de modifications majeures. Cela implique également le support des
+architectures Intel/AMD et ARM.
 
 == Cadre du travail et méthodologie
 Ce travail s'inscrit dans l'obtention du titre de Bachelor of Science en

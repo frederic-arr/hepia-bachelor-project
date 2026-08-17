@@ -246,8 +246,7 @@ dans la configuration. Ce document est présenté dans le #code-num-ref(
     label: <code-config-install>,
     caption: [Configuration d'installation],
     note: [
-        Installation du système entièrement sur le disque /dev/vda, sans
-        chiffrement.
+        Installation du système entièrement sur le disque /dev/vda.
     ],
     source: made-by-self,
     ```yaml
@@ -455,13 +454,15 @@ même infrastructure#sym.space.narrow:
     ],
     source: made-by-self,
     ```terraform
-    resource "cos_push_config" "my_server" {
+    resource "containeros_config_push" "my_server" {
         server = some_cloud_provider.vm.ip
         config = file("./config.yaml")
     }
     ```,
 )
 
-Cette même configuration fonctionne tant pour un serveur cloud, comme illustré,
-que pour un serveur bare-metal ou bien même un Raspberry Pi, moyennant
-l'adaptation du chemin vers le disque de stockage.
+Cette même configuration fonctionne indifféremment sur une instance cloud, comme
+illustré, sur un serveur bare metal ou sur une plateforme embarquée telle qu'un
+Raspberry Pi, seul le chemin vers le disque de stockage étant propre à chaque
+serveur (par exemple, `/dev/sda` pour un disque SATA, `/dev/vda` pour un disque
+VirtIO, etc.).
