@@ -1,0 +1,62 @@
+---
+schema: api
+auth: none
+
+---
+schema: network:dns
+nameservers:
+  - 9.9.9.9
+
+---
+schema: network:link
+name: eth0
+admin_up: true
+
+---
+schema: network:dhcp
+name: eth0
+
+---
+schema: container:runtime
+name: rootfull
+engine: podman
+uid: 0
+gid: 0
+depends_on:
+  - network:dns
+  - network:route/eth0-dhcp
+
+---
+schema: container:network
+name: my_api_net
+runtime: rootfull
+
+---
+schema: container:volume
+name: my_data
+runtime: rootfull
+
+---
+schema: container:instance
+name: serverb
+image: docker.io/fredericarr/simple-http-server:latest
+runtime: rootfull
+networks:
+  - my_api_net
+cmd: ["/logs/log.txt"]
+volumes:
+  - my_data:/logs
+
+---
+schema: container:instance
+name: probe2
+image: docker.io/alpine/curl:latest
+runtime: rootfull
+networks:
+  - my_api_net
+depends_on:
+  - container:instance/serverb
+entrypoint: [/bin/sh]
+cmd:
+  - -c
+  - curl -fsS -X POST "http://10.0.2.2:%%PORT2%%/" --data-binary "$(curl -sS http://serverb:8080/BBBBBBBBBBBBBBBB 2>&1)"

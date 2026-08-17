@@ -8,6 +8,8 @@ use container_controller::{
     NetworkResource,
     RuntimeReconciler,
     RuntimeResource,
+    VolumeReconciler,
+    VolumeResource,
 };
 use cos_proto_reconciler::v1::{
     ReconcileRequest,
@@ -80,6 +82,14 @@ impl ReconcilerService for Reconciler {
                     NetworkReconciler::new()
                 );
             }
+            "container:volume" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    VolumeResource,
+                    VolumeReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -118,6 +128,9 @@ impl ReconcilerService for Reconciler {
                     NetworkResource,
                     NetworkReconciler::new()
                 );
+            }
+            "container:volume" => {
+                reconcile!(resource, VolumeResource, VolumeReconciler::new());
             }
             _ => return Err(Status::not_found("schema does not exist")),
         }

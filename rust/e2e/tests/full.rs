@@ -123,6 +123,36 @@ mod validation {
     }
 
     #[tokio::test]
+    async fn volumes() {
+        let mut vm = create_vm().await;
+
+        let port1 = random_port();
+        let data1 = include_str!("./data/volumes--a.yaml")
+            .replace("%%PORT1%%", &port1.to_string());
+
+        let () = vm.push_str(&data1).await.unwrap();
+        let data = wait_for_request(port1).await.unwrap();
+        assert!(data.contains("AAAAAAAAAAAAAAAA"));
+
+        let () = vm
+            .push_str(include_str!("./data/volumes--down.yaml"))
+            .await
+            .unwrap();
+        tokio::time::sleep(Duration::from_secs(5)).await;
+
+        let port2 = random_port();
+        let data2 = include_str!("./data/volumes--b.yaml")
+            .replace("%%PORT2%%", &port2.to_string());
+
+        let () = vm.push_str(&data2).await.unwrap();
+        let data = wait_for_request(port2).await.unwrap();
+        assert!(data.contains("AAAAAAAAAAAAAAAA"));
+        assert!(data.contains("BBBBBBBBBBBBBBBB"));
+
+        vm.kill().await.unwrap();
+    }
+
+    #[tokio::test]
     async fn rootless_networks() {
         let port = random_port();
         let data = include_str!("./data/rootless-networks.yaml")

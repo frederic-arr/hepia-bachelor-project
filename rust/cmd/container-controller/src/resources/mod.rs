@@ -2,6 +2,7 @@ mod image;
 mod instance;
 mod network;
 mod runtime;
+mod volume;
 
 use std::sync::LazyLock;
 
@@ -11,6 +12,7 @@ pub use instance::*;
 pub use network::*;
 pub use runtime::*;
 use tonic::transport::{Channel, Endpoint};
+pub use volume::*;
 
 pub static STATE_CLIENT: LazyLock<StateServiceClient<Channel>> =
     LazyLock::new(|| {

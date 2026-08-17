@@ -151,6 +151,7 @@ fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
         "container:image".to_owned() => container_client.clone(),
         "container:instance".to_owned() => container_client.clone(),
         "container:network".to_owned() => container_client.clone(),
+        "container:volume".to_owned() => container_client.clone(),
         "container:runtime".to_owned() => container_client,
     }
 }
