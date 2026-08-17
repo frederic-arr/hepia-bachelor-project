@@ -30,6 +30,9 @@ use tonic::{Request, Response, Status};
 #[derive(Default)]
 pub struct Reconciler;
 
+// ! container-controller must be able to grant all capabilities to children
+// container
+
 #[tonic::async_trait]
 impl ReconcilerService for Reconciler {
     async fn validate(

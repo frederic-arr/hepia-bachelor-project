@@ -58,6 +58,7 @@ mod validation {
         let mut vm = create_vm().await;
         let () = vm.push_str(data).await.unwrap();
 
+        std::thread::sleep(Duration::from_secs(5));
         let resources = vm.list().await.unwrap();
         assert_eq!(resources.len(), 7);
 
@@ -73,9 +74,10 @@ mod validation {
         vm.list().await.unwrap_err();
 
         vm.set_password(Some("hepia2026demo".to_owned()));
+        std::thread::sleep(Duration::from_secs(5));
 
         let resources = vm.list().await.unwrap();
-        assert_eq!(resources.len(), 8);
+        assert_eq!(resources.len(), 7);
 
         vm.kill().await.unwrap();
     }

@@ -34,7 +34,9 @@ use network_controller::{
     LinkSpecUnspec,
     NtpSpec,
 };
+use rustix::thread::{CapabilitySet, CapabilitySets, set_capabilities};
 use serde_json::Value;
+use tokio::runtime::{Builder, LocalOptions};
 use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
 use tokio::sync::Mutex;
@@ -48,6 +50,10 @@ use tracing_subscriber::fmt::MakeWriter;
 use crate::api::{ApiAuth, ApiConfig, ApiServer};
 use crate::queue::Queue;
 use crate::state::StateManager;
+
+// ! state-manager doesn't need any capabilities besides reboot
+const CAPS: CapabilitySet =
+    CapabilitySet::SYS_BOOT.union(CapabilitySet::SYS_ADMIN);
 
 #[expect(clippy::unwrap_used, reason = "this is early in the program")]
 fn default_config() -> Vec<SubResourceCreate<Value>> {
@@ -282,8 +288,23 @@ impl Write for ImmediateStdout {
     }
 }
 
-#[tokio::main(flavor = "local")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    set_capabilities(
+        None,
+        CapabilitySets {
+            effective: CapabilitySet::empty(),
+            permitted: CAPS,
+            inheritable: CapabilitySet::empty(),
+        },
+    )?;
+
+    Builder::new_current_thread()
+        .enable_all()
+        .build_local(LocalOptions::default())?
+        .block_on(async_main())
+}
+
+async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         .with_writer(ImmediateWriter)
         .with_env_filter(
@@ -350,7 +371,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     tracing::info!("saving data to disk");
-    // TODO
     tracing::info!("shutdown complete");
 
     Ok(())

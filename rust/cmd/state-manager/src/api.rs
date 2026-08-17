@@ -48,11 +48,13 @@ use linux_utils::{is_maintenance, mount_iso};
 use rustix::fs::sync;
 use rustix::mount::{MountFlags, mount};
 use rustix::system::{RebootCommand, reboot};
+use rustix::thread::{CapabilitySet, CapabilitySets, set_capabilities};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::sync::Mutex;
 use tonic::{Request, Response, Status};
 
+use crate::CAPS;
 use crate::state::StateManager;
 
 pub struct ApiServer {
@@ -105,6 +107,16 @@ impl ApiServer {
         if !is_maintenance() {
             bail!("cannot install outside of maintenance mode");
         }
+
+        set_capabilities(
+            None,
+            CapabilitySets {
+                effective: CAPS,
+                permitted: CAPS,
+                inheritable: CapabilitySet::empty(),
+            },
+        )
+        .map_err(|err| Status::from_error(err.into()))?;
 
         let disk = &config.system_disk;
         let mut child = Command::new("sgdisk").args(["-og", disk]).spawn()?;
