@@ -33,7 +33,7 @@
         align: (left, right),
         content-left, content-right,
     )
-    v(51pt)
+    v(32pt)
 }
 
 #let meta-footer(

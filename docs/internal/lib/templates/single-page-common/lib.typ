@@ -45,8 +45,8 @@
 
     align(center, {
         place(hide(heading(anchor)))
-        block(text(size: 1.3em, weight: "bold", smallcaps(title)))
-        v(1.5cm)
+        block(text(size: 1.5em, weight: "bold", smallcaps(title)))
+        v(32pt)
     })
 
     body

@@ -29,3 +29,10 @@ serveur web avec seulement 160 MiB de mémoire vive, un seuil nettement inférie
 à celui des solutions comparées. Ce travail conclut sur l'atteinte des objectifs
 techniques fixés, tout en identifiant des limites, notamment l'absence de
 journalisation et de supervision, ouvrant la voie à des développements futurs.
+
+#v(1cm)
+#align(center, image(
+    height: 5cm,
+    fit: "contain",
+    "../lib/assets/containeros.jpg",
+))
