@@ -81,7 +81,7 @@ réconciliation en dehors du cycle normal#sym.space.narrow:
 
 #figure(
     caption: [Service gRPC pour l'orchestrateur],
-    source: link("proto/containeros/state/v1/service.proto"),
+    source: repo("proto/containeros/state/v1/service.proto"),
     ```protobuf
     service StateService {
       rpc ReconcileNow(ReconcileNowRequest) returns (ReconcileNowResponse) {}
@@ -102,7 +102,7 @@ la réconciliation d'une ressource#sym.space.narrow:
 
 #figure(
     caption: [Service gRPC pour les contrôleurs],
-    source: link("proto/containeros/reconciler/v1/service.proto"),
+    source: repo("proto/containeros/reconciler/v1/service.proto"),
     ```protobuf
     service ReconcilerService {
       rpc Validate(ValidateRequest) returns (ValidateResponse) {}
@@ -176,7 +176,7 @@ dans la structure `QueueInner<K>` illustrée dans le #code-num-ref(
 #figure(
     label: <code-queue-inner>,
     caption: [Structure interne de la file d'attente],
-    source: link("cmd/state-manager/src/queue.rs"),
+    source: repo("rust/cmd/state-manager/src/queue.rs"),
     ```rust
     struct QueueInner<K> {
         scheduled: HashMap<K, Instant>,
@@ -224,7 +224,7 @@ illustré dans le #code-num-ref(<code-queue-gard>)#sym.space.narrow:
     label: <code-queue-gard>,
     caption: [Encapsulation de la file d'attente pour les opérations
         d'écriture],
-    source: link("cmd/state-manager/src/queue.rs"),
+    source: repo("rust/cmd/state-manager/src/queue.rs"),
     ```rust
     struct QueueInnerGuard<'a, K> {
         guard: RwLockWriteGuard<'a, QueueInner<K>>,
@@ -252,7 +252,7 @@ concurrent aux différentes méthodes, illustré dans le #code-num-ref(
 #figure(
     label: <code-queue>,
     caption: [Encapsulation de la file d'attente pour un accès concurrent],
-    source: link("cmd/state-manager/src/queue.rs"),
+    source: repo("rust/cmd/state-manager/src/queue.rs"),
     ```rust
     struct Queue<K> {
         queue: Mutex<QueueInner<K>>,
@@ -419,7 +419,7 @@ la procédure `reconcile` du contrôleur réseau#sym.space.narrow:
 #figure(
     label: <code-dispatch>,
     caption: [Aiguillage sur le schéma d'une ressource],
-    source: link("rust/cmd/network-controller/src/main.rs"),
+    source: repo("rust/cmd/network-controller/src/main.rs"),
     ```rust
     async fn reconcile(
         &self,
@@ -540,7 +540,7 @@ présent varie selon le lien concerné, comme illustré dans le #code-num-ref(
 #figure(
     label: <code-link-attr>,
     caption: [Extrait d'une liste d'attributs retournée pour un lien réseau],
-    source: link("rust/cmd/network-controller/src/resources/link.rs"),
+    source: repo("rust/cmd/network-controller/src/resources/link.rs"),
     ```rust
     vec![
         LinkAttribute::Name(/* ... */),
@@ -559,7 +559,7 @@ liste d'attributs incomplète#sym.space.narrow:
 #figure(
     label: <code-link-base-strict>,
     caption: [Structure finale représentant l'état d'un lien réseau],
-    source: link("rust/cmd/network-controller/src/resources/link.rs"),
+    source: repo("rust/cmd/network-controller/src/resources/link.rs"),
     ```rust
     #[derive(Builder /*, ... */)]
     #[builder(pattern = "mutable", vis = "pub(crate)")]
@@ -584,7 +584,7 @@ dans laquelle chaque champ est rendu optionnel#sym.space.narrow:
 #figure(
     label: <code-link-builder-strict>,
     caption: [Structure intermédiaire générée par la macro `Builder`],
-    source: link("rust/cmd/network-controller/src/resources/link.rs"),
+    source: repo("rust/cmd/network-controller/src/resources/link.rs"),
     ```rust
     pub struct LinkStateBuilder {
         pub index: Option<u32>,
@@ -606,7 +606,7 @@ correspondant de cette structure intermédiaire, comme illustré dans le
 #figure(
     label: <code-link-builder>,
     caption: [Extrait du constructeur de la ressource `link`],
-    source: link("rust/cmd/network-controller/src/resources/link.rs"),
+    source: repo("rust/cmd/network-controller/src/resources/link.rs"),
     ```rust
     fn build_from_attrs(
         &mut self, // self: LinkStateBuilder
