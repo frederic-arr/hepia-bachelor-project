@@ -4,10 +4,10 @@
 
 #refdiagram(
     label: <statustrans>,
-    caption: [Transition entre les différents status d'une ressource],
+    caption: [Transition entre les différents statuts d'une ressource],
     note: [
-        Illustre les divers status qu'une ressource peut avoir et quelles sont
-        les transitions autorisée entre deux initialisation du système.
+        Illustre les divers statuts qu'une ressource peut avoir et quelles sont
+        les transitions autorisée entre deux initialisations du système.
     ],
     source: made-by-self,
 
@@ -56,12 +56,12 @@
             title: [ready],
         )
 
-        node(
-            label: <statustrans-del>,
-            width: 2cm,
-            (3, 1),
-            title: [deleting],
-        )
+        // node(
+        //     label: <statustrans-del>,
+        //     width: 2cm,
+        //     (3, 1),
+        //     title: [deleting],
+        // )
 
         edge(
             label: <statustrans-to-err>,
@@ -79,16 +79,26 @@
             stroke: yellow,
         )
         edge(<statustrans-unk>, <statustrans-nrdy>, "-|>", stroke: yellow)
-        edge(<statustrans-err>, <statustrans-nrdy>, "--", stroke: gray)
-        edge(<statustrans-err>, <statustrans-rdy>, "--", stroke: gray)
+        edge(
+            <statustrans-err>,
+            <statustrans-nrdy>,
+            "--",
+            stroke: red.lighten(50%),
+        )
+        edge(
+            <statustrans-err>,
+            <statustrans-rdy>,
+            "--",
+            stroke: red.lighten(50%),
+        )
         edge(
             label: <statustrans-to-rdy>,
             <statustrans-rdy>,
             <statustrans-nrdy>,
             "--",
-            stroke: gray,
+            stroke: red.lighten(50%),
             num: [3],
-            badge-fill: gray,
+            badge-fill: red.lighten(50%),
             badge-y: 1em,
         )
         edge(
@@ -115,33 +125,6 @@
             badge-fill: teal,
         )
 
-        edge(
-            label: <statustrans-to-del>,
-            <statustrans-done>,
-            <statustrans-del>,
-            stroke: 2pt + red,
-            "-|>",
-            num: [5],
-            badge-fill: red,
-            badge-y: -1.5em,
-        )
-        edge(<statustrans-rdy>, <statustrans-del>, stroke: 2pt + red, "-|>")
-        edge(
-            <statustrans-nrdy>,
-            <statustrans-del>,
-            stroke: 2pt + red,
-            "-|>",
-            bend: 15deg,
-        )
-        edge(
-            <statustrans-err>,
-            <statustrans-del>,
-            stroke: 2pt + red,
-            "-|>",
-            bend: -15deg,
-        )
-        edge(<statustrans-unk>, <statustrans-del>, stroke: 2pt + red, "-|>")
-        edge(<statustrans-del>, (4, 1), "-x", title: [end])
         edge((-1, 1), <statustrans-unk>, "o-|>", title: [start])
 
         edge((-1.5, -2), (-0.5, -2), "-|>", title: [one-way transition])

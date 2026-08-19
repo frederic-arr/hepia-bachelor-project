@@ -1,12 +1,71 @@
-#let outline-figure() = {
+#let full-outline() = {
+    {
+        // show outline.entry: set block(above: 0.6em)
+        show outline.entry.where(level: 1): set block(above: 1.2em)
+        show outline.entry.where(level: 1): set text(weight: "bold")
+        show outline.entry: it => {
+            if (
+                it.element.numbering == none
+                    and it.element.location().page() <= 10
+            ) {
+                link(
+                    it.element.location(),
+                    block(
+                        inset: (left: 0% + 16.01pt),
+                        [
+                            #h(-16.01pt)
+                            #it.prefix()
+                            #it.body()
+                            #box(width: 1fr, it.fill)
+                            #counter(page).display(
+                                "I",
+                                at: it.element.location(),
+                            )
+                        ],
+                    ),
+                )
+            } else if it.element.numbering == "A" {
+                let b = it.body()
+                link(
+                    it.element.location(),
+                    block(
+                        inset: (left: 0% + 16.01pt),
+                        [
+                            #h(-16.01pt)
+                            Annexe #it.prefix() #sym.dash
+                            #it.body()
+                            #box(width: 1fr, it.fill)
+                            #it.page()
+                        ],
+                    ),
+                )
+            } else if it.element.numbering == "A.1." {
+                if it.level == 2 {
+                    set text(weight: "bold")
+                    it
+                } else {
+                    it
+                }
+            } else {
+                it
+            }
+        }
+
+        outline()
+    }
+
     state("use-short-caption", false).update(_ => true)
     outline(
         title: [Table des illustrations],
         target: figure.where(kind: image),
     )
     outline(
-        title: none,
+        title: [Table des tableaux],
         target: figure.where(kind: table),
+    )
+    outline(
+        title: [Table des extraits de code],
+        target: figure.where(kind: raw),
     )
     state("use-short-caption", false).update(_ => false)
 }
@@ -41,15 +100,19 @@
         [
             #std.figure(
                 caption: flex-caption(caption, [
-                    #caption \
-                    #note \
-                    #if source != none {
-                        text(style: "italic")[Source: #if (
-                                type(source) == label
-                            ) [
-                                tiré de #cite(source, form: "prose")
-                            ] else { source }]
-                    }
+                    #caption
+
+                    #if note != none [
+                        #note
+                    ]
+
+                    #if source != none [
+                        _Source_: #if (
+                            type(source) == label
+                        ) [
+                            tiré de #cite(source, form: "prose")
+                        ] else { source }
+                    ]
                 ]),
                 [#body],
             ) #label

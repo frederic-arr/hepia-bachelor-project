@@ -7,7 +7,7 @@
     caption: [Réconciliation d'une ressource],
     note: [
         Le système observe l'état actuel de la ressource, calcule l'écart avec
-        l'état désiré, et applique les actions correctives.
+        la spécification, et applique les actions correctives.
     ],
     source: made-by-self,
 
@@ -33,8 +33,8 @@
             num: [3],
             stroke: none,
             (1, 0),
-            title: [Desired State],
-            subtitle: [specification],
+            title: [Specification],
+            subtitle: [desired state],
         )
         node(
             label: <decl-res>,

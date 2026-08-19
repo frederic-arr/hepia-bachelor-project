@@ -1,5 +1,5 @@
 ---
-# $schema: https://jassielof.github.io/json-schemas/docs/hayagriva.schema.json
+# $schema: https://raw.githubusercontent.com/mkdjr/hayagriva/refs/heads/main/hayagriva.schema.json
 
 # Mattermost: Buildroot par F. Gluck
 # Mattermost: Solution sécurisée pour infrastructure nexus par G. Pin
@@ -1185,7 +1185,6 @@ bib-ibm-docker:
       - Scapicchio, Mark
     url: https://www.ibm.com/think/topics/devops-guide
 
-# TODO
 bib-intelTpm:
   type: web
   title: What Is a Trusted Platform Module (TPM)?
@@ -1415,3 +1414,526 @@ bib-owasp-devguide-secure-by-default:
   url:
     value: https://devguide.owasp.org/en/04-design/02-web-app-checklist/01-secure-by-default/
     date: 2026-03-09
+
+bib-rust-doctest:
+  type: web
+  title: Documentation tests
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/rustdoc/write-documentation/documentation-tests.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The rustdoc book
+    url: https://doc.rust-lang.org/1.97.1/rustdoc/
+
+bib-rust-std-btreemap:
+  type: web
+  title: Struct BTreeMap
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/collections/struct.BTreeMap.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-rust-std-hashset:
+  type: web
+  title: Struct HashSet
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/collections/struct.HashSet.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-rust-std-mutex:
+  type: web
+  title: Struct Mutex
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/sync/struct.Mutex.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-rust-std-drop:
+  type: web
+  title: Trait Drop
+  author: The Rust Team
+  url:
+    value: https://doc.rust-lang.org/1.97.1/std/ops/trait.Drop.html
+    date: 2026-07-23
+  parent:
+    type: web
+    title: The Rust Standard Library
+    url: https://doc.rust-lang.org/1.97.1/std/index.html
+
+bib-smoltcp-issue:
+  type: web
+  title: The `impl From<std::Instant>` for `smoltcp::Instant` seems buggy
+  author: Robin Lambertz
+  url:
+    value: https://github.com/smoltcp-rs/smoltcp/issues/347
+    date: 2026-08-01
+  parent:
+    type: web
+    title: smoltcp
+    url: https://github.com/smoltcp-rs/smoltcp
+
+bib-smoltcp-pull:
+  type: web
+  title: "fix: incorrect conversion from `std::time::Instant` to `Instant`"
+  author: Frédéric Arroyo
+  url:
+    value: https://github.com/smoltcp-rs/smoltcp/pull/1177
+    date: 2026-08-01
+  parent:
+    type: web
+    title: smoltcp
+    url: https://github.com/smoltcp-rs/smoltcp
+
+bib-podman-issue:
+  type: web
+  title: Alignment with moby swagger definition for ContainerState.Status
+  author: Jiri Daněk
+  url:
+    value: https://github.com/podman-container-tools/podman/issues/17728
+    date: 2026-08-01
+  parent:
+    type: web
+    title: Podman
+    url: https://github.com/podman-container-tools/podman
+
+bib-podman-pull:
+  type: web
+  title: "compat: map internal states to Docker equivalents in LibpodToContainer"
+  author: crawfordxx
+  url:
+    value: https://github.com/podman-container-tools/podman/pull/28390
+    date: 2026-08-01
+  parent:
+    type: web
+    title: Podman
+    url: https://github.com/podman-container-tools/podman
+
+bib-podman-release:
+  type: web
+  title: v6.0.0
+  author: The Linux Foundation
+  url:
+    value: https://github.com/podman-container-tools/podman/releases/tag/v6.0.0
+    date: 2026-08-01
+  parent:
+    type: web
+    title: Podman
+    url: https://github.com/podman-container-tools/podman
+
+bib-podman-nix:
+  type: web
+  title: "Podman 6.0: BoltDB removal and SQLite migration plan"
+  author: Sascha Grunert
+  url:
+    value: https://github.com/NixOS/nixpkgs/issues/489717
+    date: 2026-08-01
+  parent:
+    type: web
+    title: nixpkgs
+    url: https://github.com/NixOS/nixpkgs
+
+bib-docker-compose:
+  type: web
+  title: Docker Compose
+  author: Docker Inc.
+  url:
+    value: https://docs.docker.com/compose/
+    date: 2026-08-02
+  parent:
+    type: web
+    title: Docker Documentation
+    url: https://docs.docker.com/
+
+bib-kubernetes:
+  type: web
+  title: Kubernetes
+  author: The Linux Foundation
+  url:
+    value: https://kubernetes.io/
+    date: 2026-08-02
+
+bib-terraform:
+  type: web
+  title: Terraform
+  author: Hashicorp
+  url:
+    value: https://www.hashicorp.com/en/products/terraform
+    date: 2026-08-02
+
+bib-semester-projet:
+  type: web
+  title: OS pour le déploiement d'infrastructures et services conteneurisés
+  author: Frédéric Arroyo
+  date: 2026-03
+  url:
+    value: https://gitedu.hesge.ch/flg_bachelors/ps/2025/container_os/-/raw/bachelor/final/arroyo-frederic-sp-2026.pdf
+    date: 2026-08-02
+
+bib-linux-kernel:
+  type: web
+  title: The Linux Kernel Archives
+  author: The Linux Kernel Organization
+  url:
+    value: https://www.kernel.org/
+    date: 2026-08-02
+
+bib-clevis:
+  type: web
+  title: Clevis - An Automated Encryption Framework
+  author: The Clevis Contributors
+  url:
+    value: https://github.com/latchset/clevis/
+    date: 2026-08-02
+
+bib-linux-operstate:
+  type: web
+  title: Operational States
+  url:
+    value: https://docs.kernel.org/networking/operstates.html
+    date: 2026-08-02
+  parent:
+    type: web
+    title: The Linux Kernel Documentation
+    editor:
+      - The kernel development community
+
+bib-linux-fhs:
+  type: web
+  title: Filesystem Hierarchy Standard
+  author: The Linux Foundation
+  url:
+    value: https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
+    date: 2026-08-02
+
+bib-grpc:
+  type: web
+  title: gRPC - A high performance, open source universal RPC framework
+  author: The gRPC Authors
+  url:
+    value: https://grpc.io/
+    date: 2026-08-02
+
+bib-tonic:
+  type: web
+  title: Tonic - A Rust implementation of gRPC
+  author: The gRPC Authors
+  url:
+    value: https://github.com/grpc/grpc-rust
+    date: 2026-08-02
+
+bib-tokio:
+  type: web
+  title: Tokio
+  author: The Tokio Authors
+  url:
+    value: https://github.com/tokio-rs/tokio
+    date: 2026-08-02
+
+bib-serde:
+  type: web
+  title: Serde
+  author: The Serde Authors
+  url:
+    value: https://github.com/serde-rs/serde
+    date: 2026-08-02
+
+bib-grpc-proto3-optional:
+  type: web
+  title: Why were `required` and `optional` removed in Protocol Buffers 3?
+  author: Yongjiang Zhang
+  url:
+    value: https://stackoverflow.com/questions/31801257/why-were-required-and-optional-removed-in-protocol-buffers-3
+    date: 2026-08-02
+  parent:
+    type: web
+    title: StackOverflow
+
+bib-linux-open-tmpfile:
+  type: web
+  title: open(2) - Linux System Call
+  author: The Linux man-pages project
+  url:
+    value: https://www.man7.org/linux/man-pages/man2/open.2.html
+    date: 2026-08-02
+
+bib-linux-openat2:
+  type: web
+  title: openat2 - open and possibly create a file
+  author: The Linux man-pages project
+  url:
+    value: https://www.man7.org/linux/man-pages/man2/openat2.2.html
+    date: 2026-08-02
+
+bib-linux-rtnetlink:
+  type: web
+  title: rtnetlink - Linux routing socket
+  author: The Linux man-pages project
+  url:
+    value: https://www.man7.org/linux/man-pages/man7/rtnetlink.7.html
+    date: 2026-08-02
+
+bib-smoltcp:
+  type: web
+  title: smoltcp - A smol tcp/ip stack in Rust
+  author: The smoltcp Authors
+  url:
+    value: https://github.com/smoltcp-rs/smoltcp
+    date: 2026-08-02
+
+bib-bollard:
+  type: web
+  title: Bollard - Docker daemon API in Rust
+  author: fussybeaver
+  url:
+    value: https://github.com/fussybeaver/bollard
+    date: 2026-08-02
+
+bib-gitops:
+  type: web
+  title: Le GitOps, qu'est-ce que c'est ?
+  author: Red Hat, Inc.
+  url:
+    value: https://www.redhat.com/fr/topics/devops/what-is-gitops
+    date: 2026-08-02
+
+bib-curl:
+  type: web
+  title: curl -  command line tool and library for transferring data with URLs
+  author: Daniel Stenberg
+  url:
+    value: https://curl.se/docs/manpage.html
+    date: 2026-08-02
+
+bib-alpine:
+  type: web
+  title: Alpine Linux - a security-oriented, lightweight Linux distribution
+  author: The Alpine Linux Development Team
+  url:
+    value: https://www.alpinelinux.org/
+    date: 2026-08-02
+
+bib-dhcp-rfc:
+  type: web
+  title: RFC 2131 - Dynamic Host Configuration Protocol
+  author: Ralph Droms
+  url:
+    value: https://datatracker.ietf.org/doc/html/rfc2131
+    date: 2026-08-02
+
+bib-squashfs:
+  type: web
+  title: Squashfs 4.0 Filesystem
+  author: The kernel development community
+  url:
+    value: https://www.kernel.org/doc/html/latest/filesystems/squashfs.html
+    date: 2026-08-02
+
+bib-overlayfs:
+  type: web
+  title: Overlay Filesystem
+  author: The kernel development community
+  url:
+    value: https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html
+    date: 2026-08-02
+
+bib-toctou:
+  type: web
+  title: Time-of-check to time-of-use
+  author: The Wikipedia Authors
+  url:
+    value: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
+    date: 2026-08-02
+
+bib-rtnetlink:
+  type: web
+  title: rtnetlink - Rust crate for rtnetlink protocol
+  author: The Rust Netlink Authors
+  url:
+    value: https://docs.rs/rtnetlink/latest/rtnetlink/
+    date: 2026-08-02
+
+bib-gitlab-ci:
+  type: web
+  title: Get started with GitLab CI/CD
+  author: GitLab Inc.
+  url:
+    value: https://docs.gitlab.com/ci/
+    date: 2026-08-02
+
+bib-man2-fork:
+  type: web
+  title: fork - create a child process
+  author: The Linux man-pages project
+  url:
+    value: https://www.man7.org/linux/man-pages/man2/fork.2.html
+    date: 2026-08-02
+
+bib-man-ns:
+  type: web
+  title: namespaces - overview of Linux namespaces
+  author: The Linux man-pages project
+  url:
+    value: https://www.man7.org/linux/man-pages/man7/namespaces.7.html
+    date: 2026-08-02
+
+bib-nextest:
+  type: web
+  title: A next-generation test runner for Rust
+  author: The Nextest Contributors
+  url:
+    value: https://nexte.st/
+    date: 2026-08-02
+
+bib-exit:
+  type: web
+  title: _exit, _Exit - terminate the calling process
+  author: The Linux man-pages project
+  url:
+    value: https://www.man7.org/linux/man-pages/man2/_exit.2.html
+    date: 2026-08-02
+
+bib-typstfmt:
+  type: web
+  title: Typstyle - A beautiful and reliable code formatter for Typst.
+  author: The Typstyle authors
+  url:
+    value: https://github.com/typstyle-rs/typstyle
+    date: 2026-08-02
+
+bib-buf:
+  type: web
+  title: Buf - Modern Protobuf and gRPC
+  author: Buf Technologies
+  url:
+    value: https://buf.build/
+    date: 2026-08-02
+
+bib-cargo-fmt:
+  type: web
+  title: rustfmt - A tool for formatting Rust code according to style guidelines
+  author: The Rust Authors
+  url:
+    value: https://github.com/rust-lang/rustfmt
+    date: 2026-08-02
+
+bib-cargo-clippy:
+  type: web
+  title: Clippy - A collection of lints to catch common mistakes and improve your Rust code
+  author: The Rust Authors
+  url:
+    value: https://github.com/rust-lang/rust-clippy
+    date: 2026-08-02
+
+bib-justfile:
+  type: web
+  title: Just a command runner
+  author: Casey Rodarmor
+  url:
+    value: https://just.systems/man/en/
+    date: 2026-08-02
+
+bib-makefile:
+  type: web
+  title: GNU make
+  author: Free Software Foundation
+  url:
+    value: https://www.gnu.org/software/make/manual/make.html
+    date: 2026-08-02
+
+bib-qemu:
+  type: web
+  title: QEMU - A generic and open source machine emulator and virtualizer
+  author: The QEMU Project Developers
+  url:
+    value: https://www.qemu.org/
+    date: 2026-08-02
+
+bib-rust-unstable:
+  type: web
+  title: Rust Unstable features
+  author: The Rust for Linux Authors
+  url:
+    value: https://rust-for-linux.com/unstable-features
+    date: 2026-08-02
+
+bib-limine:
+  type: web
+  title: Limine - Modern, secure, portable, multiprotocol bootloader and boot manager.
+  author: Mintsuki and contributors.
+  url:
+    value: https://github.com/limine-bootloader/limine
+    date: 2026-08-02
+
+bib-linkat:
+  type: web
+  title: link, linkat - make a new name for a file
+  author: The Linux man-pages project
+  url:
+    value: https://www.man7.org/linux/man-pages/man2/linkat.2.html
+    date: 2026-08-02
+
+bib-nixos-anywhere:
+  type: web
+  title: nixos-anywhere - Install NixOS everywhere via ssh
+  author: The Nix community projects
+  url:
+    value: https://github.com/nix-community/nixos-anywhere
+    date: 2026-08-02
+
+bib-luks:
+  type: web
+  title: Cryptsetup is an open-source utility used to conveniently set up disk encryption
+  author: Free Software Foundation, Inc.
+  url:
+    value: https://gitlab.com/cryptsetup/cryptsetup/blob/master/README.md
+    date: 2026-08-02
+
+bib-netsim:
+  type: web
+  title: netsim - a Rust library which allows you to
+  author: Andrew Cann
+  url:
+    value: https://github.com/canndrew/netsim
+    date: 2026-08-02
+
+bib-rust-by-example:
+  type: web
+  title: Rust by Example
+  author: The Rust Authors
+  url:
+    value: https://doc.rust-lang.org/stable/rust-by-example/index.html
+    date: 2026-08-02
+
+bib-rust-by-example-stdlib:
+  type: web
+  title: Std library types
+  author: The Rust Authors
+  parent:
+    type: web
+    title: Rust By Example
+  url:
+    value: https://doc.rust-lang.org/stable/rust-by-example/std.html
+    date: 2026-08-02
+
+bib-tmpfs:
+  type: web
+  title: Tmpfs - A file system which keeps all of its files in virtual memory
+  author: Christoph Rohland
+  url:
+    value: https://www.kernel.org/doc/html/latest/filesystems/tmpfs.html
+    date: 2026-08-02

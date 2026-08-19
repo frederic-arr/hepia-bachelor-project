@@ -3,9 +3,9 @@
         let el = it.element
 
         if el.func() == heading {
-            return link(el.location(), [#it,~#emph(el.body)])
+            return link(el.location(), [#it, #emph(el.body)])
         } else if el.func() == figure {
-            return link(el.location(), [#it,~#emph(el.caption.body)])
+            return link(el.location(), [#it, #emph(el.caption.body)])
         } else {
             return highlight(fill: red, text(color: black)[*INVALID*])
         }
@@ -24,8 +24,16 @@
     text(style: "italic")[N.B.: #body]
 }
 
+#let chapter-num-ref(label) = {
+    num-ref(label, supplement: "chapitre")
+}
+
 #let chapter-full-ref(label) = {
     full-ref(label, supplement: "chapitre")
+}
+
+#let appendix-full-ref(label) = {
+    full-ref(label, supplement: "annexe")
 }
 
 #let chapters-full-ref(..labels) = [
@@ -48,4 +56,12 @@
 
 #let table-num-ref(label) = {
     num-ref(label, supplement: "tableau")
+}
+
+#let code-num-ref(label) = {
+    num-ref(label, supplement: "code")
+}
+
+#let appendix-num-ref(label) = {
+    num-ref(label, supplement: "annexe")
 }

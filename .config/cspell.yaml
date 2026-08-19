@@ -14,7 +14,29 @@ languageSettings:
       - contrôleur
       - péjorer
       - débuggage
+      - débuggages
       - débugger
+      - replanification
+      - requêter
+      - replanifiée
+      - replanifier
+      - replanifie
+      - redéclencher
+      - Ryzen
+      - TOCTOU
+      - flushée
+      - rtnetlink
+      - Limine
+      - recalcul
+      - typstfmt
+      - désérialisation
+      - Sidero
+      - LUKS
+      - asynchronicité
+      - nixpkgs
+      - netavark
+      - glspl
+      - VirtIO
   - languageId: typst
     ignoreRegExpList:
       - string
@@ -35,7 +57,22 @@ languageSettings:
       - sbref
       - dhcpd
       - resolv
-      - declarativity
+      - smoltcp
+      - hviolin
+      - xaxis
+      - yaxis
+      - xlabel
+      - ylabel
+      - lilaq
+      - hyph
+      - nixos
+      - mkcell
+      - hline
+      - networkd
+      - clippy
+      - Serde
+      - rootfs
+      - Tmpfs
 overrides:
   - filename: "docs/**/*.typ"
     languageId: typst
@@ -58,4 +95,7 @@ words:
   - Florent
   - Glück
   - HEPIA
+  - Swapneel
+  - MEHTA
   - Codeberg
+  - declarativity

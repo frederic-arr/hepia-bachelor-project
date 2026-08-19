@@ -4,7 +4,7 @@
     anchor: "Énoncé du sujet",
     title: [
         OS pour le déploiement de services conteneurisés \
-        #text(size: 0.86em, [Orientation: Informatique logicielle])
+        #text(size: 0.86em, [Orientation: Informatique Logicielle])
     ],
     header: text(font: "Liberation Sans")[
         Printemps 2026 \

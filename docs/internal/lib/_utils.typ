@@ -5,12 +5,16 @@
     show smallcaps: set text(font: "Alegreya Sans SC")
     set par(
         justify: true,
-        first-line-indent: (amount: 2em, all: true),
+        first-line-indent: (amount: 2em, all: false),
         leading: 0.65em,
         spacing: 1.2em,
     )
     set list(marker: [#sym.dash.em], indent: 1.5em)
     set enum(indent: 1.5em)
+    show heading.where(level: 1): set text(size: 21pt)
+    show heading.where(level: 2): set text(size: 17pt)
+    show heading.where(level: 3): set text(size: 12pt)
+    show heading: set block(above: 1.5em)
 
     body
 }
@@ -29,7 +33,7 @@
         align: (left, right),
         content-left, content-right,
     )
-    v(51pt)
+    v(32pt)
 }
 
 #let meta-footer(
@@ -66,13 +70,17 @@
         gutter: 12em,
         align: (left, left),
         {
-            par[
-                #author.statement: \
-                #text(size: 1.2em, smallcaps[*#author.name*])
-            ]
-            v(2em)
+            if author != none {
+                par[
+                    #author.statement: \
+                    #text(size: 1.2em, smallcaps[*#author.name*])
+                ]
+                v(2em)
+            }
 
-            par[#field-of-study.statement: #field-of-study.name]
+            if field-of-study != none {
+                par[#field-of-study.statement: #field-of-study.name]
+            }
         },
         {
             par[
