@@ -18,20 +18,31 @@ use network_controller::{
     DhcpResource,
     DnsReconciler,
     DnsResource,
+    InterfaceReconciler,
+    InterfaceResource,
     LinkReconciler,
     LinkResource,
+    NtpReconciler,
+    NtpResource,
     RouteReconciler,
     RouteResource,
 };
 use rtnetlink::new_connection;
+use rustix::thread::{CapabilitySet, CapabilitySets, set_capabilities};
 use serde_json::Value;
 use tokio::net::TcpListener;
+use tokio::runtime::{Builder, LocalOptions};
 use tokio_stream::wrappers::TcpListenerStream;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
 #[derive(Default)]
 pub struct Reconciler;
+
+const CAPS: CapabilitySet = CapabilitySet::NET_ADMIN
+    .union(CapabilitySet::NET_RAW)
+    .union(CapabilitySet::SYS_TIME)
+    .union(CapabilitySet::NET_BIND_SERVICE);
 
 #[tonic::async_trait]
 impl ReconcilerService for Reconciler {
@@ -84,6 +95,22 @@ impl ReconcilerService for Reconciler {
                     DhcpReconciler::new_with(handle)
                 });
             }
+            "network:ntp" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    NtpResource,
+                    NtpReconciler::new()
+                );
+            }
+            "network:interface" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    InterfaceResource,
+                    InterfaceReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -92,6 +119,16 @@ impl ReconcilerService for Reconciler {
         &self,
         request: Request<ReconcileRequest>,
     ) -> Result<Response<ReconcileResponse>, Status> {
+        set_capabilities(
+            None,
+            CapabilitySets {
+                effective: CAPS,
+                permitted: CAPS,
+                inheritable: CAPS,
+            },
+        )
+        .map_err(|err| Status::from_error(err.into()))?;
+
         let req = request.into_inner();
         let resource: Resource<Value, Value, Value> =
             serde_json::from_slice(&req.raw)
@@ -130,15 +167,40 @@ impl ReconcilerService for Reconciler {
                     DhcpReconciler::new_with(handle)
                 });
             }
+            "network:ntp" => {
+                reconcile!(resource, NtpResource, NtpReconciler::new());
+            }
+            "network:interface" => {
+                reconcile!(
+                    resource,
+                    InterfaceResource,
+                    InterfaceReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
 }
 
-#[tokio::main(flavor = "local")]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
+    set_capabilities(
+        None,
+        CapabilitySets {
+            effective: CapabilitySet::empty(),
+            permitted: CAPS,
+            inheritable: CAPS,
+        },
+    )?;
+
+    Builder::new_current_thread()
+        .enable_all()
+        .build_local(LocalOptions::default())?
+        .block_on(async_main())
+}
+
+async fn async_main() -> Result<()> {
     tracing_subscriber::fmt().init();
-    let addr = "[::1]:50052";
+    let addr = "127.0.0.1:50052";
     let reconciler = Reconciler;
 
     let listener = TcpListener::bind(addr).await?;

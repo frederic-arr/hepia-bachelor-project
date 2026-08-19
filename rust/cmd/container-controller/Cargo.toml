@@ -24,7 +24,7 @@ cos-proto-reconciler.path = "../../crates/cos-proto-reconciler"
 cos-proto-reconciler-server.path = "../../crates/cos-proto-reconciler-server"
 cos-proto-state.path = "../../crates/cos-proto-state"
 cos-proto-state-client.path = "../../crates/cos-proto-state-client"
-tokio = { workspace = true, features = ["macros", "rt", "process"] }
+tokio = { workspace = true, features = ["macros", "rt", "process", "fs"] }
 tonic = { workspace = true, features = ["transport", "router"] }
 serde_json = { workspace = true, features = ["std"] }
 tracing.workspace = true

@@ -39,6 +39,8 @@
   writableTmpDirAsHomeHook,
   coreutils,
   runtimeShell,
+  su,
+  shadow
 }:
 buildGoModule (finalAttrs: {
   pname = "podman";
@@ -166,6 +168,8 @@ buildGoModule (finalAttrs: {
         iptables
         iproute2
         nftables
+        su
+        shadow
       ]
       ++ lib.optional (lib.meta.availableOn stdenv.hostPlatform vfkit) vfkit
       ++ lib.optional (lib.meta.availableOn stdenv.hostPlatform krunkit) krunkit

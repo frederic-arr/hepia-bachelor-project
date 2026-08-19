@@ -20,6 +20,13 @@ use cos_proto_state::v1::ReconcileNowRequest;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use system_controller::StaticFileSpec;
+use tokio::fs::File;
+use tokio::io::{
+    AsyncBufReadExt as _,
+    AsyncRead,
+    AsyncWriteExt as _,
+    BufReader,
+};
 use tokio::process::{Child, Command};
 use tokio::sync::Mutex;
 use tokio::time::timeout;
@@ -180,7 +187,7 @@ impl RuntimeReconciler {
             let _ = c.kill().await;
         }
 
-        engines.insert(k.to_owned(), Self::start_podman(&resource)?);
+        engines.insert(k.to_owned(), Self::start_podman(&resource).await?);
         drop(engines);
 
         Ok(ResourceResponse {
@@ -205,7 +212,7 @@ impl RuntimeReconciler {
             .collect()
     }
 
-    fn start_podman(resource: &RuntimeResource) -> Result<Child> {
+    async fn start_podman(resource: &RuntimeResource) -> Result<Child> {
         let uid = resource.spec.uid;
         let gid = resource.spec.gid;
         let port_arg =
@@ -220,13 +227,16 @@ impl RuntimeReconciler {
         let mut binding = Command::new("/bin/podman");
         let cmd = binding
             .args([
-                // "--log-level=trace",
-                "system", "service", "--time=0", &port_arg,
+                "--log-level=debug",
+                "system",
+                "service",
+                "--time=0",
+                &port_arg,
             ])
             .env("NETAVARK_FW", "nftables")
             .env("HOME", &home_dir)
-            .stderr(Stdio::null())
-            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
             .uid(uid)
             .gid(gid);
 
@@ -239,7 +249,16 @@ impl RuntimeReconciler {
             });
         }
 
-        let child = cmd.spawn().context("unable to start podman")?;
+        let mut child = cmd.spawn().context("unable to start podman")?;
+        let file = tokio::fs::File::create("output.txt").await?;
+        let err = tokio::fs::File::create("error.txt").await?;
+
+        if let Some(stdout) = child.stdout.take() {
+            tokio::spawn(forward_chunks(stdout, file));
+        }
+        if let Some(stderr) = child.stderr.take() {
+            tokio::spawn(forward_chunks(stderr, err));
+        }
 
         let key = resource.id.key().clone();
         tokio::spawn(async move {
@@ -312,4 +331,24 @@ impl RuntimeReconciler {
         }))
         .map_err(Into::into)
     }
+}
+
+#[expect(clippy::print_stdout, reason = "TODO")]
+async fn forward_chunks<R>(stream: R, mut file: File) -> Result<()>
+where
+    R: AsyncRead + Unpin + Send + 'static,
+{
+    let mut reader = BufReader::new(stream).lines();
+
+    while let Some(line) = reader.next_line().await? {
+        for chunk in line.as_bytes().chunks(100) {
+            let chunk = String::from_utf8_lossy(chunk);
+
+            println!("{chunk}");
+            file.write_all(chunk.as_bytes()).await?;
+            file.write_all(b"\n").await?;
+        }
+    }
+
+    Ok(())
 }

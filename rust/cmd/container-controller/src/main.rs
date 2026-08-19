@@ -8,6 +8,8 @@ use container_controller::{
     NetworkResource,
     RuntimeReconciler,
     RuntimeResource,
+    VolumeReconciler,
+    VolumeResource,
 };
 use cos_proto_reconciler::v1::{
     ReconcileRequest,
@@ -29,6 +31,9 @@ use tonic::{Request, Response, Status};
 
 #[derive(Default)]
 pub struct Reconciler;
+
+// ! container-controller must be able to grant all capabilities to children
+// container
 
 #[tonic::async_trait]
 impl ReconcilerService for Reconciler {
@@ -77,6 +82,14 @@ impl ReconcilerService for Reconciler {
                     NetworkReconciler::new()
                 );
             }
+            "container:volume" => {
+                validate!(
+                    resource,
+                    maybe_resource,
+                    VolumeResource,
+                    VolumeReconciler::new()
+                );
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -116,6 +129,9 @@ impl ReconcilerService for Reconciler {
                     NetworkReconciler::new()
                 );
             }
+            "container:volume" => {
+                reconcile!(resource, VolumeResource, VolumeReconciler::new());
+            }
             _ => return Err(Status::not_found("schema does not exist")),
         }
     }
@@ -124,7 +140,7 @@ impl ReconcilerService for Reconciler {
 #[tokio::main(flavor = "local")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
-    let addr = "[::1]:50053";
+    let addr = "127.0.0.1:50053";
     let reconciler = Reconciler;
 
     let listener = TcpListener::bind(addr).await?;

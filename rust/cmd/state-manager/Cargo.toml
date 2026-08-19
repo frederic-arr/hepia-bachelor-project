@@ -32,3 +32,4 @@ itertools = { workspace = true, features = ["use_std"] }
 thiserror.workspace = true
 argon2 = { workspace = true, features = ["alloc", "rand", "password-hash"] }
 rustix = { workspace = true, features = ["mount", "fs", "system"] }
+serde_yaml.workspace = true

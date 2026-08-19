@@ -1,16 +1,24 @@
 use std::str::FromStr as _;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use cos_proto_api::v1::{
-    GetResourceRequest,
-    ListResourcesRequest,
-    PushConfigRequest,
-    ReconcileNowRequest,
+    ConfigPullRequest,
+    ConfigPushRequest,
+    ConfigValidateRequest,
+    ResourcesGetRequest,
+    ResourcesListRequest,
+    ResourcesReconcileNowRequest,
+};
+use cos_proto_api::{
+    ConfigPullResponsePayload,
+    ConfigResource,
+    ConfigValidateRequestPayload,
+    ConfigValidateResponsePayload,
 };
 use cos_proto_api_client::v1::ApiServiceClient;
 use cos_proto_reconciler::{Identity, PrivateIdentity};
 pub use cos_proto_reconciler::{Key, SubResourceCreate, TerminalResource};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize as _;
 pub use serde_json::Value;
 use tonic::Request;
 use tonic::transport::{Channel, Endpoint};
@@ -21,15 +29,6 @@ pub struct CosClient {
 }
 
 pub type Resource = TerminalResource<Value, Value, Value>;
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ConfigResource {
-    pub schema: String,
-    pub name: Option<String>,
-
-    #[serde(flatten)]
-    pub spec: Value,
-}
 
 impl CosClient {
     pub fn new(addr: &str, password: Option<String>) -> Result<Self> {
@@ -43,19 +42,45 @@ impl CosClient {
         self.password = password;
     }
 
-    pub async fn reconcile(&mut self, key: &Key) -> Result<()> {
-        let raw = serde_json::to_vec(key)?;
-
-        let mut request = Request::new(ReconcileNowRequest { raw });
+    pub async fn config_validate(
+        &mut self,
+        configs: Vec<SubResourceCreate<Value>>,
+    ) -> Result<()> {
+        let mut request = Request::new(ConfigValidateRequest {
+            raw: serde_json::to_vec(&ConfigValidateRequestPayload {
+                resources: configs,
+            })?,
+        });
         if let Some(password) = &self.password {
             request.metadata_mut().append("x-auth", password.parse()?);
         }
 
-        let _ = self.client.reconcile_now(request).await?;
+        let raw = self.client.config_validate(request).await?.into_inner().raw;
+        let response: ConfigValidateResponsePayload =
+            serde_json::from_slice(&raw)?;
+
+        match response {
+            ConfigValidateResponsePayload::Ok => Ok(()),
+            ConfigValidateResponsePayload::Error(e) => Err(anyhow!("{e}")),
+        }
+    }
+
+    pub async fn config_push(
+        &mut self,
+        configs: &[SubResourceCreate<Value>],
+    ) -> Result<()> {
+        let mut request = Request::new(ConfigPushRequest {
+            raw: serde_json::to_vec(&configs)?,
+        });
+        if let Some(password) = &self.password {
+            request.metadata_mut().append("x-auth", password.parse()?);
+        }
+
+        self.client.config_push(request).await?;
         Ok(())
     }
 
-    pub async fn push_str(&mut self, s: &str) -> Result<()> {
+    pub async fn config_push_str(&mut self, s: &str) -> Result<()> {
         let configs = serde_yaml::Deserializer::from_str(s)
             .map(ConfigResource::deserialize)
             .collect::<std::result::Result<Vec<_>, _>>()?
@@ -69,46 +94,76 @@ impl CosClient {
             })
             .collect::<Vec<_>>();
 
-        self.push(&configs).await
+        self.config_push(&configs).await
     }
 
-    pub async fn push(
+    pub async fn config_pull(
         &mut self,
-        configs: &[SubResourceCreate<Value>],
-    ) -> Result<()> {
-        let mut request = Request::new(PushConfigRequest {
-            raw: serde_json::to_vec(&configs)?,
-        });
-        if let Some(password) = &self.password {
-            request.metadata_mut().append("x-auth", password.parse()?);
-        }
-
-        self.client.push_config(request).await?;
-        Ok(())
+    ) -> Result<Vec<SubResourceCreate<Value>>> {
+        let raw = self
+            .client
+            .config_pull(ConfigPullRequest { raw: vec![] })
+            .await?
+            .into_inner()
+            .raw;
+        let response: ConfigPullResponsePayload = serde_json::from_slice(&raw)?;
+        Ok(response.resources)
     }
 
-    pub async fn list(&mut self) -> Result<Vec<Resource>> {
-        let mut request = Request::new(ListResourcesRequest { raw: vec![] });
+    pub async fn fs_write(&mut self) -> Result<()> {
+        todo!()
+    }
+
+    pub async fn fs_list(&mut self) -> Result<()> {
+        todo!()
+    }
+
+    pub async fn fs_read(&mut self) -> Result<()> {
+        todo!()
+    }
+
+    pub async fn resources_list(&mut self) -> Result<Vec<Resource>> {
+        let mut request = Request::new(ResourcesListRequest { raw: vec![] });
         if let Some(password) = &self.password {
             request.metadata_mut().append("x-auth", password.parse()?);
         }
 
-        let raw = self.client.list_resources(request).await?.into_inner().raw;
+        let raw = self.client.resources_list(request).await?.into_inner().raw;
         let resources = serde_json::from_slice::<Vec<Resource>>(&raw)?;
         Ok(resources)
     }
 
-    pub async fn get_resource(&mut self, key: &Key) -> Result<Resource> {
+    pub async fn resources_get(&mut self, key: &Key) -> Result<Resource> {
         let raw = serde_json::to_vec(key)?;
 
-        let mut request = Request::new(GetResourceRequest { raw });
+        let mut request = Request::new(ResourcesGetRequest { raw });
         if let Some(password) = &self.password {
             request.metadata_mut().append("x-auth", password.parse()?);
         }
 
-        let raw = self.client.get_resource(request).await?.into_inner().raw;
+        let raw = self.client.resources_get(request).await?.into_inner().raw;
         let resource = serde_json::from_slice::<Resource>(&raw)?;
 
         Ok(resource)
+    }
+
+    pub async fn resources_reconcile_now(&mut self, key: &Key) -> Result<()> {
+        let raw = serde_json::to_vec(key)?;
+
+        let mut request = Request::new(ResourcesReconcileNowRequest { raw });
+        if let Some(password) = &self.password {
+            request.metadata_mut().append("x-auth", password.parse()?);
+        }
+
+        let _ = self.client.resources_reconcile_now(request).await?;
+        Ok(())
+    }
+
+    pub async fn resources_force_delete(&mut self) -> Result<()> {
+        todo!()
+    }
+
+    pub async fn system_reboot(&mut self) -> Result<()> {
+        todo!()
     }
 }

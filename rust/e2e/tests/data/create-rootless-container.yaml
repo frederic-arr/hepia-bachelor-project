@@ -1,0 +1,64 @@
+---
+schema: api
+auth: none
+
+---
+schema: network:dns
+nameservers:
+  - 9.9.9.9
+
+---
+schema: network:link
+name: eth0
+admin_up: true
+
+---
+schema: network:dhcp
+name: eth0
+
+---
+schema: system:static-file
+name: subgid
+path: /etc/subgid
+readable_by_group: true
+readable_by_others: true
+content: |
+  1000:100000:65536
+
+---
+schema: system:static-file
+name: subuid
+path: /etc/subuid
+readable_by_group: true
+readable_by_others: true
+content: |
+  1000:100000:65536
+
+---
+schema: system:static-file
+name: passwd
+path: /etc/passwd
+readable_by_group: true
+readable_by_others: true
+content: |
+  rootless:x:1000:1000:::
+
+---
+schema: container:runtime
+name: rootless
+engine: podman
+uid: 1000
+gid: 1000
+depends_on:
+  - system:static-file/passwd
+  - system:static-file/subuid
+  - system:static-file/subgid
+  - network:dns
+  - network:route/eth0-dhcp
+
+---
+schema: container:instance
+name: probe
+image: docker.io/alpine/curl:latest
+runtime: rootless
+cmd: [http://10.0.2.2:%%PORT%%]

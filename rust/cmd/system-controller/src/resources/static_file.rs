@@ -15,6 +15,7 @@ use cos_proto_reconciler::{
     Status,
     ValidateResponse,
 };
+use rand::random;
 use rustix::fs::{
     AtFlags,
     CWD,
@@ -27,6 +28,7 @@ use rustix::fs::{
     fsync,
     linkat,
     openat2,
+    renameat,
     statx,
     unlinkat,
 };
@@ -478,10 +480,10 @@ impl StaticFileReconciler {
 
                 let is_content_equal = reader
                     .bytes()
+                    .by_ref()
                     .zip(spec.content.as_bytes())
-                    .try_fold(true, |_, (a, b)| {
-                        let a = a?;
-                        Ok::<_, anyhow::Error>(a == *b)
+                    .try_fold(true, |acc, (a, b)| {
+                        Ok::<_, anyhow::Error>(acc && (a? == *b))
                     })
                     .context("unable to read existing file")?;
 
@@ -578,14 +580,35 @@ impl StaticFileReconciler {
 
         tmp_file.sync_all().context("unable to sync working file")?;
 
-        linkat(
+        if linkat(
             tmp_file.as_fd(),
             "",
             parent_fd,
             &resource.derived_spec.file_name,
             AtFlags::EMPTY_PATH,
         )
-        .context("unable to link working file to final destination")?;
+        .is_err()
+        {
+            let tmp_path = &resource
+                .derived_spec
+                .file_name
+                .with_added_extension(random::<u128>().to_string());
+            linkat(
+                tmp_file.as_fd(),
+                "",
+                parent_fd,
+                tmp_path,
+                AtFlags::EMPTY_PATH,
+            )
+            .context("unable to link working file to temporary destination")?;
+            renameat(
+                parent_fd,
+                tmp_path,
+                parent_fd,
+                &resource.derived_spec.file_name,
+            )
+            .context("unable to rename working file to final destination")?;
+        }
 
         fsync(parent_fd).context("unable to sync root directory")?;
         Ok(())

@@ -1,6 +1,6 @@
 ---
 schema: api
-auth: "none"
+auth: none
 
 ---
 schema: network:dns
@@ -51,4 +51,4 @@ depends_on:
 entrypoint: [/bin/sh]
 cmd:
   - -c
-  - curl -fsS -X POST "http://10.0.2.2:%%PORT%%/" --data-binary "$(curl -sS http://server:80 2>&1)"
+  - curl -fsS -X POST "http://10.0.2.2:%%PORT%%/" --data-binary "$(curl -sS http://server:8080 2>&1)"

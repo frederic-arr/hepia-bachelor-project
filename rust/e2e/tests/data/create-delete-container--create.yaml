@@ -1,6 +1,6 @@
 ---
 schema: api
-auth: "none"
+auth: none
 
 ---
 schema: network:dns
@@ -28,8 +28,7 @@ depends_on:
 
 ---
 schema: container:instance
-name: demo
+name: probe
 image: docker.io/alpine/curl:latest
 runtime: rootfull
-running: true
 cmd: [http://10.0.2.2:%%PORT%%]

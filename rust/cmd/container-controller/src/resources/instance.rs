@@ -365,7 +365,6 @@ impl InstanceReconciler {
                         cmd: resource.spec.cmd.clone(),
                         entrypoint: resource.spec.entrypoint.clone(),
                         env: resource.spec.env.clone(),
-                        volumes: resource.spec.volumes.clone(),
                         domainname: resource.spec.domainname.clone().or_else(
                             || Some(resource.derived_spec.name.clone()),
                         ),
@@ -397,6 +396,7 @@ impl InstanceReconciler {
                                     bindings.collect()
                                 },
                             ),
+                            binds: resource.spec.volumes.clone(),
                             ..Default::default()
                         }),
                         networking_config: resource.spec.networks.clone().map(
@@ -470,10 +470,15 @@ impl InstanceReconciler {
                 .clone()
                 .unwrap_or_default()
                 .into_iter()
-                .map(|net| {
+                .map(|vol| {
                     Identity::Private(PrivateIdentity::Dynamic(Key {
                         schema: "container:volume".to_owned(),
-                        name: Some(net),
+                        name: Some(
+                            vol.split_once(':').map_or_else(
+                                || vol.clone(),
+                                |v| v.0.to_owned(),
+                            ),
+                        ),
                     }))
                 });
 

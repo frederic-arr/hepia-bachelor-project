@@ -32,8 +32,11 @@ use network_controller::{
     LinkSpec,
     LinkSpecType,
     LinkSpecUnspec,
+    NtpSpec,
 };
+use rustix::thread::{CapabilitySet, CapabilitySets, set_capabilities};
 use serde_json::Value;
+use tokio::runtime::{Builder, LocalOptions};
 use tokio::signal::ctrl_c;
 use tokio::signal::unix::{SignalKind, signal};
 use tokio::sync::Mutex;
@@ -47,6 +50,10 @@ use tracing_subscriber::fmt::MakeWriter;
 use crate::api::{ApiAuth, ApiConfig, ApiServer};
 use crate::queue::Queue;
 use crate::state::StateManager;
+
+// ! state-manager doesn't need any capabilities besides reboot
+const CAPS: CapabilitySet =
+    CapabilitySet::SYS_BOOT.union(CapabilitySet::SYS_ADMIN);
 
 #[expect(clippy::unwrap_used, reason = "this is early in the program")]
 fn default_config() -> Vec<SubResourceCreate<Value>> {
@@ -85,6 +92,27 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
         },
         SubResourceCreate::<Value> {
             id: Identity::Private(PrivateIdentity::Static(Key {
+                schema: "network:ntp".to_owned(),
+                name: None,
+            })),
+            spec: serde_json::to_value(NtpSpec {
+                pools: vec!["pool.ntp.org".to_owned()],
+                servers: vec![],
+                depends_on: HashSet::from([
+                    Key {
+                        schema: "network:dns".to_owned(),
+                        name: None,
+                    },
+                    Key {
+                        schema: "network:route".to_owned(),
+                        name: Some("eth0-dhcp".to_owned()),
+                    },
+                ]),
+            })
+            .unwrap(),
+        },
+        SubResourceCreate::<Value> {
+            id: Identity::Private(PrivateIdentity::Static(Key {
                 schema: "network:dhcp".to_owned(),
                 name: Some("eth0".to_owned()),
             })),
@@ -95,15 +123,15 @@ fn default_config() -> Vec<SubResourceCreate<Value>> {
 
 fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
     let system_client = ReconcilerServiceClient::new(
-        Endpoint::from_static("http://[::1]:50051").connect_lazy(),
+        Endpoint::from_static("http://127.0.0.1:50051").connect_lazy(),
     );
 
     let network_client = ReconcilerServiceClient::new(
-        Endpoint::from_static("http://[::1]:50052").connect_lazy(),
+        Endpoint::from_static("http://127.0.0.1:50052").connect_lazy(),
     );
 
     let container_client = ReconcilerServiceClient::new(
-        Endpoint::from_static("http://[::1]:50053").connect_lazy(),
+        Endpoint::from_static("http://127.0.0.1:50053").connect_lazy(),
     );
 
     hash_map! {
@@ -111,18 +139,20 @@ fn get_clients() -> HashMap<String, ReconcilerServiceClient<Channel>> {
         "system:static-file".to_owned() => system_client,
 
         // Network resources
-        "network:dns".to_owned() => network_client.clone(),
-        "network:interface".to_owned() => network_client.clone(),
-        "network:link".to_owned() => network_client.clone(),
-        "network:route".to_owned() => network_client.clone(),
         "network:address".to_owned() => network_client.clone(),
-        "network:dhcp".to_owned() => network_client,
+        "network:dhcp".to_owned() => network_client.clone(),
+        "network:dns".to_owned() => network_client.clone(),
+        "network:link".to_owned() => network_client.clone(),
+        "network:interface".to_owned() => network_client.clone(),
+        "network:ntp".to_owned() => network_client.clone(),
+        "network:route".to_owned() => network_client,
 
         // Container resources
-        "container:runtime".to_owned() => container_client.clone(),
-        "container:instance".to_owned() => container_client.clone(),
         "container:image".to_owned() => container_client.clone(),
-        "container:network".to_owned() => container_client,
+        "container:instance".to_owned() => container_client.clone(),
+        "container:network".to_owned() => container_client.clone(),
+        "container:volume".to_owned() => container_client.clone(),
+        "container:runtime".to_owned() => container_client,
     }
 }
 
@@ -259,8 +289,23 @@ impl Write for ImmediateStdout {
     }
 }
 
-#[tokio::main(flavor = "local")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    set_capabilities(
+        None,
+        CapabilitySets {
+            effective: CapabilitySet::empty(),
+            permitted: CAPS,
+            inheritable: CapabilitySet::empty(),
+        },
+    )?;
+
+    Builder::new_current_thread()
+        .enable_all()
+        .build_local(LocalOptions::default())?
+        .block_on(async_main())
+}
+
+async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         .with_writer(ImmediateWriter)
         .with_env_filter(
@@ -292,7 +337,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let sm = Arc::new(sm);
-    let addr = "[::1]:50050".parse()?;
+    let addr = "127.0.0.1:50050".parse()?;
     let server = Server::builder()
         .add_service(StateServiceServer::new(StateManagerService {
             sm: Arc::clone(&sm),
@@ -327,7 +372,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     tracing::info!("saving data to disk");
-    // TODO
     tracing::info!("shutdown complete");
 
     Ok(())

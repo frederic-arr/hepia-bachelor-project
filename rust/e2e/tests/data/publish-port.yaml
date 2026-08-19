@@ -1,6 +1,6 @@
 ---
 schema: api
-auth: "none"
+auth: none
 
 ---
 schema: network:dns
@@ -31,9 +31,8 @@ schema: container:instance
 name: http
 image: docker.io/fredericarr/simple-http-server:latest
 runtime: rootfull
-cmd: []
 ports:
-  - container_port: 80
+  - container_port: 8080
     host_port: 8080
 
 ---

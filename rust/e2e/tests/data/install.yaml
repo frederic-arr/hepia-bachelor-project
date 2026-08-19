@@ -1,10 +1,15 @@
 ---
 schema: install
-system_disk: /dev/vda
+disks:
+  - dev: /dev/vda
+    partitions:
+      - type: boot
+      - type: config
+      - type: data
 
 ---
 schema: api
-auth: "none"
+auth: none
 
 ---
 schema: network:dns
@@ -32,8 +37,7 @@ depends_on:
 
 ---
 schema: container:instance
-name: demo
+name: probe
 image: docker.io/alpine/curl:latest
 runtime: rootfull
-running: true
 cmd: [http://10.0.2.2:%%PORT%%]

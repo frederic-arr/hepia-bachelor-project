@@ -4,8 +4,8 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use cos_proto_api::ConfigResource;
 use cos_proto_reconciler::{Identity, Key, PrivateIdentity, SubResourceCreate};
-use cosc::ConfigResource;
 use itertools::Itertools as _;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -20,21 +20,48 @@ struct Cli {
     password: Option<String>,
 
     #[command(subcommand)]
-    command: Commands,
+    command: CommandGroup,
 }
 
 #[derive(Debug, Subcommand)]
-enum Commands {
-    Reconcile {
+enum CommandGroup {
+    #[command(subcommand)]
+    Config(ConfigCommand),
+    #[command(subcommand)]
+    Fs(FsCommand),
+    #[command(subcommand)]
+    Resources(ResourcesCommand),
+}
+
+#[derive(Debug, Subcommand)]
+enum ConfigCommand {
+    Pull,
+    Validate { config: PathBuf },
+    Push { config: PathBuf },
+}
+
+#[derive(Debug, Subcommand)]
+enum FsCommand {
+    Write { content: PathBuf, target: String },
+    List { target: String },
+    Read { target: String },
+    Delete { target: String },
+}
+
+#[derive(Debug, Subcommand)]
+enum ResourcesCommand {
+    List {
+        schema: Option<String>,
+    },
+    Get {
         schema: String,
         name: Option<String>,
     },
-    Push {
-        #[arg(short, long)]
-        config: PathBuf,
+    ReconcileNow {
+        schema: String,
+        name: Option<String>,
     },
-    List {},
-    Get {
+    ForceDelete {
         schema: String,
         name: Option<String>,
     },
@@ -59,10 +86,7 @@ async fn main() -> Result<()> {
     let mut client = cosc::CosClient::new(&cli.server, cli.password)?;
 
     match cli.command {
-        Commands::Reconcile { name, schema } => {
-            client.reconcile(&Key { schema, name }).await?;
-        }
-        Commands::Push { config } => {
+        CommandGroup::Config(ConfigCommand::Validate { config }) => {
             let configs = serde_yaml::Deserializer::from_reader(
                 std::fs::File::open(config)?,
             )
@@ -78,12 +102,62 @@ async fn main() -> Result<()> {
             })
             .collect::<Vec<_>>();
 
-            client.push(&configs).await?;
+            client.config_validate(configs).await?;
         }
-        Commands::List {} => {
-            let resources = client.list().await?;
+        CommandGroup::Config(ConfigCommand::Push { config }) => {
+            let configs = serde_yaml::Deserializer::from_reader(
+                std::fs::File::open(config)?,
+            )
+            .map(ConfigResource::deserialize)
+            .collect::<std::result::Result<Vec<_>, _>>()?
+            .into_iter()
+            .map(|v| SubResourceCreate {
+                id: Identity::Private(PrivateIdentity::Static(Key {
+                    schema: v.schema,
+                    name: v.name,
+                })),
+                spec: v.spec,
+            })
+            .collect::<Vec<_>>();
+
+            client.config_push(&configs).await?;
+        }
+        CommandGroup::Config(ConfigCommand::Pull) => {
+            let mut ser = serde_yaml::Serializer::new(std::io::stdout());
+            let resources = client.config_pull().await?.into_iter().map(|v| {
+                ConfigResource {
+                    schema: v.id.schema().clone(),
+                    name: v.id.key().name.clone(),
+                    spec: v.spec.clone(),
+                }
+            });
+
+            for res in resources {
+                res.serialize(&mut ser)?;
+            }
+        }
+
+        CommandGroup::Fs(FsCommand::Write { .. }) => {
+            todo!()
+        }
+
+        CommandGroup::Fs(FsCommand::List { .. }) => {
+            todo!()
+        }
+
+        CommandGroup::Fs(FsCommand::Read { .. }) => {
+            todo!()
+        }
+
+        CommandGroup::Fs(FsCommand::Delete { .. }) => {
+            todo!()
+        }
+
+        CommandGroup::Resources(ResourcesCommand::List { schema }) => {
+            let resources = client.resources_list().await?;
             let resources = resources
                 .into_iter()
+                .filter(|v| schema.clone().is_none_or(|s| v.id.schema() == &s))
                 .map(|v| DisplayResource {
                     schema: v.id.schema().clone(),
                     name: v.id.key().name.clone(),
@@ -106,8 +180,9 @@ async fn main() -> Result<()> {
             let v = serde_json::to_string(&resources)?;
             println!("{v}");
         }
-        Commands::Get { name, schema } => {
-            let resource = client.get_resource(&Key { name, schema }).await;
+
+        CommandGroup::Resources(ResourcesCommand::Get { schema, name }) => {
+            let resource = client.resources_get(&Key { schema, name }).await;
             let resource = resource.map(|v| DisplayResource {
                 schema: v.id.schema().clone(),
                 name: v.id.key().name.clone(),
@@ -128,6 +203,19 @@ async fn main() -> Result<()> {
 
             let v = serde_json::to_string(&resource)?;
             println!("{v}");
+        }
+
+        CommandGroup::Resources(ResourcesCommand::ReconcileNow {
+            schema,
+            name,
+        }) => {
+            client
+                .resources_reconcile_now(&Key { schema, name })
+                .await?;
+        }
+
+        CommandGroup::Resources(ResourcesCommand::ForceDelete { .. }) => {
+            todo!()
         }
     }
 
