@@ -13,3 +13,5 @@ result
 .config/.cspell.json
 *.iso
 *.qcow2
+
+containeros.yaml

@@ -400,7 +400,6 @@ timeout: 5
     }
 
     fn partition_config_disk(dev: &str, has_boot: bool) -> Result<String> {
-        dbg!(&dev, &has_boot);
         let mut child = Command::new("sgdisk")
             .args(["-n", "0:0:+10MiB", "-t", "0:8300", "-c", "0:config", dev])
             .spawn()?;

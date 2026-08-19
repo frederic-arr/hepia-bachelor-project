@@ -235,8 +235,8 @@ impl RuntimeReconciler {
             ])
             .env("NETAVARK_FW", "nftables")
             .env("HOME", &home_dir)
-            .stderr(Stdio::piped())
-            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .stdout(Stdio::null())
             .uid(uid)
             .gid(gid);
 
@@ -249,16 +249,16 @@ impl RuntimeReconciler {
             });
         }
 
-        let mut child = cmd.spawn().context("unable to start podman")?;
-        let file = tokio::fs::File::create("output.txt").await?;
-        let err = tokio::fs::File::create("error.txt").await?;
+        let child = cmd.spawn().context("unable to start podman")?;
+        // let file = tokio::fs::File::create("output.txt").await?;
+        // let err = tokio::fs::File::create("error.txt").await?;
 
-        if let Some(stdout) = child.stdout.take() {
-            tokio::spawn(forward_chunks(stdout, file));
-        }
-        if let Some(stderr) = child.stderr.take() {
-            tokio::spawn(forward_chunks(stderr, err));
-        }
+        // if let Some(stdout) = child.stdout.take() {
+        //     tokio::spawn(forward_chunks(stdout, file));
+        // }
+        // if let Some(stderr) = child.stderr.take() {
+        //     tokio::spawn(forward_chunks(stderr, err));
+        // }
 
         let key = resource.id.key().clone();
         tokio::spawn(async move {
