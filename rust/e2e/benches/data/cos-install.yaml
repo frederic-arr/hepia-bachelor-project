@@ -1,6 +1,11 @@
 ---
 schema: install
-system_disk: /dev/vda
+disks:
+  - dev: /dev/vda
+    partitions:
+      - type: boot
+      - type: config
+      - type: data
 
 ---
 schema: api
