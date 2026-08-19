@@ -4,8 +4,8 @@
   <b>Documents</b>
   <br />
   <a href="https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os/-/jobs/artifacts/main/raw/output/Enonce_LOG_diplome_Arroyo_Gluck_2026.pdf?job=build-docs-internal">Énoncé du sujet</a>&nbsp;&bull;&nbsp;
-  <a href="https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os/-/jobs/artifacts/main/raw/output/Enonce_LOG_diplome_Arroyo_Gluck_2026.pdf?job=build-docs-internal">Résumé</a>&nbsp;&bull;&nbsp;
-  <a href="https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os/-/jobs/artifacts/main/raw/output/Rapport_Intermediare_Arroyo_Gluck_2026.pdf?job=build-docs-internal">Mémoire</a>&nbsp;&bull;&nbsp;
+  <a href="https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os/-/jobs/artifacts/main/raw/output/ISC_LOG_resume_diplome_Arroyo_Gluck_2026.pdf?job=build-docs-internal">Résumé</a>&nbsp;&bull;&nbsp;
+  <a href="https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os/-/jobs/artifacts/main/raw/output/ISC_LOG_memoire_diplome_Arroyo_Gluck_2026.pdf?job=build-docs-internal">Mémoire</a>&nbsp;&bull;&nbsp;
   <a href="https://gitedu.hesge.ch/flg_bachelors/tb/2026/container-infrastructure-deployment-os/-/jobs/artifacts/main/raw/output/slides/ISC_LOG_slides_handout-16-9_Arroyo_Gluck_2026.pdf?job=build-docs-internal">Slides</a>
   <br/>
   <small>Ce travail fait suite au <a href="https://gitedu.hesge.ch/flg_bachelors/ps/2025/container_os/-/raw/bachelor/final/arroyo-frederic-sp-2026.pdf?ref_type=tags&inline=true">projet de semestre</a></small>
@@ -18,7 +18,7 @@ uniquement via une API, sans shell ou console interactive.
 
 ## Démarrage rapide
 
-Cet exemple montre comment deployer ContainerOS et serveur NGINX sur une machine
+Cet exemple montre comment deployer ContainerOS et serveur HTTP sur une machine
 virtuelle.
 
 ### Prérequis
