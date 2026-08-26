@@ -9,7 +9,7 @@
         font: "Liberation Sans",
         config,
         config-info(
-            title: [OS dédié au déploiement de services conteneurisés],
+            title: [OS pour le déploiement de services conteneurisés],
             subtitle: [Défense du projet de bachelor],
             author: [Frédéric ARROYO],
             date: datetime(year: 2026, month: 09, day: 01),

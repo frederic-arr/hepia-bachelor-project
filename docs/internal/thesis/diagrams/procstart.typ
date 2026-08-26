@@ -16,46 +16,46 @@
     edge-stroke: 2pt,
     mark-scale: 60%,
     {
-        node(
-            label: <procstart-legend-start>,
-            (-1.75, -1.75),
-        )
+        // node(
+        //     label: <procstart-legend-start>,
+        //     (-1.75, -1.75),
+        // )
 
-        node(
-            label: <procstart-legend-fp>,
-            (-1.5, -1),
-            title: [first-party process],
-            stroke: teal,
-        )
-        node(
-            label: <procstart-legend-tp>,
-            (-1.5, -0.5),
-            title: [third-party process],
-            stroke: (dash: "dashed"),
-        )
-        edge(
-            (-1.75, 0.25),
-            (-1.25, 0.25),
-            "-|>",
-            title: "spawns child",
-        )
+        // node(
+        //     label: <procstart-legend-fp>,
+        //     (-1.5, -1),
+        //     title: [first-party process],
+        //     stroke: teal,
+        // )
+        // node(
+        //     label: <procstart-legend-tp>,
+        //     (-1.5, -0.5),
+        //     title: [third-party process],
+        //     stroke: (dash: "dashed"),
+        // )
+        // edge(
+        //     (-1.75, 0.25),
+        //     (-1.25, 0.25),
+        //     "-|>",
+        //     title: "spawns child",
+        // )
 
-        node(
-            label: <procstart-legend-end>,
-            (-1.75, 0.3),
-        )
+        // node(
+        //     label: <procstart-legend-end>,
+        //     (-1.75, 0.3),
+        // )
 
-        node(
-            enclose: (
-                <procstart-legend-start>,
-                <procstart-legend-fp>,
-                <procstart-legend-tp>,
-                <procstart-legend-end>,
-            ),
-            inset: 2mm,
-            snap: false,
-            title: align(top + center, place(dx: 0cm, dy: 0em)[_Legend_]),
-        )
+        // node(
+        //     enclose: (
+        //         <procstart-legend-start>,
+        //         <procstart-legend-fp>,
+        //         <procstart-legend-tp>,
+        //         <procstart-legend-end>,
+        //     ),
+        //     inset: 2mm,
+        //     snap: false,
+        //     title: align(top + center, place(dx: 0cm, dy: 0em)[_Legend_]),
+        // )
 
         node(label: <procstart-init>, (0, 0), title: [init], stroke: teal)
         node(
