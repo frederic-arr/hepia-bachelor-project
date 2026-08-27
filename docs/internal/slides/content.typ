@@ -17,9 +17,7 @@
 // Fin: 00:20
 // Contenu: Bonjour, aujourd'hui j'ai l'immense plaisir de vous présenter mon projet de
 // Bachelor, intitulé "OS pour le déploiement de services conteneurisés".
-// Cette présentation est scindé en deux parties: je vais tout d'abord vous
-// introduire à la problématique et à la solution proposée du point de vue d
-// l'utilisateur final de la solution, puis dans un second temps, ...
+// Avant de rentrer dans le vif du travail, je vais d'abord vous présenter la problématique et la solution d'un point de vue utilisateur
 #title-slide()
 
 = Introduction <touying:skip>
@@ -29,21 +27,28 @@
 // d'infrastructures modestes: typiquement pour de l'hébergement à titre personnel ou pour des petits projet avec quelques centaines d'utilisateur
 // Dans ce contexte là
 #speaker-note[
-    - Début: 00:20
-    - Fin: *00:55*
+    - Début: 00:25
+    - Fin: *02:15*
+    - *Ce projet n'est pas anodin, car c'est un projet que j'ai amené moi-même
+        sur la table*
+    - Modeste => pas de redondance, administré par une seul personne, etc.
+    - *Quelle forme prend la solution?*
 ]
 
-#item-by-item[
-    - Déploiement modestes
-    - Basé sur les conteneurs, mais sans clustering
-    - Volonté d'automatiser les choses
-]
-
-== Problématique
-- OS orientés conteneurs sont soit:
-    - orienté Kubernetes (trop lourd)
-    - orienté cloud (difficile à adapter sur environement embarqués)
-- OS déclaratifs actuel sont complexe
+- Projet personnel / basé sur mon expérience
+#pause
+- Déploiement modestes
+#pause
+- Basé sur les conteneurs
+#pause
+- Étapes communes
+    + Installer l'OS
+    #pause
+    + Configuer le système (SSH, réseau, paquets)
+    #pause
+    + Installer le runtime de conteneur
+    #pause
+    + Deployer les conteneurs
 #pause
 #v(0.5cm)
 #box(
@@ -55,36 +60,76 @@
         fill: rgb("e2001a"),
         inset: 2.5mm,
         radius: 0.25em,
-        strong(text(fill: white)[Question?]),
+        strong(text(fill: white)[Constat]),
     ))
 
-    Pourquoi n'existe-t-il pas un OS rudimentaire pour deployer des conteneurs
-    en restant léger et simple?
+    Malgrès ces besoins simples, aucun OS ne remplit ce rôle simplement.
 ]
 
 == Solution proposée
-- Distribution Linux spécialisée uniquement pour les conteneurs
-- Configuration entièrement *déclarative*: _pas d'SSH_, pas de commandes
-- Surface *minimale*: le stricte nécessaire pour les conteneurs
-- Cible: déploiement modestes (VPS, embarqué, etc.)
+#speaker-note[
+    - Début: 02:20
+    - Fin: *04:00*
+]
+#grid(
+    columns: 2,
+    item-by-item[
+        - Distribution Linux spécialisée
+        - Surface *minimale*: le stricte nécessaire pour les conteneurs
+        - Pas d'SSH, de shell, ou de commandes
+        - Piloté par API
+        - Fichier de configuration unique
+        - Système déclaratif
+        - Cible: déploiement modestes (VPS, embarqué, etc.)
+    ],
+    [
+        #pause
+        #align(center, image("/assets/image-4.png")),
+    ],
+)
+
 
 = Démonstration <touying:skip>
 
 = Suite de la présentation <touying:skip>
-+ *Conception*: vue d'ensemble, architecture, composants principaux
-+ *Implémentation*: Choix technique, fonctionnement
-+ *Tests & Validation*: Comment s'assurer que la solution fonctionne bien?
-+ *Comparaison avec d'autres solutions*: Est-ce que la solution développé est
-    plus pratique que les alternatives?
-+ *Discussion*: Quels sont ses limitations?
+#speaker-note[
+    - Début: 04:00
+    - Fin: *04:30*
+]
+
++ *Conception*
++ *Implémentation*
++ *Tests & Validation*
++ *Comparaison avec d'autres solutions*
++ *Discussion*
 
 = Conception <touying:skip>
 
-== Vue d'ensemble
-#align(center, image("/assets/image-4.png"))
+== Réconciliation
+#speaker-note[
+    - Début: 04:30
+    - Fin: *06:00*
+]
 
-== Architecture
-#align(center, image("/assets/image-2.png"))
+- *Définition*: faire converger un état désiré avec l'état actuel
+#align(center, image(height: 90%, "/assets/image.png"))
+
+== Contrôleur et ressources
+#speaker-note[
+    - Début: 06:00
+    - Fin: *07:30*
+]
+- *Ressource*: objet qui regroupe l'état désiré, et un instantané de l'état
+    actuel
+    #pause
+    - avec un type, un nom, un schéma
+#pause
+- *Contrôleur*: implémente la _réconciliation_ pour une _ressource_ donnée
+    - Réseau
+    - Conteneur
+    - Système
+
+== Orchestration
 
 = Implémentation <touying:skip>
 == Choix techniques
@@ -94,8 +139,8 @@
     - Runtime de conteneur: Podman
     - Bootloader: Limine
 
-== Réconciliation
-#align(center, image("/assets/image.png"))
+== Processus
+#align(center, image("/assets/image-2.png"))
 
 = Test & Validation <touying:skip>
 == Stratégie de tests
