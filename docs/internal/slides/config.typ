@@ -35,6 +35,11 @@
             neutral-dark: rgb("#bababa"),
             // neutral-darkest: rgb("#ff00ff"),
         ),
+        config-common(
+            new-section-slide-fn: new-section-slide.with(
+                config: config-common(freeze-slide-counter: true),
+            ),
+        ),
     )
 
     include "content.typ"

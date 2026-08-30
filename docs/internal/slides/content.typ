@@ -259,7 +259,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Réconciliation
 #speaker-note[
-    - Début: 05:00 #h(5cm) Fin: *06:30*
+    - Début: 05:00 #h(5cm) Fin: *06:00*
     #only(<part-a>)[
         - En termes simples, la réconciliation est une boucle qui compare l'état
             actuel avec l'état désiré afin de les faire converger
@@ -296,7 +296,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Contrôleur et ressources
 #speaker-note[
-    - Début: 06:30 #h(5cm) Fin: *07:30*
+    - Début: 06:00 #h(5cm) Fin: *07:00*
     #only(<part-a>)[
         - Je vais aussi brièvement aborder deux autres concepts éssentiels que
             sont les ressources et les contrôleurs. *>>>*
@@ -339,7 +339,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Orchestration
 #speaker-note[
-    - Début: 07:30 #h(5cm) Fin: *09:00*
+    - Début: 07:00 #h(5cm) Fin: *08:30*
     #only(<part-a>)[
         - Enfin, je vous ai dit tantôt que la réconciliation est un processus
             qui se répète à l'infini.
@@ -371,7 +371,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
         - Vous avez une boucle, implémenté dans un composant central qu'on verra
             plus tard
         - Et cette boucle itère sur chaque ressource, une à une, à l'infini
-        - En réalité, il y a aussi un délai et une file d'attente
+        - En réalité, il y a aussi un délai et une file d'attente *|||*
     ]
 ]
 
@@ -390,7 +390,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 = Implémentation
 #speaker-note[
-    - Début: 09:00 #h(5cm) Fin: *09:10*
+    - Début: 08:40 #h(5cm) Fin: *08:50*
     - Maintenant que j'ai expliqué les concepts éssentiels, je vais vous parler
         de l'implémentation
     - En premier lieu, je vais vous donner une vue d'ensemble des technologies
@@ -399,13 +399,13 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Vue d'ensemble
 #speaker-note[
-    - Début: 09:10 #h(5cm) Fin: *10:20*
+    - Début: 08:50 #h(5cm) Fin: *10:00*
     #only(<part-a>)[
         - Tout d'abord la solution ne se base sur aucune distribution ou
             programme existant:
             - pas de Debian, Ubuntu, etc.
-            - et pas non plus de systemd ou autre
-        - Tout a donc été développé de zéro
+            - et pas non plus de systemd ou autre *>>>*
+        - Tout a donc été développé de zéro *>>>*
         - Et pour ça j'ai choisis de le faire en Rust
         - En ce qui concerne ce choix, il n'y a pas d'impératif particulier qui
             m'ont forcer à prendre Rust; il fallait simpement un language de bas
@@ -442,109 +442,144 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Immuabilité
 #speaker-note[
-    - Début: 10:20 #h(5cm) Fin: *12:30*
-    - Un autre point important de l'implémentation c'est l'immuabilité du
-        système de fichier.
-    - En effet, plus le système démarre dans un état connu, plus il est simple
-        de l'administrer, et pour cela, j'ai choisi de rendre le système de
-        ficheir racine complètemetn immuable en utilisant SquashFs.
-    - Ainsi, à chaque redémarrage, on connait exactement le contenu.
-    - Maintenant je vous l'accorde, ne rien pouvoir écrire sur le système de
-        fichier n'est pas très pratique.
-    - Par exemple, si vous souhaitez changer la configuration DNS comme on l'a
-        fait dans la démo, cela doit être écrit dans le répertoire /etc.
-    - Et on ne peut naturelemtn pas inclure ce répertoire dans l'image SquashFS,
-        sinon on ne pourrait pas le changer.
-    - Pour ce faire, j'ai superposer un système temporaire par dessus l'image
-        SquashFs en utilisant OverlayFS.
-    - C'est sans doutes quelque chose que vous avez déjà utilisé si vous
-        utilisez des conteneurs puisce que c'est comme ça que la pluspart
-        fonctionnent
-    - Vous avez un ou plusieurs layer en lecture seule, ici notre système de
-        ficheir racine, puis un dernier layer en écriture.
-    - Vu que notre layer en écrutre est temporaire, càd en RAM, a chaque
-        redémarrage, on perd tout
-    - Très pratique car on revient a un état connu, mais assez embetant si vous
-        devez tout reconfigurer a chaque fois.
-    - Pour ce faire, deux répertoire sont montés de manière persistente:
+    - Début: 10:00 #h(5cm) Fin: *12:00*
+    #only(<part-a>)[
+        - Un autre point important de l'implémentation c'est l'immuabilité du
+            système de fichier.
+        - En effet, plus le système démarre dans un état connu, plus il est
+            simple de l'administrer, et pour cela, j'ai choisi de rendre le
+            système de ficheir racine complètemetn immuable en utilisant
+            SquashFs.
+        - Ainsi, à chaque redémarrage, on connait exactement le contenu.
+        - Maintenant je vous l'accorde, ne rien pouvoir écrire sur le système de
+            fichier n'est pas très pratique. *>>>*
+    ]
+    #only(<part-b>)[
+        - Par exemple, si vous souhaitez changer la configuration DNS comme on
+            l'a fait dans la démo, cela doit être écrit dans le répertoire /etc.
+        - Et on ne peut naturelemtn pas inclure ce répertoire dans l'image
+            SquashFS, sinon on ne pourrait pas le changer. *>>>*
+        - Pour ce faire, j'ai superposer un système temporaire par dessus
+            l'image SquashFs en utilisant OverlayFS. *>>>*
+        - OverlayFS c'est sans doutes quelque chose que vous avez déjà recontré
+            si vous utilisez des conteneurs puisce que c'est comme ça que la
+            pluspart fonctionnent *>>>*
+    ]
+    #only(<part-c>)[
+        - Vous avez un ou plusieurs layer en lecture seule, ici notre système de
+            ficheir racine, puis un dernier layer en écriture.
+        - Vu que notre layer en écrutre est temporaire, càd en RAM, a chaque
+            redémarrage, on perd tout
+        - Très pratique car on revient a un état connu, mais assez embetant si
+            vous devez tout reconfigurer a chaque fois. *>>>*
+        - Pour ce faire, deux répertoire sont montés de manière persistente:
         - `/config` qui contient la dernière config valide que vous avez envoyé
         - et `/var` qui contient les données téléchargée tel que les images ou
-            volumes de conteneurs
-    - Tout le reste des dossier et fichiers, conmme `/etc` peut être reconstruit
-        grâce a cela
-    - A noter aussi que c'est a *vous* de choisir si vous souhaitez persister
-        ces deux répertoires. SI vous les omettez de la config, vous obtenez un
-        système complètemetn éhpmère
+            volumes de conteneurs *>>>*
+    ]
+    #only(<part-d>)[
+        - Tout le reste des dossier et fichiers, conmme `/etc` peut être
+            reconstruit grâce a cela *>>>*
+        - A noter aussi que c'est a *vous* de choisir si vous souhaitez
+            persister ces deux répertoires. SI vous les omettez de la config,
+            vous obtenez un système complètemetn éhpmère *|||*
+    ]
 ]
 
-#item-by-item[
-    - Racine immuable avec couche d'écriture temporaire
-        - SquashFs, Tmpfs, OverlayFs
-    - Uniquement `/var` est persisté
-    - `/etc` et autres dossiers reconstruits à chaque redémarrage
-]
+#waypoint(<part-a>, advance: false)
+- Racine immuable #waypoint(<part-b>) #pause avec couche d'écriture temporaire
+    #pause
+    - SquashFs, Tmpfs, OverlayFs
+#waypoint(<part-c>)
+#pause
+- `/config` et `/var` persistés
+#waypoint(<part-d>)
+- `/etc` et autres reconstruits à chaque redémarrage
+#pause
+- Persistance optionnelle: système peut être rendu entièrement éphémère
 
 == Processus
 #speaker-note[
-    - Début: 12:30 #h(5cm) Fin: *13:30*
-    - Enfin, en ce qui concerne la légèreté du système, cela est obtenu en
-        minimsant le nombre de processus en cours d'exécution
-    - Dans le mode de fonctionnemetn normal, càd hors installation, je vous
-        montre ici l'ensemble des processus en cours d'exécution.
-    - Et j'insite là dessus, il n'y en a pas un seul de plus
-    - ça veut aussi dire que je peux rapidemnt vous faire le tour de ces
-        composants.
-    - En premier lieu vous avez l'init, qui est chargé de mettre en place ce
-        fameux système de fichier immuable que je vous ai décrit juste avant
-    - Puis vous avez le supervisuer. Son rôle est simplemetn de démarrer les
-        composants principaux dans le bon ordre:
-    - C'est a dire démarrer tous les contrôleur que je vous ai décrit
-        précédement
-    - Puis une fois qu'ils sont tous prêt, démarrer le state-manager qui est le
-        composant dans lequel la fameuse boucle d'orchestration et l'API sont
-        implémenté.
-    - Et puis chauqe contrôleur dispose de ses propre sous-processus, comme par
-        exemple le runtime de conteneur
+    - Début: 12:00 #h(5cm) Fin: *13:00*
+    #only(<part-a>)[
+        - Enfin, en ce qui concerne la légèreté du système, cela est obtenu en
+            minimsant le nombre de processus en cours d'exécution *>>>*
+        - Dans le mode de fonctionnemetn normal, càd hors installation, je vous
+            montre ici l'ensemble des processus en cours d'exécution.
+        - Et j'insite là dessus, il n'y en a pas un seul de plus
+        - ça veut aussi dire que je peux rapidemnt vous faire le tour de ces
+            composants.
+    ]
+    #only(<part-b>)[
+        - En premier lieu vous avez l'init, qui est chargé de mettre en place ce
+            fameux système de fichier immuable que je vous ai décrit juste avant
+        - Puis vous avez le supervisuer. Son rôle est simplemetn de démarrer les
+            composants principaux dans le bon ordre:
+        - C'est a dire démarrer tous les contrôleur que je vous ai décrit
+            précédement
+        - Puis une fois qu'ils sont tous prêt, démarrer le state-manager qui est
+            le composant dans lequel la fameuse boucle d'orchestration et l'API
+            sont implémenté.
+    ]
+    #only(<part-c>)[
+        - Et puis chauqe contrôleur dispose de ses propre sous-processus, comme
+            par exemple le runtime de conteneur
+    ]
 ]
 
+#waypoint(<part-a>, advance: false)
+#pause
 #align(center, image("/assets/image-2.png"))
+#waypoint(<part-b>)
+#waypoint(<part-c>)
 
 == Pipeline de build
 #speaker-note[
-    - Début: 13:30 #h(5cm) Fin: *15:15*
-    - Enfin je vais vous parler du système de build.
-    - La particularité de ce projet c'est qu'il faut compiler non seulement une
-        multitude d'application (les controleurs, l'init, etc.)
-    - Mais aussi le noyau Linux, puis packager tout ça sous différent format,
-        comme des images SquashFS, eux-même assmeblé au final dans une image ISO
-    - En outre, je vise plusieurs architectures: x64 et ARM
-    - Et utiliser des conteneurs pour build c'est bien, mais ça devient assez
-        compliquer à gérer, en particulier quand on veut pouvoir disposer d'un
-        environemetn de développement similaire a celui de build
-    - Pour ce faire, j'ai choisi Nix.
+    - Début: 13:00 #h(5cm) Fin: *14:15*
+    #only(<part-a>)[
+        - Enfin je vais vous parler du système de build.
+        - La particularité de ce projet c'est qu'il faut compiler non seulement
+            une multitude d'application (les controleurs, l'init, etc.) *>>>*
+        - Mais aussi le noyau Linux, puis packager tout ça sous différent
+            format, comme des images SquashFS, eux-même assmeblé au final dans
+            une image ISO *>>>*
+        - En outre, je vise plusieurs architectures: x64 et ARM *>>>*
+    ]
+    #only(<part-b>)[
+        - Pour ce faire, j'ai choisi Nix.
         - Je tiens ici a souligner que je parle de Nix en tant que système de
             build ou gestionnaire de paquet, mais pas de NixOS. CE sont deux
-            choses étroitement liée mais indépendantes.
-    - L'avantage de Nix c'est que cela donne des builds 100% reproducible. C'est
-        a dire que le build sur ma machine et le build sur un serveur de CI/CD
-        donnera exactement le même résultat, à l'octet près.
-    - En outre, c'est assez simple de disposer du même environement de dev
-    - L'inconvénient majeur c'est la lourdeur de Nix. Bien qu'il y ai un système
-        de cache, dnas le cadre de Rust, l'unitée qui est mise en cache est un
-        programme entier. Donc si vous modifier ne serait-ce qu'une ligne, tout
-        va être recompilé. COmbiné au Rust, ça peut faire des temps de build
-        assez long.
+            choses étroitement liée mais indépendantes. *>>>*
+        - L'avantage de Nix c'est que cela donne des builds 100% reproducible.
+            C'est a dire que le build sur ma machine et le build sur un serveur
+            de CI/CD donnera exactement le même résultat, à l'octet près.
+        - En outre, c'est assez simple de disposer du même environement de dev
+            *>>>*
+    ]
+    #only(<part-c>)[
+        - L'inconvénient majeur c'est la lourdeur de Nix. Bien qu'il y ai un
+            système de cache, dnas le cadre de Rust, l'unitée qui est mise en
+            cache est un programme entier. Donc si vous modifier ne serait-ce
+            qu'une ligne, tout va être recompilé. COmbiné au Rust, ça peut faire
+            des temps de build assez long. *|||*
+    ]
 ]
-#item-by-item[
-    - Système de build: Nix
-    - Build 100% reproducible
-    - Tout est compilé (noyau, composants internes et externes)
-    - Fournis aussi un environnement de dév.
-]
+#waypoint(<part-a>, advance: false)
+- Compilation de multiples composants : noyau Linux, contrôleurs, init...
+#pause
+- Packaging en images SquashFS, assemblées en image ISO
+#pause
+- Cible plusieurs architectures : x64 et ARM
+#waypoint(<part-b>)
+- Système de build: Nix
+    #pause
+    - Builds 100% reproductibles
+#waypoint(<part-c>)
+- Inconvénient: recompilations longues avec Rust
 
 = Test & validation
 #speaker-note[
-    - Début: 15:15 #h(5cm) Fin: *15:30*
+    - Début: 14:15 #h(5cm) Fin: *14:30*
     - Bon, les conceptes et l'implémentation c'est bien pratique, mais dans le
         cas d'espèce, si ça ne fonctionne pas correctement, on ne vas pas aller
         très loin
@@ -555,58 +590,69 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Stratégie de tests
 #speaker-note[
-    - Début: 15:30 #h(5cm) Fin: *16:00*
-    - En ce qui concerne les tests unitaires et les tests d'intégration, c'est a
-        dire lorsqu'un seul composant est testé, en isolation, il y en a une
-        quarantaine
-    - Ce qui est plsu intéerssant, c'est les tests de bout en bout. Ces tests
-        éxecutent une VM entière, avec un disque neuf, et toutes les
-        interactinos sont faite uniquement via l'API, de sorte a simuler un
-        utilisateur réel
-    - Et ces tests, il en existe 14.
-    - À savoir aussi que tous ces tests sont effectués à chaque push pour
-        s'assurer que ce que je merge dans main soit corect
-    - Par ailleur, ces tests servent de base a l'analyse de performances
+    - Début: 14:30 #h(5cm) Fin: *15:00*
+    #only(<part-a>)[
+        - En ce qui concerne les tests unitaires et les tests d'intégration,
+            c'est a dire lorsqu'un seul composant est testé, en isolation, il y
+            en a une quarantaine *>>>*
+        - Ce qui est plsu intéerssant, c'est les 14 tests de bout en bout. *>>>*
+        - Ces tests éxecutent une VM entière, avec un disque neuf, et toutes les
+            interactinos sont faite uniquement via l'API, de sorte a simuler un
+            utilisateur réel *>>>*
+    ]
+    #only(<part-b>)[
+        - À savoir aussi que tous ces tests sont effectués à chaque push pour
+            s'assurer que ce que je merge dans main soit corect *>>>*
+        - Par ailleur, ces tests servent de base a l'analyse de performance
+            *|||*
+    ]
 ]
 
-#item-by-item[
-    - 40 tests unitaires et intégrations
-    - 14 tests de bout en bout (E2E)
-        - VM isolée
-        - Interaction uniquement via le client d'API
-    - CI/CD sur chaque push bloquant le merge
-]
+#waypoint(<part-a>, advance: false)
+- 40 tests unitaires et intégrations
+#pause
+- 14 tests de bout en bout (E2E)
+    #pause
+    - VM isolée
+    - Interaction uniquement via le client d'API
+#waypoint(<part-b>)
+- CI/CD sur chaque push bloquant le merge
 
 == Performances
 #speaker-note[
-    - Début: 16:00 #h(5cm) Fin: *17:00*
-    - Selon moi, l'aspect le plus intéressant de ce projet c'est les
-        performnacnes que j'en tire
-    - Sur 100 échantillons, et en suivant les même protocoles que les tests E2E
-        pour être au plus proche d'un usage réel,
-    - Le système ne consomme que 160 méga de RAM pour télécharger et exécuter un
-        conteneur. Et si je ne mesure que l'OS en tant que tel, sans le
-        conteneur, ce chiffre tombe en dessosu des 80 méga.
-    - De même pour la vitesse, le démarrage du système puis d'un conteneur "à
-        chaud", et par là j'entend lorsque l'image est déjà téléchargé, ne prend
-        que 2.1 secondes
-    - Si il est nécessaire de télécharger l'image, et bien cela prend au total
-        4.4s
-    - Et enfin, le cycle complèt du démarrage de l'isntaller jusqu'a
-        l'installation, le redémarrage, et le téléchargement du conteneur et son
-        exécution prend 19.3s
+    - Début: 15:00 #h(5cm) Fin: *16:00*
+    #only(<part-a>)[
+        - Selon moi, l'aspect le plus intéressant de ce projet c'est les
+            performnacnes que j'en tire
+        - Sur 100 échantillons, et en suivant les même protocoles que les tests
+            E2E pour être au plus proche d'un usage réel, *>>>*
+        - Le système ne consomme que 160 méga de RAM pour télécharger et
+            exécuter un conteneur. Et si je ne mesure que l'OS en tant que tel,
+            sans le conteneur, ce chiffre tombe en dessosu des 80 méga. *>>>*
+    ]
+    #only(<part-b>)[
+        - De même pour la vitesse, le démarrage du système puis d'un conteneur
+            "à chaud", et par là j'entend lorsque l'image est déjà téléchargé,
+            ne prend que 2.1 secondes
+        - Si il est nécessaire de télécharger l'image, et bien cela prend au
+            total 4.4s
+        - Et enfin, le cycle complèt du démarrage de l'isntaller jusqu'a
+            l'installation, le redémarrage, et le téléchargement du conteneur et
+            son exécution prend 19.3s *|||*
+    ]
 ]
 
-#item-by-item[
-    - Sur 100 échantillons
-    - Même environnement que les tests unitaires
-    - RAM: *160 MiB* pour un conteneur, *\<80 MiB* pour le système seul
-        - 160 MiB majoritairement dus à Podman
-    - Rapidité:
-        - 2.1 "hot start"
-        - 4.4s "cold start"
-        - 19.3s installation
-]
+#waypoint(<part-a>, advance: false)
+- Sur 100 échantillons
+- Même environnement que les tests unitaires
+#pause
+- RAM: *160 MiB* pour un conteneur, *\<80 MiB* pour le système seul
+    - 160 MiB majoritairement dus à Podman
+#waypoint(<part-b>)
+- Rapidité:
+    - 2.1 "hot start"
+    - 4.4s "cold start"
+    - 19.3s installation
 
 // == Performances
 // #image("/assets/image-5.png")
@@ -622,8 +668,11 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 // ]
 
 == Solutions étudiées
-=== Talos Linux
+#speaker-note[
+    - Début: 16:00 #h(5cm) Fin: *17:00*
+]
 
+=== Talos Linux
 - *Orienté Kubernetes*
 - Déclaratif et piloté par API
 - Minimaliste
@@ -636,6 +685,10 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 - Complexe à prendre en main
 
 == Synthèse
+#speaker-note[
+    - Début: 17:00 #h(5cm) Fin: *18:30*
+]
+
 #{
     show table.cell.where(y: 0): set text(weight: "bold")
 
