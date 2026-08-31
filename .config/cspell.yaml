@@ -37,6 +37,8 @@ languageSettings:
       - netavark
       - glspl
       - VirtIO
+      - aujourd
+      - persistés
   - languageId: typst
     ignoreRegExpList:
       - string

@@ -1,5 +1,5 @@
 /*
-- p12. légende schémaa
+- p12. légende schéma
 */
 
 
@@ -296,7 +296,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
         - Une ressource est simplement un objet qui représente l'état désiré, et
             un instantané de l'état actuel
         - Chaque ressource est identifiée par un type, et éventuellement un nom
-        - Le type permet de détermienr le schéma de donnée de cet état désiré et
+        - Le type permet de déterminer le schéma de donnée de cet état désiré et
             de l'éat actuel *>>>*
     ]
     #only(<part-b>)[
@@ -539,8 +539,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
     #only(<part-b>)[
         - Pour ce faire, j'ai choisi Nix.
         - Je tiens ici à souligner que je parle de Nix en tant que système de
-            build ou gestionnaire de paquet, mais pas de NixOS. CE sont deux
-            choses étroitement liées, mais indépendantes. *>>>*
+            build ou gestionnaire de paquet, mais pas de NixOS. *>>>*
         - L'avantage de Nix c'est que cela donne des builds 100% reproductibles.
             C'est-à-dire que le build sur ma machine et le build sur un serveur
             de CI/CD donneront exactement le même résultat, à l'octet près.
@@ -589,14 +588,14 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
         - Ce qui est plus intéressant, c'est les 14 tests de bout en bout. *>>>*
         - Ces tests exécutent une VM entière, avec un disque neuf, et toutes les
             interactions sont faite uniquement via l'API, de sorte a simuler un
-            utilisateur réel *>>>*
+            utilisateur réel *|||* // *>>>*
     ]
-    #only(<part-b>)[
-        - À savoir aussi que tous ces tests sont effectués à chaque push pour
-            s'assurer que ce que je merge dans main soit correct *>>>*
-        - Par ailleur, ces tests servent de base a l'analyse de performance
-            *|||*
-    ]
+    // #only(<part-b>)[
+    //     - À savoir aussi que tous ces tests sont effectués à chaque push pour
+    //         s'assurer que ce que je merge dans main soit correct *>>>*
+    //     - Par ailleur, ces tests servent de base a l'analyse de performance
+    //         *|||*
+    // ]
 ]
 
 #waypoint(<part-a>, advance: false)
@@ -606,8 +605,8 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
     #pause
     - VM isolée
     - Interaction uniquement via le client d'API
-#waypoint(<part-b>)
-- CI/CD sur chaque push bloquant le merge
+// #waypoint(<part-b>)
+// - CI/CD sur chaque push bloquant le merge
 
 == Performances
 #speaker-note[
@@ -640,8 +639,9 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
     - 160 MiB majoritairement dus à Podman
 #waypoint(<part-b>)
 - Rapidité:
-    - 2.1 "hot start"
-    - 19.3s installation
+    - *2.1s* cas idéal (machine moderne)
+    - 19.3s installation (machine moderne)
+    - 35s cas idéal (Raspberry Pi 1B [2008])
 
 = Comparaison avec d'autres solutions
 #speaker-note[
@@ -711,7 +711,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
     #only(<part-c>)[
         - En ce qui concerne la mémoire, la limite acceptable est placée à 300
             MiB.
-        - ContainerOS est nettemetn plus léger, aussi bien à l'exécution qu'à
+        - ContainerOS est nettement plus léger, aussi bien à l'exécution qu'à
             l'installation, avec 160 MiB durant les deux phases.
         - Pour NixOS, l'exécition est légère, mais l'installation nécessitant de
             build certains aspects, cela consomme beaucoup de RAM
