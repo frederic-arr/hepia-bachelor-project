@@ -1,13 +1,5 @@
 /*
-- [x] Parler de l'IA
-- [x] Plus parler du projet de semestre
-	- [x] Quel est le but du projet de semesetre
-- p11. /var ext4
 - p12. légende schémaa
-
-- abus de language NixOS => pas tout recompiler
-- parler des challenges
-- dire je
 */
 
 
@@ -29,11 +21,11 @@
 
 #title-slide()
 /*
-Bonjour, aujourd'hui j'ai l'immense plaisir de vous présenter mon travail de
-bachelor qui s'intitule OS pour le déploiemetn de services conteneurisés.
+Bonjour, aujourd'hui, j'ai l'immense plaisir de vous présenter mon travail de
+bachelor, qui s'intitule OS pour le déploiement de services conteneurisés.
 
-Toud d'abird, je vais vous présenter la problématique et le contexte de se travail,
-ainsi que vous présenter la solution développé avant de passer à la suite.
+Tous d'abord, je vais vous présenter la problématique et le contexte de se travail,
+ainsi que vous présenter la solution développée avant de passer à la suite.
 */
 
 = Introduction <touying:skip>
@@ -41,9 +33,9 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 #speaker-note[
     - Début: 00:20 #h(5cm) Fin: *01:50*
     #only(<part-a>)[
-        - *Ce projet s'intéresse l'administration d'environement modestes*
+        - *Ce projet s'intéresse l'administration d'environnement modeste*
         - Par modestes, il faut entendre des environnements administrés par une
-            seule personne, sans clustering, sans déploiement multi-région, et
+            seule personne, sans clustering, sans déploiement multirégion, et
             sans redondance particulière.
         - C'est typiquement le genre de déploiement que vous pourriez avoir si
             vous hébergez un site à titre personnel ou un petit projet avec une
@@ -81,6 +73,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 #waypoint(<part-b>)
 - Basé sur les conteneurs
 #waypoint(<part-c>)
+#pause
 - Étapes communes
     #pause
     + Installer l'OS
@@ -134,21 +127,21 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
     ]
     #only(<part-c>)[
         - Ce choix tient au fait qu'il s'agit avant tout d'un projet personnel
-            qui me tient à coeur: je voulais avant tout voir mes compétences à
-            l'oeuvre. *|||*
+            qui me tient à cœur: je voulais avant tout voir mes compétences à
+            l'œuvre. *|||*
     ]
 ]
 
 #waypoint(<part-a>, advance: false)
 - Projet de semestre, octobre #sym.arrow.double mars)
     #pause
-    - Identification de solution existante adéquates: *aucune*
+    - Identification de solution existante adéquate: *aucune*
     #pause
     - Conceptualisation de très haut niveau
     #pause
     - Recherche des "briques" logicielles
 #waypoint(<part-b>)
-- IA: tentative pour déboguage + amélioration CI/CD
+- IA: tentative pour débogage + amélioration CI/CD
     #pause
     - Sans succès
     #pause
@@ -252,8 +245,8 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 = Conception
 #speaker-note[
     - Début: 04:50 #h(5cm) Fin: *05:00*
-    - Et je vais donc maintenant vous présenter les conceptes éssentiels de
-        cette solution, à commencer par la réconciliation. *|||*
+    - Et je vais donc maintenant vous présenter les concepts essentiels de cette
+        solution, à commencer par la réconciliation. *|||*
 ]
 
 
@@ -298,21 +291,21 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 #speaker-note[
     - Début: 06:00 #h(5cm) Fin: *07:00*
     #only(<part-a>)[
-        - Je vais aussi brièvement aborder deux autres concepts éssentiels que
+        - Je vais aussi brièvement aborder deux autres concepts essentiels que
             sont les ressources et les contrôleurs. *>>>*
         - Une ressource est simplement un objet qui représente l'état désiré, et
-            un instantatné de l'état actuel
+            un instantané de l'état actuel
         - Chaque ressource est identifiée par un type, et éventuellement un nom
         - Le type permet de détermienr le schéma de donnée de cet état désiré et
             de l'éat actuel *>>>*
     ]
     #only(<part-b>)[
-        - Quant au controleur, il s'agit s'implement de l'unité de code chargée
+        - Quant au contrôleur, il s'agit simplement de l'unité de code chargée
             d'implémenter la logique de réconciliation pour une ressource
             donnée.
-        - Dans le système, les contrôleurs, et par extensions les ressources,
-            sont regroupés en 3 domaines fonctionels: *>>>*
-        - le domaine réseau, qui gère les routes, les addresses, le DHCP, etc.
+        - Dans le système, les contrôleurs, et par extension les ressources,
+            sont regroupés en 3 domaines fonctionnels: *>>>*
+        - le domaine réseau, qui gère les routes, les adresses, le DHCP, etc.
             *>>>*
         - le domaine conteneur qui gère, non seulement les conteneurs a
             proprement dit, mais aussi les réseaux de conteneurs, les images,
@@ -320,7 +313,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
     ]
     #only(<part-c>)[
         - et enfin le domaine système, qui gère les éléments qui n'ont pas été
-            catégorisée dans les deux domaines *|||*
+            catégorisés dans les deux domaines *|||*
     ]
 ]
 
@@ -339,37 +332,37 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Orchestration
 #speaker-note[
-    - Début: 07:00 #h(5cm) Fin: *08:30*
+    - Début: 07:00 #h(5cm) Fin: *08:00*
     #only(<part-a>)[
         - Enfin, je vous ai dit tantôt que la réconciliation est un processus
             qui se répète à l'infini.
         - Il faut donc décider qui est responsable de cette boucle. C'est ce que
-            j'ai appelé l'orchestration
+            j'ai appelé l'orchestration.
         - Et il y a deux modèles qui s'offrent à nous: le modèle centralisé et
             le modèle décentralisé *>>>*
     ]
     #only(<part-b>)[
         - Le modèle décentralisé est assez simple a expliquer:
-        - Chaque ressource étant gérée par un contrôleur, le controleur décide
+        - Chaque ressource étant gérée par un contrôleur, le contrôleur décide
             comme il souhaite de l'implémentation de la boucle.
-        - Par exemple une seul boucle pour toutes ses ressources, une boucle par
-            type, une boucle par ressource, etc. *>>>*
-        - Il a l'avantage d'être plus flexible mais est plus compliqué à
+        - Par exemple, une seule boucle pour toutes ses ressources, une boucle
+            par type, une boucle par ressource, etc. *>>>*
+        - Il a l'avantage d'être plus flexible, mais est plus compliqué à
             implémenter.
-        - C'est d'ailleur le modèle d'orchestration adopté par Kubernetes *>>>*
+        - C'est d'ailleurs le modèle d'orchestration adopté par Kubernetes *>>>*
     ]
     #only(<part-c>)[
-        - Le modèle centralisé est l'exacte opposé; dans ce modèle, un seul
+        - Le modèle centralisé est l'exact opposé; dans ce modèle, un seul
             composant implémente la boucle, et va dispatcher la réconciliation
             vers le bon contrôleur.
-        - Et il possède donc les avantages et inconvéients inverses: *>>>*
-        - Il est plus rigide mais plus simple a implémenter.
-        - Et c'est cette implémentation que j'ai retenu *>>>*
+        - Et il possède donc les avantages et inconvénients inverses: *>>>*
+        - Il est plus rigide, mais plus simple à implémenter.
+        - Et c'est cette implémentation que j'ai retenue *>>>*
     ]
     #only(<part-d>)[
         - J'ai schématisé ici le fonctionnement général
-        - Vous avez une boucle, implémenté dans un composant central qu'on verra
-            plus tard
+        - Vous avez une boucle, implémentée dans un composant central qu'on
+            verra plus tard
         - Et cette boucle itère sur chaque ressource, une à une, à l'infini
         - En réalité, il y a aussi un délai et une file d'attente *|||*
     ]
@@ -379,51 +372,49 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 #waypoint(<part-b>)
 - Décentralisé: chaque contrôleur/ressource à sa propre boucle
     #pause
-    - Plus flexible mais plus compliqué à implémenter
+    - Plus flexible, mais plus compliqué à implémenter
 #waypoint(<part-c>)
 - *Centralisé*: une boucle centrale qui contrôle tout
     #pause
-    - Plus rigide mais plus simple à implémenter
+    - Plus rigide, mais plus simple à implémenter
 #waypoint(<part-d>)
 #align(center, image("/assets/image-1.png"))
 
 
 = Implémentation
 #speaker-note[
-    - Début: 08:40 #h(5cm) Fin: *08:50*
-    - Maintenant que j'ai expliqué les concepts éssentiels, je vais vous parler
+    - Début: 08:00 #h(5cm) Fin: *08:10*
+    - Maintenant que j'ai expliqué les concepts essentiels, je vais vous parler
         de l'implémentation
     - En premier lieu, je vais vous donner une vue d'ensemble des technologies
-        utilisée
+        utilisées
 ]
 
 == Vue d'ensemble
 #speaker-note[
-    - Début: 08:50 #h(5cm) Fin: *10:00*
+    - Début: 08:10 #h(5cm) Fin: *09:10*
     #only(<part-a>)[
         - Tout d'abord la solution ne se base sur aucune distribution ou
-            programme existant:
-            - pas de Debian, Ubuntu, etc.
-            - et pas non plus de systemd ou autre *>>>*
+            programme existant: pas de Debian, Ubuntu, et pas non plus de
+            systemd ou autre *>>>*
         - Tout a donc été développé de zéro *>>>*
-        - Et pour ça j'ai choisis de le faire en Rust
+        - Et pour ça j'ai choisi de le faire en Rust
         - En ce qui concerne ce choix, il n'y a pas d'impératif particulier qui
-            m'ont forcer à prendre Rust; il fallait simpement un language de bas
+            m'a forcé à prendre Rust; il fallait simplement un langage de bas
             niveau et Rust s'avère être celui avec lequel je suis le plus à
-            l'aise
-            *>>>*
+            l'aise *>>>*
+        - Il y a deux composants principaux que je n'ai pas redéveloppés *>>>*
     ]
     #only(<part-b>)[
-        - Il y a deux composants principaux que je n'ai pas redéveloppé: *>>>*
-        - Tout d'abord le runtime de conteneur, pour lequel j'ai choisi Podman
+        - Tout d'abord, le runtime de conteneur, pour lequel j'ai choisi Podman
             - Ce choix a été fait durant le projet de semestre ou je l'ai
-                comparé a d'autres solutions tel que containerd ou Docker, et
-                Podman était la solution la plus simple a mettre en place dans
-                le projet sans l'allourdir *>>>*
+                comparé a d'autres solutions, telles que containerd ou Docker,
+                et Podman était la solution la plus simple a mettre en place
+                dans le projet sans l'alourdir *>>>*
         - Pour le bootloader, le composant qui charge l'OS, j'ai choisi Limine.
             Là encore, aucun impératif particulier. Je souhaitais simplement
-            découvrire un autre outil que GRUB et celui-ci remplissait
-            l'ensemble des besoins *|||*
+            découvrir un autre outil que GRUB et celui-ci remplissait l'ensemble
+            des besoins *|||*
     ]
 ]
 
@@ -442,13 +433,13 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Immuabilité
 #speaker-note[
-    - Début: 10:00 #h(5cm) Fin: *12:00*
+    - Début: 09:10 #h(5cm) Fin: *11:10*
     #only(<part-a>)[
-        - Un autre point important de l'implémentation c'est l'immuabilité du
+        - Un autre point important de l'implémentation, c'est l'immuabilité du
             système de fichier.
         - En effet, plus le système démarre dans un état connu, plus il est
             simple de l'administrer, et pour cela, j'ai choisi de rendre le
-            système de ficheir racine complètemetn immuable en utilisant
+            système de fichier racine complètement immuable en utilisant
             SquashFs.
         - Ainsi, à chaque redémarrage, on connait exactement le contenu.
         - Maintenant je vous l'accorde, ne rien pouvoir écrire sur le système de
@@ -457,32 +448,32 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
     #only(<part-b>)[
         - Par exemple, si vous souhaitez changer la configuration DNS comme on
             l'a fait dans la démo, cela doit être écrit dans le répertoire /etc.
-        - Et on ne peut naturelemtn pas inclure ce répertoire dans l'image
+        - Et on ne peut naturellement pas inclure ce répertoire dans l'image
             SquashFS, sinon on ne pourrait pas le changer. *>>>*
-        - Pour ce faire, j'ai superposer un système temporaire par dessus
-            l'image SquashFs en utilisant OverlayFS. *>>>*
-        - OverlayFS c'est sans doutes quelque chose que vous avez déjà recontré
-            si vous utilisez des conteneurs puisce que c'est comme ça que la
-            pluspart fonctionnent *>>>*
+        - Pour ce faire, j'ai superposé un système temporaire par-dessus l'image
+            SquashFs en utilisant OverlayFS. *>>>*
+        - OverlayFS c'est sans doute quelque chose que vous avez déjà rencontré
+            si vous utilisez des conteneurs, puisque c'est comme ça que la
+            plupart fonctionnent *>>>*
     ]
     #only(<part-c>)[
         - Vous avez un ou plusieurs layer en lecture seule, ici notre système de
-            ficheir racine, puis un dernier layer en écriture.
-        - Vu que notre layer en écrutre est temporaire, càd en RAM, a chaque
+            fichier racine, puis un dernier layer en écriture.
+        - Vu que notre layer en écriture est temporaire, càd en RAM, a chaque
             redémarrage, on perd tout
-        - Très pratique car on revient a un état connu, mais assez embetant si
+        - Très pratique, car on revient à un état connu, mais assez embêtant si
             vous devez tout reconfigurer a chaque fois. *>>>*
-        - Pour ce faire, deux répertoire sont montés de manière persistente:
-        - `/config` qui contient la dernière config valide que vous avez envoyé
-        - et `/var` qui contient les données téléchargée tel que les images ou
-            volumes de conteneurs *>>>*
+        - Pour ce faire, deux répertoires sont montés sur des partitions ext4:
+        - `/config` qui contient la dernière config valide que vous avez envoyée
+        - et `/var` qui contient les données téléchargées, telles que les images
+            ou volumes de conteneurs *>>>*
     ]
     #only(<part-d>)[
-        - Tout le reste des dossier et fichiers, conmme `/etc` peut être
+        - Tout le reste des dossiers et fichiers, comme `/etc` peut être
             reconstruit grâce a cela *>>>*
         - A noter aussi que c'est a *vous* de choisir si vous souhaitez
             persister ces deux répertoires. SI vous les omettez de la config,
-            vous obtenez un système complètemetn éhpmère *|||*
+            vous obtenez un système complètement éphémère *|||*
     ]
 ]
 
@@ -492,7 +483,7 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
     - SquashFs, Tmpfs, OverlayFs
 #waypoint(<part-c>)
 #pause
-- `/config` et `/var` persistés
+- `/config` et `/var` persistés sur partitions ext4
 #waypoint(<part-d>)
 - `/etc` et autres reconstruits à chaque redémarrage
 #pause
@@ -500,30 +491,30 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Processus
 #speaker-note[
-    - Début: 12:00 #h(5cm) Fin: *13:00*
+    - Début: 11:10 #h(5cm) Fin: *12:10*
     #only(<part-a>)[
         - Enfin, en ce qui concerne la légèreté du système, cela est obtenu en
-            minimsant le nombre de processus en cours d'exécution *>>>*
-        - Dans le mode de fonctionnemetn normal, càd hors installation, je vous
+            minimisant le nombre de processus en cours d'exécution *>>>*
+        - Dans le mode de fonctionnement normal, càd hors installation, je vous
             montre ici l'ensemble des processus en cours d'exécution.
-        - Et j'insite là dessus, il n'y en a pas un seul de plus
-        - ça veut aussi dire que je peux rapidemnt vous faire le tour de ces
+        - Et j'insiste là-dessus, il n'y en a pas un seul de plus
+        - ça veut aussi dire que je peux rapidement vous faire le tour de ces
             composants.
     ]
     #only(<part-b>)[
         - En premier lieu vous avez l'init, qui est chargé de mettre en place ce
             fameux système de fichier immuable que je vous ai décrit juste avant
-        - Puis vous avez le supervisuer. Son rôle est simplemetn de démarrer les
+        - Puis vous avez le superviseur. Son rôle est simplement de démarrer les
             composants principaux dans le bon ordre:
-        - C'est a dire démarrer tous les contrôleur que je vous ai décrit
-            précédement
-        - Puis une fois qu'ils sont tous prêt, démarrer le state-manager qui est
-            le composant dans lequel la fameuse boucle d'orchestration et l'API
-            sont implémenté.
+        - C'est-à-dire démarrer tous les contrôleurs que je vous ai décrits
+            précédemment
+        - Puis, une fois qu'ils sont tous prêts, démarrer le state-manager qui
+            est le composant dans lequel la fameuse boucle d'orchestration et
+            l'API sont implémentés.
     ]
     #only(<part-c>)[
-        - Et puis chauqe contrôleur dispose de ses propre sous-processus, comme
-            par exemple le runtime de conteneur
+        - Et puis chaque contrôleur dispose de ses propres sous-processus, comme
+            par exemple, le runtime de conteneur
     ]
 ]
 
@@ -535,33 +526,33 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Pipeline de build
 #speaker-note[
-    - Début: 13:00 #h(5cm) Fin: *14:15*
+    - Début: 12:10 #h(5cm) Fin: *13:10*
     #only(<part-a>)[
         - Enfin je vais vous parler du système de build.
         - La particularité de ce projet c'est qu'il faut compiler non seulement
-            une multitude d'application (les controleurs, l'init, etc.) *>>>*
+            une multitude d'applications (les contrôleurs, l'init, etc.) *>>>*
         - Mais aussi le noyau Linux, puis packager tout ça sous différent
-            format, comme des images SquashFS, eux-même assmeblé au final dans
+            format, comme des images SquashFS, eux-mêmes assemblé au final dans
             une image ISO *>>>*
         - En outre, je vise plusieurs architectures: x64 et ARM *>>>*
     ]
     #only(<part-b>)[
         - Pour ce faire, j'ai choisi Nix.
-        - Je tiens ici a souligner que je parle de Nix en tant que système de
+        - Je tiens ici à souligner que je parle de Nix en tant que système de
             build ou gestionnaire de paquet, mais pas de NixOS. CE sont deux
-            choses étroitement liée mais indépendantes. *>>>*
-        - L'avantage de Nix c'est que cela donne des builds 100% reproducible.
-            C'est a dire que le build sur ma machine et le build sur un serveur
-            de CI/CD donnera exactement le même résultat, à l'octet près.
-        - En outre, c'est assez simple de disposer du même environement de dev
+            choses étroitement liées, mais indépendantes. *>>>*
+        - L'avantage de Nix c'est que cela donne des builds 100% reproductibles.
+            C'est-à-dire que le build sur ma machine et le build sur un serveur
+            de CI/CD donneront exactement le même résultat, à l'octet près.
+        - En outre, c'est assez simple de disposer du même environnement de dev
             *>>>*
     ]
     #only(<part-c>)[
-        - L'inconvénient majeur c'est la lourdeur de Nix. Bien qu'il y ai un
-            système de cache, dnas le cadre de Rust, l'unitée qui est mise en
-            cache est un programme entier. Donc si vous modifier ne serait-ce
-            qu'une ligne, tout va être recompilé. COmbiné au Rust, ça peut faire
-            des temps de build assez long. *|||*
+        - L'inconvénient majeur, c'est la lourdeur de Nix. Bien qu'il y ait un
+            système de cache, dans le cadre de Rust, l'unité qui est mise en
+            cache est un programme entier. Donc, si vous modifier ne serait-ce
+            qu'une ligne, tout va être recompilé. Combiner au Rust, ça peut
+            faire des temps de build assez long. *|||*
     ]
 ]
 #waypoint(<part-a>, advance: false)
@@ -579,30 +570,30 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 = Test & validation
 #speaker-note[
-    - Début: 14:15 #h(5cm) Fin: *14:30*
-    - Bon, les conceptes et l'implémentation c'est bien pratique, mais dans le
-        cas d'espèce, si ça ne fonctionne pas correctement, on ne vas pas aller
+    - Début: 13:10 #h(5cm) Fin: *13:20*
+    - Bon, les concepts et l'implémentation, c'est bien pratique, mais dans le
+        cas d'espèce, si ça ne fonctionne pas correctement, on ne va pas aller
         très loin
-    - Dans cette sectin je vais donc vous présenter brièvement comment est-ce
-        que la solution est testée et surtout quels sont les chiffres qu'on peut
-        en tirer.
+    - Dans cette section, je vais donc vous présenter brièvement comment la
+        solution est testée et surtout quels sont les chiffres qu'on peut en
+        tirer.
 ]
 
 == Stratégie de tests
 #speaker-note[
-    - Début: 14:30 #h(5cm) Fin: *15:00*
+    - Début: 13:20 #h(5cm) Fin: *13:50*
     #only(<part-a>)[
         - En ce qui concerne les tests unitaires et les tests d'intégration,
-            c'est a dire lorsqu'un seul composant est testé, en isolation, il y
+            c'est-à-dire lorsqu'un seul composant est testé, en isolation, il y
             en a une quarantaine *>>>*
-        - Ce qui est plsu intéerssant, c'est les 14 tests de bout en bout. *>>>*
-        - Ces tests éxecutent une VM entière, avec un disque neuf, et toutes les
-            interactinos sont faite uniquement via l'API, de sorte a simuler un
+        - Ce qui est plus intéressant, c'est les 14 tests de bout en bout. *>>>*
+        - Ces tests exécutent une VM entière, avec un disque neuf, et toutes les
+            interactions sont faite uniquement via l'API, de sorte a simuler un
             utilisateur réel *>>>*
     ]
     #only(<part-b>)[
         - À savoir aussi que tous ces tests sont effectués à chaque push pour
-            s'assurer que ce que je merge dans main soit corect *>>>*
+            s'assurer que ce que je merge dans main soit correct *>>>*
         - Par ailleur, ces tests servent de base a l'analyse de performance
             *|||*
     ]
@@ -620,23 +611,22 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Performances
 #speaker-note[
-    - Début: 15:00 #h(5cm) Fin: *16:00*
+    - Début: 13:50 #h(5cm) Fin: *14:50*
     #only(<part-a>)[
-        - Selon moi, l'aspect le plus intéressant de ce projet c'est les
-            performnacnes que j'en tire
-        - Sur 100 échantillons, et en suivant les même protocoles que les tests
-            E2E pour être au plus proche d'un usage réel, *>>>*
-        - Le système ne consomme que 160 méga de RAM pour télécharger et
+        - En ce qui concerne les performances, cela a été mesuré sur 100
+            échantillons, et en suivant les mêmes protocoles que les tests E2E
+            pour être au plus proche d'un usage réel, *>>>*
+        - Le système ne consomme que 160 mégas de RAM pour télécharger et
             exécuter un conteneur. Et si je ne mesure que l'OS en tant que tel,
-            sans le conteneur, ce chiffre tombe en dessosu des 80 méga. *>>>*
+            en omettant Podman, ce chiffre tombe en dessous des 80 mégas. *>>>*
     ]
     #only(<part-b>)[
-        - De même pour la vitesse, le démarrage du système puis d'un conteneur
-            "à chaud", et par là j'entend lorsque l'image est déjà téléchargé,
-            ne prend que 2.1 secondes
-        - Si il est nécessaire de télécharger l'image, et bien cela prend au
+        - De même pour la vitesse, le démarrage du système, puis d'un conteneur
+            "à chaud", et, par là, j'entends lorsque l'image est déjà
+            téléchargée, ne prend que 2.1 secondes
+        - S'il est nécessaire de télécharger l'image, et bien cela prend au
             total 4.4s
-        - Et enfin, le cycle complèt du démarrage de l'isntaller jusqu'a
+        - Et enfin, le cycle complet du démarrage de l'installer jusqu'a
             l'installation, le redémarrage, et le téléchargement du conteneur et
             son exécution prend 19.3s *|||*
     ]
@@ -644,40 +634,53 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 #waypoint(<part-a>, advance: false)
 - Sur 100 échantillons
-- Même environnement que les tests unitaires
+- Même environnement que les tests E2E
 #pause
 - RAM: *160 MiB* pour un conteneur, *\<80 MiB* pour le système seul
     - 160 MiB majoritairement dus à Podman
 #waypoint(<part-b>)
 - Rapidité:
     - 2.1 "hot start"
-    - 4.4s "cold start"
     - 19.3s installation
 
-// == Performances
-// #image("/assets/image-5.png")
-
 = Comparaison avec d'autres solutions
-// == Critères
-// #item-by-item[
-//     - Automatisation: aucune action requise hormis insertion de l'ISO et *une
-//         seule* commande
-//     - Mémoire: en tout temps, moins de 300 MiB
-//     - Rapidité: temps entre le démarrage de la VM, et le démarrage du conteneur
-//     - Simplicité: aussi peu d'abstractions que possible
-// ]
+#speaker-note[
+    - Début: 14:50 #h(5cm) Fin: *15:00*
+    - Enfin, je vais comparer ce qui a été développé a deux autres solutions:
+        Talos Linux et NixOS *>>>*
+]
 
 == Solutions étudiées
 #speaker-note[
-    - Début: 16:00 #h(5cm) Fin: *17:00*
+    - Début: 15:00 #h(5cm) Fin: *16:00*
+    #only(<part-a>)[
+        - Ces deux solutions sont les solutions identifiées comme les plus
+            proches des besoins lors du projet de semestre. *>>>*
+        - La première, Talos Linux, est une distribution orientée Kubernetes:
+            elle est déclarative et pilotée par API, mais son minimalisme reste
+            "contraint" par les besoins de Kubernetes et vous le verrez, cela se
+            répercute sur les chiffres. *>>>*
+    ]
+    #only(<part-b>)[
+        - La seconde est NixOS. C'est une solution générique, se basant sur Nix,
+            qu'on a déjà vu tout à l'heure.
+        - Et l'aspect particulier de NixOS c'est que vous "buildez" votre OS:
+            quand vous faites un changement, c'est un nouveau build que vous
+            appliquez à la machine
+        - Et c'est de là que vient l'aspect déclaratif, mais pas continu: il est
+            possible de faire des changements hors du cadre du système de build
+        - Enfin, NixOS ce n'est pas la solution la plus facile à prendre en main
+    ]
 ]
 
+#waypoint(<part-a>, advance: false)
+#pause
 === Talos Linux
 - *Orienté Kubernetes*
 - Déclaratif et piloté par API
 - Minimaliste
 
-#pause
+#waypoint(<part-b>)
 === NixOS
 - *Générique*
 - se base sur Nix
@@ -686,7 +689,53 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
 
 == Synthèse
 #speaker-note[
-    - Début: 17:00 #h(5cm) Fin: *18:30*
+    - Début: 16:00 #h(5cm) Fin: *18:30*
+    #only(<part-a>)[
+        - Ce tableau synthétise la comparaison sur six critères.
+        - Pour chaque solution, j'ai utilisé la configuration par défaut et fait
+            les changements minimums pour pouvoir y déployer un conteneur.
+        - Aussi, ContainerOS correspond a la solution développée durant de
+            travail, et les mesures de temps différent un petit peu de ce que je
+            vous ai montré tout à l'heure, car cela a été fait sur un
+            environnement différent.
+    ]
+    #only(<part-b>)[
+        - Tout d'abord, l'automatisation, c'est le fait d'effectuer le moins
+            d'actions possible sur l'ensemble du cycle de vie de la machine.
+            Pour ça, ContainerOS et Talos, il ne suffit que de démarrer dans
+            l'installeur et effectuer une seule commande, peu importe
+            l'environnement
+        - Ce n'est toutefois pas le cas de NixOS, où l'installation initiale
+            nécessite plusieurs actions manuelles *>>>*
+    ]
+    #only(<part-c>)[
+        - En ce qui concerne la mémoire, la limite acceptable est placée à 300
+            MiB.
+        - ContainerOS est nettemetn plus léger, aussi bien à l'exécution qu'à
+            l'installation, avec 160 MiB durant les deux phases.
+        - Pour NixOS, l'exécition est légère, mais l'installation nécessitant de
+            build certains aspects, cela consomme beaucoup de RAM
+        - Quand a Talos, le simple fait d'exécuter Kubernetes prend une quantité
+            considérable de RAM.
+    ]
+    #only(<part-d>)[
+        - Sur la rapidité, il n'y a pas de limites acceptables, mais vous pouvez
+            voir que ContainerOS est clairement plus rapide que les autres
+            solutions.
+        - Pour Talos Linux, c'est toujours lié à Kubernetes
+        - Et de même, pour NixOS, la lenteur à l'installation est toujours liée
+            à cette notion de build. En revanche, la lenteur d'exécution est
+            simplement due au fait que NixOS étant générique, la distribution
+            démarre une multitude de services
+    ]
+    #only(<part-e>)[
+        - Enfin, sur la simplicité, ContainerOS et NixOS se rejoignent grâce à
+            leur fichier de configuration unique, alors que Talos reste plus
+            complexe du fait de son orientation cluster.
+        - Ce tableau confirme donc que pour le cas d'usage visé — un déploiement
+            unitaire, non-cluster — ContainerOS répond de façon plus adéquate
+            que les deux solutions existantes. *|||*
+    ]
 ]
 
 #{
@@ -706,46 +755,54 @@ ainsi que vous présenter la solution développé avant de passer à la suite.
     let o = mkcell(fill: gray.transparentize(70%), default: sym.nothing)
     let w = mkcell(fill: orange.transparentize(70%), default: sym.star)
     // @typstyle off
+    waypoint(<part-a>, advance: false)
     table(
         columns: (auto, 1fr, 1fr, 1fr),
-        table.header(
-        [Critères],                         [ContainerOS], [NixOS],    [Talos]),
-        [Automatisation],                   y(),           w(),        y(),
-        [Mémoire requise en exécution],     y[*160 MiB*],  y[276 MiB], n[1.4 GiB],
-        [Mémoire requise à l'installation], y[*160 MiB*],  n[762 MiB], n[1.4 GiB],
-        [Rapidité d'installation],          [*36s*],       [300s],     [210s],
-        [Rapidité de démarrage],            [*5.6s*],      [31s],      [65s],
-        [Simplicité],                       y(),           y(),        n(),
+        table.header([Critères], [ContainerOS], [NixOS], [Talos]),
+        waypoint(<part-b>), [Automatisation], y(), w(),
+        y(), waypoint(<part-c>), [Mémoire requise en exécution], y[*160 MiB*],
+        y[276 MiB],
+        n[1.4 GiB],
+        [Mémoire requise à l'installation],
+        y[*160 MiB*],
+
+        n[762 MiB], n[1.4 GiB], waypoint(<part-d>), [Rapidité d'installation],
+        [*36s*], [300s], [210s], [Rapidité de démarrage],
+        [*5.6s*], [31s], [65s], waypoint(<part-e>),
+        [Simplicité], y(), y(), n(),
     )
 }
 
 = Conclusion
-== Rappel
-#item-by-item[
-    - *But*: un OS pour déployer des conteneurs de manière simple
-    - *Solution*: basé sur rien, piloté par API et 100% déclaratif
-    - *Résultats*: rapide et très léger (160 MiB)
-]
+== Rétrospective
+- *But*: un OS pour déployer des conteneurs de manière simple
+#pause
+- *Solution*: basé sur rien, piloté par API et 100% déclaratif
+#pause
+- *Résultats*:
+    #pause
+    - Rapide et très léger (160 MiB)
+    #pause
+    - Tous les objectifs ont été atteints
+#pause
+- *Difficultés*:
+    - Bugs dans des composants externes (Podman, WSL, bibliothèque Rust)
+    - Champ large
+    - Évolution en terrain inconnu
 
 == Perspectives
-#item-by-item[
-    - Customisation du noyau Linux
-    - Plus de support (VPN, backups, etc.)
-    - Extensions/plugins
-        - Machines virtuelles
-    - Job scheduling
-]
+- *Court terme*: mise à jour des composants + observabilité
+#pause
+- *Moyen terme*: plus de fonctionnalité dans les contrôleurs existants
+#pause
+- *Long terme*: système de plugin
 
 = <touying:skip>
 == Conclusion
-#item-by-item[
-    - Tous les objectifs de l'énoncé ont été atteints
-    - Très satisfait des performances
-    - Très intéressant
-        - Mise en pratique des technologies vues en cours
-        - Domaine du développement jamais touché
-    - Projet personnel, amené à être maintenu dans le futur
-]
+- Très intéressant
+    - Mise en pratique des technologies vues en cours
+    - Domaine du développement jamais touché
+- Projet personnel, amené à être maintenu dans le futur
 
 = Questions
 
