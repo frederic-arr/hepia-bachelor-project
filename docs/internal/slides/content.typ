@@ -1,8 +1,3 @@
-/*
-- p12. légende schéma
-*/
-
-
 #import "/packages.typ": *
 #import packages.touying: *
 #import themes.metropolis: *
@@ -295,9 +290,10 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
             sont les ressources et les contrôleurs. *>>>*
         - Une ressource est simplement un objet qui représente l'état désiré, et
             un instantané de l'état actuel
-        - Chaque ressource est identifiée par un type, et éventuellement un nom
-        - Le type permet de déterminer le schéma de donnée de cet état désiré et
-            de l'éat actuel *>>>*
+        - Chaque ressource est identifiée par un schéma, et éventuellement un
+            nom
+        - Le schéma permet de déterminer la structure de donnée de cet état
+            désiré et de l'éat actuel *>>>*
     ]
     #only(<part-b>)[
         - Quant au contrôleur, il s'agit simplement de l'unité de code chargée
@@ -359,13 +355,13 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
         - Il est plus rigide, mais plus simple à implémenter.
         - Et c'est cette implémentation que j'ai retenue *>>>*
     ]
-    #only(<part-d>)[
-        - J'ai schématisé ici le fonctionnement général
-        - Vous avez une boucle, implémentée dans un composant central qu'on
-            verra plus tard
-        - Et cette boucle itère sur chaque ressource, une à une, à l'infini
-        - En réalité, il y a aussi un délai et une file d'attente *|||*
-    ]
+    // #only(<part-d>)[
+    //     - J'ai schématisé ici le fonctionnement général
+    //     - Vous avez une boucle, implémentée dans un composant central qu'on
+    //         verra plus tard
+    //     - Et cette boucle itère sur chaque ressource, une à une, à l'infini
+    //     - En réalité, il y a aussi un délai et une file d'attente *|||*
+    // ]
 ]
 
 #waypoint(<part-a>, advance: false)
@@ -375,15 +371,13 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
     - Plus flexible, mais plus compliqué à implémenter
 #waypoint(<part-c>)
 - *Centralisé*: une boucle centrale qui contrôle tout
-    #pause
     - Plus rigide, mais plus simple à implémenter
-#waypoint(<part-d>)
 #align(center, image("/assets/image-1.png"))
 
 
 = Implémentation
 #speaker-note[
-    - Début: 08:00 #h(5cm) Fin: *08:10*
+    - Début: 07:30 #h(5cm) Fin: *07:40*
     - Maintenant que j'ai expliqué les concepts essentiels, je vais vous parler
         de l'implémentation
     - En premier lieu, je vais vous donner une vue d'ensemble des technologies
@@ -392,7 +386,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 == Vue d'ensemble
 #speaker-note[
-    - Début: 08:10 #h(5cm) Fin: *09:10*
+    - Début: 07:40 #h(5cm) Fin: *08:40*
     #only(<part-a>)[
         - Tout d'abord la solution ne se base sur aucune distribution ou
             programme existant: pas de Debian, Ubuntu, et pas non plus de
@@ -423,7 +417,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
     #pause
     - Tout est développé de zéro
 #pause
-- Language de programmation: Rust
+- Langage de programmation: Rust
 #waypoint(<part-b>)
 - Composants externes:
     #pause
@@ -433,7 +427,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 == Immuabilité
 #speaker-note[
-    - Début: 09:10 #h(5cm) Fin: *11:10*
+    - Début: 08:40 #h(5cm) Fin: *10:40*
     #only(<part-a>)[
         - Un autre point important de l'implémentation, c'est l'immuabilité du
             système de fichier.
@@ -491,7 +485,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 == Processus
 #speaker-note[
-    - Début: 11:10 #h(5cm) Fin: *12:10*
+    - Début: 10:40 #h(5cm) Fin: *11:40*
     #only(<part-a>)[
         - Enfin, en ce qui concerne la légèreté du système, cela est obtenu en
             minimisant le nombre de processus en cours d'exécution *>>>*
@@ -520,13 +514,24 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 #waypoint(<part-a>, advance: false)
 #pause
-#align(center, image("/assets/image-2.png"))
+#place(box(width: 100%, height: 100%, align(top)[
+    === All running processes
+    #align(center, image("/assets/image-2.png"))
+]))
+
+#box(width: 100%, height: 100%, align(top + right)[
+    #rect(stroke: 4pt + teal, inset: 4mm)[first-party process]
+    #rect(
+        stroke: (thickness: 4pt, dash: "loosely-dashed"),
+        inset: 4mm,
+    )[third-party process]
+])
 #waypoint(<part-b>)
 #waypoint(<part-c>)
 
 == Pipeline de build
 #speaker-note[
-    - Début: 12:10 #h(5cm) Fin: *13:10*
+    - Début: 11:40 #h(5cm) Fin: *12:40*
     #only(<part-a>)[
         - Enfin je vais vous parler du système de build.
         - La particularité de ce projet c'est qu'il faut compiler non seulement
@@ -569,7 +574,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 = Test & validation
 #speaker-note[
-    - Début: 13:10 #h(5cm) Fin: *13:20*
+    - Début: 12:40 #h(5cm) Fin: *12:50*
     - Bon, les concepts et l'implémentation, c'est bien pratique, mais dans le
         cas d'espèce, si ça ne fonctionne pas correctement, on ne va pas aller
         très loin
@@ -580,7 +585,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 == Stratégie de tests
 #speaker-note[
-    - Début: 13:20 #h(5cm) Fin: *13:50*
+    - Début: 12:50 #h(5cm) Fin: *13:20*
     #only(<part-a>)[
         - En ce qui concerne les tests unitaires et les tests d'intégration,
             c'est-à-dire lorsqu'un seul composant est testé, en isolation, il y
@@ -610,7 +615,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 == Performances
 #speaker-note[
-    - Début: 13:50 #h(5cm) Fin: *14:50*
+    - Début: 13:20 #h(5cm) Fin: *14:20*
     #only(<part-a>)[
         - En ce qui concerne les performances, cela a été mesuré sur 100
             échantillons, et en suivant les mêmes protocoles que les tests E2E
@@ -645,14 +650,14 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 = Comparaison avec d'autres solutions
 #speaker-note[
-    - Début: 14:50 #h(5cm) Fin: *15:00*
+    - Début: 14:20 #h(5cm) Fin: *14:30*
     - Enfin, je vais comparer ce qui a été développé a deux autres solutions:
         Talos Linux et NixOS *>>>*
 ]
 
 == Solutions étudiées
 #speaker-note[
-    - Début: 15:00 #h(5cm) Fin: *16:00*
+    - Début: 14:30 #h(5cm) Fin: *15:30*
     #only(<part-a>)[
         - Ces deux solutions sont les solutions identifiées comme les plus
             proches des besoins lors du projet de semestre. *>>>*
@@ -689,7 +694,7 @@ ainsi que vous présenter la solution développée avant de passer à la suite.
 
 == Synthèse
 #speaker-note[
-    - Début: 16:00 #h(5cm) Fin: *18:30*
+    - Début: 15:30 #h(5cm) Fin: *18:00*
     #only(<part-a>)[
         - Ce tableau synthétise la comparaison sur six critères.
         - Pour chaque solution, j'ai utilisé la configuration par défaut et fait
