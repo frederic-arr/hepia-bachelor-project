@@ -1,5 +1,6 @@
 #import "/packages.typ": *
-#import packages.touying: config-common
+#import packages.touying: *
+#import themes.metropolis: *
 #import "config.typ"
 
 #config.mk-slides(
